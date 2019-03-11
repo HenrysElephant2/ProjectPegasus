@@ -24,6 +24,9 @@ endif
 ComponentManager.o: ComponentManager.cpp ComponentManager.h Component.h
 EntityManager.o: EntityManager.cpp EntityManager.h
 Main.o: Main.cpp
+MessageManager.o: MessageManager.cpp MessageManager.h
+System.o: System.cpp System.h
+
 
 
 .c.o:
@@ -32,7 +35,7 @@ Main.o: Main.cpp
 	g++ -std=c++11 -c $(CFLG) $<
 
 
-Pegasus: Main.o ComponentManager.o EntityManager.o
+Pegasus:Main.o ComponentManager.o EntityManager.o MessageManager.o System.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:

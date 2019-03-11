@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#define BASE_NUMBER_OF_ENTITIES 3
+#define BASE_NUMBER_OF_COMPONENTS 3
 
 
 template <class T>
