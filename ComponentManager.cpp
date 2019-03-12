@@ -65,6 +65,12 @@ void ComponentManager<T>::print(void (*f)(T*))
 	}
 }
 
+template <class T>
+int ComponentManager<T>::getSize()
+{
+	return componentListSize;
+}
+
 //_______________________________________Debugging code______________________________________________
 // leaving this in for now, just in case i need to debug ComponentManager later, Will remove once componentManager has been tested in the context
 // of the ECS engine as a whole
