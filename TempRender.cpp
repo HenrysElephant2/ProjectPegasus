@@ -1,22 +1,34 @@
 #include "TempRender.h"
 
 RenderSystem::RenderSystem( int width, int height ) {
+	// Create Shader
 	char vertFile[] = "Shaders/default.vert";
 	char fragFile[] = "Shaders/default.frag";
-
 	defaultProgram = CreateShaderProg(vertFile,fragFile);
-	vertexAttrib = glGetAttribLocation( defaultProgram, "Vertex" );
+
+	// Get attribute locations -- recommended to just use constant attribute locations (defined in header)
+	// vertexAttrib   = glGetAttribLocation( defaultProgram, "Vertex" );
+	// rgbaAttrib     = glGetAttribLocation( defaultProgram, "Color" );
+	// normAttrib     = glGetAttribLocation( defaultProgram, "Normal" );
+	// tanAttrib      = glGetAttribLocation( defaultProgram, "Tangent" );
+	// bitanAttrib    = glGetAttribLocation( defaultProgram, "Bitangent" );
+	// texAttrib      = glGetAttribLocation( defaultProgram, "Texture" );
 
 	glClearColor( 0.f, 0.f, 0.f, 1.f );
 
-	//Create VAO
+	// Create VAO
 	glGenVertexArrays( 1, &vaoID );
 	glBindVertexArray( vaoID );
 
-	//Create VBO
+	// Create VBO
 	glGenBuffers( 1, &vboID );
 	glBindBuffer( GL_ARRAY_BUFFER, vboID );
-	glBufferData( GL_ARRAY_BUFFER, 4 * nVertices * sizeof(GLfloat), vertices, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW ); // 4 * nVertices * sizeof(GLfloat)
+
+	// Create IBO
+	glGenBuffers( 1, &iboID );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, iboID );
+	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBufferData), indexBufferData, GL_STATIC_DRAW );
 
 	// Initialize matrices
 	reshape(width,height);
@@ -27,9 +39,16 @@ RenderSystem::~RenderSystem() {
 }
 
 void RenderSystem::render() {
-	glClear( GL_COLOR_BUFFER_BIT );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glEnable(GL_DEPTH_TEST);
+
 	glUseProgram(defaultProgram);
 	glEnableVertexAttribArray( vertexAttrib );
+	glEnableVertexAttribArray( rgbaAttrib );
+	glEnableVertexAttribArray( normAttrib );
+	glEnableVertexAttribArray( tanAttrib );
+	glEnableVertexAttribArray( bitanAttrib );
+	glEnableVertexAttribArray( texAttrib );
 
 	glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "Model"), 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "View"), 1, GL_FALSE, glm::value_ptr(view));
@@ -37,12 +56,23 @@ void RenderSystem::render() {
 
 	// Draw Quad
 	glBindBuffer( GL_ARRAY_BUFFER, vboID );
-	glVertexAttribPointer( vertexAttrib, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), NULL );
-	glDrawArrays( GL_TRIANGLES, 0, nVertices );
+	glVertexAttribPointer( vertexAttrib, 4, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(0) );
+	glVertexAttribPointer( rgbaAttrib,   4, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(4 *sizeof(GLfloat)) );
+	glVertexAttribPointer( normAttrib,   3, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(8 *sizeof(GLfloat)) );
+	glVertexAttribPointer( tanAttrib,    3, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(11*sizeof(GLfloat)) );
+	glVertexAttribPointer( bitanAttrib,  3, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(14*sizeof(GLfloat)) );
+	glVertexAttribPointer( texAttrib,    2, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(17*sizeof(GLfloat)) );
+	glDrawElements( GL_TRIANGLES, nVertices, GL_UNSIGNED_INT, 0 );
 
 	glDisableVertexAttribArray( vertexAttrib );
+	glDisableVertexAttribArray( rgbaAttrib );
+	glDisableVertexAttribArray( normAttrib );
+	glDisableVertexAttribArray( tanAttrib );
+	glDisableVertexAttribArray( bitanAttrib );
+	glDisableVertexAttribArray( texAttrib );
 
 	glUseProgram(0);
+	glDisable(GL_DEPTH_TEST);
 	debug("RenderSystem");
 }
 
