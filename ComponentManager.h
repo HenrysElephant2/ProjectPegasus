@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#define BASE_NUMBER_OF_ENTITIES 3
+#define BASE_NUMBER_OF_COMPONENTS 3
 
 
 template <class T>
@@ -29,6 +29,7 @@ public:
 	void deleteComponent(int entityID); // invalidates the component for entity entityID. does not deallocate memory, the slot for this component can be filled later
 	// by another component for a different, new entity that uses the same entityID
 	void print(void (*f)(T*)); // print components, must provide a function that does the printing given a pointer to the component.
+	int getSize(); // returns the size of the componentList. This can be used to determine the minimum number of entities that need to be iterated through by a system
 
 
 };

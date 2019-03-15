@@ -13,10 +13,10 @@ T* ComponentManager<T>::getComponent(int entityID)
 template <class T>
 ComponentManager<T>::ComponentManager()
 {
-	componentList = (T*)malloc(sizeof(T) * BASE_NUMBER_OF_ENTITIES);
-	componentListSize = BASE_NUMBER_OF_ENTITIES;
-	valid = (bool*)malloc(sizeof(bool) * BASE_NUMBER_OF_ENTITIES);
-	memset(valid,0,sizeof(bool) * BASE_NUMBER_OF_ENTITIES);
+	componentList = (T*)malloc(sizeof(T) * BASE_NUMBER_OF_COMPONENTS);
+	componentListSize = BASE_NUMBER_OF_COMPONENTS;
+	valid = (bool*)malloc(sizeof(bool) * BASE_NUMBER_OF_COMPONENTS);
+	memset(valid,0,sizeof(bool) * BASE_NUMBER_OF_COMPONENTS);
 }
 
 template <class T>
@@ -63,6 +63,12 @@ void ComponentManager<T>::print(void (*f)(T*))
 		if(valid[i])
 			(*f)(componentList+i);
 	}
+}
+
+template <class T>
+int ComponentManager<T>::getSize()
+{
+	return componentListSize;
 }
 
 //_______________________________________Debugging code______________________________________________

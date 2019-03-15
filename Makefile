@@ -22,10 +22,13 @@ CLEAN=rm -f $(EXE) *.o *.a
 endif
 
 
+Main.o: Main.cpp
 ComponentManager.o: ComponentManager.cpp ComponentManager.h Component.h
 EntityManager.o: EntityManager.cpp EntityManager.h
 LoadShader.o: LoadShader.c LoadShader.h
-Main.o: Main.cpp
+MessageManager.o: MessageManager.cpp MessageManager.h
+System.o: System.cpp System.h
+TempRender.o: TempRender.cpp TempRender.h
 
 
 .c.o:
@@ -34,7 +37,7 @@ Main.o: Main.cpp
 	g++ -std=c++11 -c $(CFLG) $<
 
 
-Pegasus: Main.o ComponentManager.o EntityManager.o LoadShader.o
+Pegasus: Main.o ComponentManager.o EntityManager.o LoadShader.o MessageManager.o System.o TempRender.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:

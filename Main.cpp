@@ -1,50 +1,28 @@
-//  OpenGL with prototypes for glext
-#define GL_GLEXT_PROTOTYPES
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
+#include <stdio.h>
 #include <string>
-#include <iostream>
+#include "TempRender.h"
 
-// Much of this file is based on LazyFoo's SDL with OpenGL tutorial: http://lazyfoo.net/tutorials/SDL/51_SDL_and_modern_opengl/
+// Screen dimension constants
+int SCREEN_WIDTH = 1400;
+int SCREEN_HEIGHT = 900;
 
-// Screen dimension variables
-static int SCREEN_WIDTH = 1400;
-static int SCREEN_HEIGHT = 900;
+bool init();
+void handleKeys( unsigned char key );
+void handleMouse( int x, int y );
+void close();
+double getElapsedTime();
 
-bool quit = false;
 SDL_Window* gWindow = NULL;
 SDL_GLContext gContext;
+Uint64 previousTime = 0;
+int prevMouseX = 0, prevMouseY = 0;
 
+RenderSystem* rs;
 
-bool initGL() {
-	bool success = true;
-	GLenum error = GL_NO_ERROR;
-	
-	error = glGetError();
-	if( error != GL_NO_ERROR )
-		success = false;
+bool quit = false;
+bool mousePressed = false;
 
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-
-	error = glGetError();
-	if( error != GL_NO_ERROR )
-		success = false;
-	
-	glClearColor( 0, 0, 0, 1 );
-	
-	error = glGetError();
-	if( error != GL_NO_ERROR )
-		success = false;
-	
-	return success;
-}
 
 bool init() {
 	bool success = true;
@@ -54,18 +32,18 @@ bool init() {
 		success = false;
 	}
 	else {
-		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
-		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+		// Use OpenGL 3.3 core
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
-
-		gWindow = SDL_CreateWindow( "Project Pegasus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP );
+		gWindow = SDL_CreateWindow( "Project Pegasus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE ); // SDL_WINDOW_FULLSCREEN_DESKTOP
 		if( gWindow == NULL ) {
 			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
 			success = false;
 		}
 		else {
 			gContext = SDL_GL_CreateContext( gWindow );
-
 			if( gContext == NULL ) {
 				printf( "OpenGL context could not be created! SDL Error: %s\n", SDL_GetError() );
 				success = false;
@@ -74,10 +52,7 @@ bool init() {
 				if( SDL_GL_SetSwapInterval( 1 ) < 0 )
 					printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() );
 
-				if( !initGL() ) {
-					printf( "Unable to initialize OpenGL!\n" );
-					success = false;
-				}
+				rs = new RenderSystem(SCREEN_WIDTH, SCREEN_HEIGHT);
 			}
 		}
 	}
@@ -85,24 +60,33 @@ bool init() {
 	return success;
 }
 
+void handleKeys( unsigned char key ) {
+	if( key == 'q' )
+		quit = true;
+}
+
+void handleMouse( int x, int y ) {
+	if( mousePressed ) {
+		int dx = x - prevMouseX;
+		int dy = y - prevMouseY;
+		rs->setView(dx, dy);
+		prevMouseX = x;
+		prevMouseY = y;
+	}
+}
 
 void close() {
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
 	SDL_Quit();
+	delete rs;
 }
 
-void display() {
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glOrtho(0,SCREEN_WIDTH/SCREEN_HEIGHT,0,1,-1,1);
-
-	glBegin(GL_TRIANGLES);
-	glColor3d(1,1,0);
-	glVertex3d(0,0,0);
-	glVertex3d(0,1,0);
-	glVertex3d(1,.5,0);
-	glEnd();
+double getElapsedTime() {
+	Uint64 currentTime = SDL_GetPerformanceCounter();
+	double deltaTime = (double)((currentTime - previousTime) * 1000 / (double)SDL_GetPerformanceFrequency());
+	previousTime = currentTime;
+	return deltaTime / 1000;
 }
 
 int main( int argc, char* args[] ) {
@@ -110,59 +94,38 @@ int main( int argc, char* args[] ) {
 		printf( "Failed to initialize!\n" );
 	}
 	else {
-		SDL_GetWindowSize(gWindow, &SCREEN_WIDTH, &SCREEN_HEIGHT);
-		// GameState *currentState = new Menu(SCREEN_WIDTH, SCREEN_HEIGHT);
-		// currentState->reshape(SCREEN_WIDTH, SCREEN_HEIGHT);
-
 		SDL_Event e;
+		
 		SDL_StartTextInput();
 
 		while( !quit ) {
 			while( SDL_PollEvent( &e ) != 0 ) {
-				if( e.type == SDL_QUIT ) {
+				if( e.type == SDL_QUIT )
 					quit = true;
-				}
-				else if( e.type == SDL_KEYDOWN ) {
-					SDL_Keycode key = e.key.keysym.sym;
-					// currentState->keyDown( key );
-				}
-				else if( e.type == SDL_KEYUP ) {
-					SDL_Keycode key = e.key.keysym.sym;
-					// currentState->keyUp( key );
-				}
-				else if( e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED ) {
-					SCREEN_WIDTH = e.window.data1;
-					SCREEN_HEIGHT = e.window.data2;
-					// currentState->reshape(SCREEN_WIDTH, SCREEN_HEIGHT);
+                else if( e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED ) {
+                    SCREEN_WIDTH = e.window.data1;
+                    SCREEN_HEIGHT = e.window.data2;
+                    rs->reshape(SCREEN_WIDTH, SCREEN_HEIGHT);
+                }
+				else if( e.type == SDL_TEXTINPUT ) {
+					handleKeys( e.text.text[ 0 ] );
 				}
 				else if( e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT ) {
-					int x = 0, y = 0;
-					SDL_GetMouseState( &x, &y );
-					// currentState->mouseDown( x, y );
+					mousePressed = true;
+					SDL_GetMouseState( &prevMouseX, &prevMouseY );
 				}
 				else if( e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT ) {
+					mousePressed = false;
+				}
+				else if( e.type == SDL_MOUSEMOTION ) {
 					int x = 0, y = 0;
 					SDL_GetMouseState( &x, &y );
-					// currentState->mouseUp( x, y );
+					handleMouse(x, y);
 				}
 			}
-			// currentState->update();
-			// currentState->display();
 
-			display();
-
-			// GameState *nextState = currentState->getNextState();
-			// if( nextState != NULL ) {
-			//	 delete currentState;
-			//	 currentState = nextState;
-			//	 currentState->reshape(SCREEN_WIDTH, SCREEN_HEIGHT);
-			// }
-
-			// if( currentState->getQuit() )
-			//	 quit = true;
-
-			if( glGetError() != GL_NO_ERROR )
-				std::cout << "OpenGL Error Occurred" << std::endl;
+			rs->render();
+			rs->update( getElapsedTime() );
 			
 			SDL_GL_SwapWindow( gWindow );
 		}
@@ -171,8 +134,5 @@ int main( int argc, char* args[] ) {
 	}
 
 	close();
-
 	return 0;
 }
-
-
