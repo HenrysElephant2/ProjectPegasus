@@ -11,6 +11,8 @@
 #include <string>
 #include <iostream>
 
+#include "LevelLoader.h"
+
 // Much of this file is based on LazyFoo's SDL with OpenGL tutorial: http://lazyfoo.net/tutorials/SDL/51_SDL_and_modern_opengl/
 
 // Screen dimension variables
@@ -116,6 +118,13 @@ int main( int argc, char* args[] ) {
 
 		SDL_Event e;
 		SDL_StartTextInput();
+		//Alex's test code
+
+		Scene scene = Scene();
+		std::string s("testwarehouse.dae");
+		scene.openFile(s);
+		scene.print();
+		//end test code
 
 		while( !quit ) {
 			while( SDL_PollEvent( &e ) != 0 ) {

@@ -11,7 +11,7 @@ else
 #  OSX
 ifeq "$(shell uname)" "Darwin"
 CFLG=-O3 -Wall -Wno-deprecated-declarations
-LIBS=-framework GLUT -framework OpenGL -F /Library/Frameworks -framework SDL2
+LIBS=-framework GLUT -framework OpenGL -F /Library/Frameworks -framework SDL2 -lassimp
 #  Linux/Unix/Solaris
 else
 CFLG=-O3 -Wall
@@ -26,6 +26,7 @@ EntityManager.o: EntityManager.cpp EntityManager.h
 Main.o: Main.cpp
 MessageManager.o: MessageManager.cpp MessageManager.h
 System.o: System.cpp System.h
+SceneLoader.o: SceneLoader.cpp LevelLoader.h
 
 
 
@@ -35,7 +36,7 @@ System.o: System.cpp System.h
 	g++ -std=c++11 -c $(CFLG) $<
 
 
-Pegasus:Main.o ComponentManager.o EntityManager.o MessageManager.o System.o
+Pegasus:Main.o ComponentManager.o EntityManager.o MessageManager.o System.o SceneLoader.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:

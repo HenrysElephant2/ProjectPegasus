@@ -16,4 +16,8 @@ struct Transform:Component {
 
 };
 
+struct Renderable:Component {
+
+};
+
 #endif
