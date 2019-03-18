@@ -3,11 +3,13 @@
 #define COMPONENT_H
 
 #include <glm/glm.hpp>
-
+#include "MessageManager.h"
+#include <OpenGL/gl3.h>
+#include "Material.h"
 
 struct Component {
 	int ownerID; // entityID for the entity that owns this component
-	Component(int owner){ownerID = owner}
+	Component(int owner){ownerID = owner;}
 };
 
 
@@ -45,19 +47,19 @@ struct Physics:Component {
 	glm::vec3 velocity;
 	float mass;
 	bool freeze; // add this?
-}
+};
 
 struct Collider:Component {
 
-}
+};
 
 struct Trigger:Component {
 	float radius;
 	BasicMessage m;
-}
+};
 
 struct Grapple:Component {
 
-}
+};
 
 #endif
