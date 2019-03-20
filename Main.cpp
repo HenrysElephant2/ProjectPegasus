@@ -99,13 +99,7 @@ int main( int argc, char* args[] ) {
 		SDL_Event e;
 		
 		SDL_StartTextInput();
-		//Alex's test code
-
-		Scene scene = Scene();
-		std::string s("testwarehouse.dae");
-		scene.openFile(s);
-		scene.print();
-		//end test code
+		
 
 		while( !quit ) {
 			while( SDL_PollEvent( &e ) != 0 ) {

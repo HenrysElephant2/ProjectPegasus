@@ -32,6 +32,9 @@ RenderSystem::RenderSystem( int width, int height ) {
 
 	// Initialize matrices
 	reshape(width,height);
+	sc = Scene();
+	std::string filename = "testwarehouse.fbx";
+	sc.openFile(filename);
 }
 
 RenderSystem::~RenderSystem() {
@@ -63,6 +66,8 @@ void RenderSystem::render() {
 	glVertexAttribPointer( bitanAttrib,  3, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(14*sizeof(GLfloat)) );
 	glVertexAttribPointer( texAttrib,    2, GL_FLOAT, GL_FALSE, N_VERTEX_VALUES * sizeof(GLfloat), (GLvoid*)(17*sizeof(GLfloat)) );
 	glDrawElements( GL_TRIANGLES, nVertices, GL_UNSIGNED_INT, 0 );
+
+	sc.render();
 
 	glDisableVertexAttribArray( vertexAttrib );
 	glDisableVertexAttribArray( rgbaAttrib );

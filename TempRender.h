@@ -1,6 +1,8 @@
 #ifndef RENDERSYSTEM_H
 #define RENDERSYSTEM_H
 
+
+
 #include <OpenGL/gl3.h>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -10,6 +12,9 @@
 #include <string>
 #include <iostream>
 #include "LoadShader.h"
+#include "LevelLoader.h"
+
+
 
 #define N_VERTEX_VALUES 19
 const GLfloat vertices[] =
@@ -77,6 +82,7 @@ private:
 
 	GLuint defaultProgram;
 	GLuint vaoID, vboID, iboID; // VAO and VBO locations
+	Scene sc;
 	
 	glm::mat4 proj, view, model;
 
