@@ -1,9 +1,12 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <string>
-#include "TempRender.h"
+//#include "TempRender.h"
 
 #include "LevelLoader.h"
+#include "State.h"
+#include "Gameplay.h"
+#include "ShaderManager.h"
 
 // Screen dimension constants
 int SCREEN_WIDTH = 1400;
@@ -20,7 +23,8 @@ SDL_GLContext gContext;
 Uint64 previousTime = 0;
 int prevMouseX = 0, prevMouseY = 0;
 
-RenderSystem* rs;
+State* state;
+ShaderManager * sm;
 
 bool quit = false;
 bool mousePressed = false;
@@ -53,8 +57,14 @@ bool init() {
 			else {
 				if( SDL_GL_SetSwapInterval( 1 ) < 0 )
 					printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() );
+				sm = new ShaderManager();
+				std::string defaultVert = "Shaders/default.vert";
+				std::string defaultFrag = "Shaders/default.frag";
+				sm->createProgram(defaultVert,defaultFrag);
 
-				rs = new RenderSystem(SCREEN_WIDTH, SCREEN_HEIGHT);
+				std::string levelname = "NOT_IMPLEMENTED";
+				state = new Gameplay(SCREEN_WIDTH, SCREEN_HEIGHT, levelname, sm);
+				
 			}
 		}
 	}
@@ -71,7 +81,7 @@ void handleMouse( int x, int y ) {
 	if( mousePressed ) {
 		int dx = x - prevMouseX;
 		int dy = y - prevMouseY;
-		rs->setView(dx, dy);
+		//rs->setView(dx, dy);
 		prevMouseX = x;
 		prevMouseY = y;
 	}
@@ -81,7 +91,7 @@ void close() {
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
 	SDL_Quit();
-	delete rs;
+	//delete state;
 }
 
 double getElapsedTime() {
@@ -108,7 +118,7 @@ int main( int argc, char* args[] ) {
                 else if( e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED ) {
                     SCREEN_WIDTH = e.window.data1;
                     SCREEN_HEIGHT = e.window.data2;
-                    rs->reshape(SCREEN_WIDTH, SCREEN_HEIGHT);
+                   	state->reshape(SCREEN_WIDTH, SCREEN_HEIGHT);
                 }
 				else if( e.type == SDL_TEXTINPUT ) {
 					handleKeys( e.text.text[ 0 ] );
@@ -127,8 +137,10 @@ int main( int argc, char* args[] ) {
 				}
 			}
 
-			rs->render();
-			rs->update( getElapsedTime() );
+			//rs->render();
+			//rs->update( getElapsedTime() );
+			//std::cout << "updating state" << std::endl;
+			state->update();
 			
 			SDL_GL_SwapWindow( gWindow );
 		}

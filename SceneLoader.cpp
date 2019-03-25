@@ -12,12 +12,14 @@ bool Scene::openFile(std::string& filename)
 	if(scene)
 	{
 		processScene(scene, filename);
+		//delete scene;
 		return true;
 	}
 	else {
 		std::cout << "Error loading file: " << filename << "\n" << Importer.GetErrorString() << std::endl;
 		return false;
 	}
+
 }
 
 void Scene::processScene(const aiScene* scene, std::string & filename)
@@ -219,10 +221,69 @@ void Scene::render()
 	}
 }
 
+ComponentWrapper * Scene::getByName(std::string & name, int entityID)
+{
+	bool found = false;
+	int i = 0; 
+	while(!found && i < meshes.size())
+	{
+		if(name.compare(meshes[i].name) == 0)
+			found = true;
+		i++;
+	}
+	if(!found)
+	{
+		return NULL;
+	}
+	meshes[i].count++;
+	return createWrapper(i, entityID);
+
+}
+int Scene::getUnusedCount()
+{
+	int unusedCount = 0;
+	for(int i = 0; i < meshes.size();i++)
+	{
+		if(meshes[i].count == 0)
+			unusedCount++;
+	}	
+	return unusedCount;
+}
+ComponentWrapper * Scene::getUnused(int entityID) // gets first unused 
+{
+	bool found = false;
+	int i = 0;
+	while(!found && i < meshes.size())
+	{
+		if(meshes[i].count == 0)
+			found = true;
+		else i++;
+	}
+	if(!found)
+	{
+		return NULL;
+	}
+	meshes[i].count++;
+	return createWrapper(i,entityID);
+}
+
 Mesh::Mesh(){}
 
-// Renderable& getByName(std::string& name)
+// Renderable * Scene::getRenderableComponent()
 // {
-// 	//TODO
-// 	return NULL
+// 	Renderable * r = Renderable();
+// 	r->VBO = 
 // }
+// Transform & Scene::getTransformComponent();
+
+ComponentWrapper * Scene::createWrapper(int index, int entityID)
+{
+	
+	glm::vec3 defaultOrientation = glm::vec3(0.0,0.0,0.0);
+	Transform t = Transform(meshes[index].location, defaultOrientation, 1.0,entityID);
+	Renderable r  = Renderable(meshes[index].VBO, meshes[index].IBO, meshes[index].indexCount, 0, materials[meshes[index].materialIndex], entityID);
+	ComponentWrapper *wrapper = new ComponentWrapper(t,r);
+	return wrapper;
+}
+
+

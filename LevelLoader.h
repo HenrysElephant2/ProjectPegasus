@@ -14,8 +14,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <OpenGL/gl3.h>
-//#include "TempRender.h"
 
+//TO BE DELETED. THIS WAS FOR TESTING MODEL LOADING
 const GLint vertexAttrib1 = 0;
 const GLint rgbaAttrib1   = 1;
 const GLint normAttrib1   = 2;
@@ -23,12 +23,17 @@ const GLint tanAttrib1    = 3;
 const GLint bitanAttrib1  = 4;
 const GLint texAttrib1    = 5;
 
+class Scene;
+
 class LevelLoader{
 private:
-
+	int determineShader(Material &m);
+	void loadShaders();
+	void addUnused(ECSEngine * engine, Scene * sc);
 public:
 	LevelLoader();
-	ECSEngine& openLevel(std::string & directory); 
+	void openLevel(std::string & directory, ECSEngine * engine); 
+	void testLevel(ECSEngine * engine); // hardcoded version of openLevel(). used for testing and allowing development of the game's systems to begin and be tested
 };
 
 
@@ -42,10 +47,8 @@ struct Mesh{
 	std::string name;
 	unsigned int materialIndex;
 	bool hasTangents;
-	int count; // number of objects that use this Mesh. used to create render-only entities from non used objects
+	int count = 0; // number of objects that use this Mesh. used to create render-only entities from non used objects
 	Mesh();
-	Renderable getRenderableComponent();
-	Transform getTransformComponent();
 };
 
 
@@ -67,6 +70,16 @@ struct Vertex {
 	}
 };
 
+struct ComponentWrapper {
+	Renderable r;
+	Transform t;
+	ComponentWrapper(Transform& t_in, Renderable & r_in)
+	{
+		t = t_in;
+		r = r_in;
+	}
+};
+
 
 class Scene {
 private:
@@ -77,11 +90,14 @@ private:
 	void processScene(const aiScene* scene, std::string & filename);
 	void createMesh(unsigned int index, const aiMesh* m);
 	void processMaterials(const aiScene* scene, std::string & filename);
+	ComponentWrapper * createWrapper(int index, int entityID);
 
 public:
 	Scene();
 	bool openFile(std::string & filename);
-	//Renderable getByName(std::string & name);
+	ComponentWrapper * getByName(std::string & name, int entityID);
+	int getUnusedCount();
+	ComponentWrapper * getUnused(int entityID); // gets first unused mesh
 	void print();
 	void render();
 };

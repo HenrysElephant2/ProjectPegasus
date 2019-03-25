@@ -13,6 +13,7 @@
 #include <iostream>
 #include "LoadShader.h"
 #include "LevelLoader.h"
+#include "ShaderManager.h"
 
 
 
@@ -80,9 +81,10 @@ class RenderSystem {
 private:
 	float th = 0, ph = 20, asp = 0, fov = 55;
 
-	GLuint defaultProgram;
+	int defaultProgram;
 	GLuint vaoID, vboID, iboID; // VAO and VBO locations
 	Scene sc;
+	ShaderManager sm;
 	
 	glm::mat4 proj, view, model;
 

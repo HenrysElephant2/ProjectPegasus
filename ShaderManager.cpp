@@ -22,7 +22,7 @@ Shader::Shader(GLuint programID)
 
 Shader::~Shader()
 {	
-	std::cout << "Destructorcalled" << std::endl;
+	//std::cout << "Destructorcalled" << std::endl;
 	glDeleteProgram(program);
 }
 

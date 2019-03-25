@@ -10,21 +10,21 @@
 struct Component {
 	int ownerID; // entityID for the entity that owns this component
 	Component(int owner){ownerID = owner;}
+	Component(){}
 };
 
 
 struct Transform:Component {
-	glm::vec3 position;
-	glm::vec3 forward;
-	glm::vec3 up;
+	glm::vec4 position;
+	glm::vec3 orientation;
 	float scale;
-	Transform(glm::vec3& position_in, glm::vec3& forward_in, glm::vec3& up_in, float scale_in, int ownerID) : Component(ownerID)
+	Transform(glm::vec4& position_in, glm::vec3& orientation_in, float scale_in, int ownerID) : Component(ownerID)
 	{
 		position = position_in;
-		forward = forward_in;
-		up = up_in;
+		orientation = orientation_in;
 		scale = scale_in;
 	}
+	Transform(){}
 };
 
 struct Renderable:Component {
@@ -41,6 +41,7 @@ struct Renderable:Component {
 		program = program_in;
 		material = material_in;
 	}
+	Renderable(){}
 };
 
 struct Physics:Component {
@@ -60,6 +61,14 @@ struct Trigger:Component {
 
 struct Grapple:Component {
 
+};
+
+struct Player:Component {
+	float cameraOffset = 1.0; //distance from transform of player to camera
+	float cameraYaw = 0;
+	float cameraPitch = 0;
+	//float cameraRoll; // add this later if we want
+	Player(int ownerID):Component(ownerID){}
 };
 
 #endif

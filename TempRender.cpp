@@ -2,9 +2,12 @@
 
 RenderSystem::RenderSystem( int width, int height ) {
 	// Create Shader
-	char vertFile[] = "Shaders/default.vert";
-	char fragFile[] = "Shaders/default.frag";
-	defaultProgram = CreateShaderProg(vertFile,fragFile);
+	std::string vertFile = "Shaders/default.vert";
+	std::string fragFile = "Shaders/default.frag";
+	// defaultProgram = CreateShaderProg(vertFile,fragFile);
+	sm = ShaderManager();
+	defaultProgram = sm.createProgram(vertFile,fragFile);
+	std::cout << "shader index: " << defaultProgram << std::endl;
 
 	// Get attribute locations -- recommended to just use constant attribute locations (defined in header)
 	// vertexAttrib   = glGetAttribLocation( defaultProgram, "Vertex" );
@@ -35,17 +38,26 @@ RenderSystem::RenderSystem( int width, int height ) {
 	sc = Scene();
 	std::string filename = "testwarehouse.fbx";
 	sc.openFile(filename);
+
+	debug("RenderSystem - initialize");
 }
 
 RenderSystem::~RenderSystem() {
-	glDeleteProgram( defaultProgram );
+	//glDeleteProgram( defaultProgram );
 }
 
 void RenderSystem::render() {
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_DEPTH_TEST);
 
-	glUseProgram(defaultProgram);
+	debug("RenderSystem - start of render");
+
+	//glUseProgram(defaultProgram);
+	sm.bindShader(defaultProgram);
+	
+
+	debug("RenderSystem - bindShader");
+
 	glEnableVertexAttribArray( vertexAttrib );
 	glEnableVertexAttribArray( rgbaAttrib );
 	glEnableVertexAttribArray( normAttrib );
@@ -53,9 +65,14 @@ void RenderSystem::render() {
 	glEnableVertexAttribArray( bitanAttrib );
 	glEnableVertexAttribArray( texAttrib );
 
-	glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "Model"), 1, GL_FALSE, glm::value_ptr(model));
-	glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "View"), 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "Projection"), 1, GL_FALSE, glm::value_ptr(proj));
+	// glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "Model"), 1, GL_FALSE, glm::value_ptr(model));
+	// glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "View"), 1, GL_FALSE, glm::value_ptr(view));
+	// glUniformMatrix4fv(glGetUniformLocation(defaultProgram, "Projection"), 1, GL_FALSE, glm::value_ptr(proj));
+	sm.loadModelMatrix(&model);
+	sm.loadViewMatrix(&view);
+	sm.loadProjectionMatrix(&proj);
+
+	debug("RenderSystem - load matrices");
 
 	// Draw Quad
 	glBindBuffer( GL_ARRAY_BUFFER, vboID );
@@ -76,9 +93,10 @@ void RenderSystem::render() {
 	glDisableVertexAttribArray( bitanAttrib );
 	glDisableVertexAttribArray( texAttrib );
 
+	debug("RenderSystem - before disable");
 	glUseProgram(0);
 	glDisable(GL_DEPTH_TEST);
-	debug("RenderSystem");
+	debug("RenderSystem - after disable");
 }
 
 void RenderSystem::update( double dt ) {
@@ -109,4 +127,8 @@ void RenderSystem::createMatrices() {
 	model = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f));
 	model = glm::rotate(model, glm::radians(ph), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(th), glm::vec3(0.0f, 1.0f, 0.0f));
+
+
+	// model = glm::lookAt(glm::vec3(1.0,1.0,0.0),glm::vec3(sin(glm::radians(ph)),cos(glm::radians(ph)),0.0),glm::vec3(0.0,3.0,0.0));
+	// model = glm::scale(model, glm::vec3(0.25f));
 }

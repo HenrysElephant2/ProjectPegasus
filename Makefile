@@ -26,20 +26,24 @@ endif
 Main.o: Main.cpp
 ComponentManager.o: ComponentManager.cpp ComponentManager.h Component.h
 EntityManager.o: EntityManager.cpp EntityManager.h
-LoadShader.o: LoadShader.c LoadShader.h
 MessageManager.o: MessageManager.cpp MessageManager.h
 System.o: System.cpp System.h
+ECSEngine.o: ECSEngine.cpp ECSEngine.h
+LevelLoader.o: LevelLoader.cpp LevelLoader.h
 SceneLoader.o: SceneLoader.cpp LevelLoader.h
-TempRender.o: TempRender.cpp TempRender.h
+TextureLoader.o: TextureLoader.cpp Material.h stb_image.h
+ShaderManager.o: ShaderManager.cpp ShaderManager.h
+Gameplay.o: Gameplay.cpp Gameplay.h State.h
+RenderSystem.o: RenderSystem.cpp RenderSystem.h
 
 
 .c.o:
-	gcc -c $(CFLG) $<
+	gcc -g -c $(CFLG) $<
 .cpp.o:
-	g++ -std=c++11 -c $(CFLG) $<
+	g++ -g -std=c++11 -c $(CFLG) $<
 
 
-Pegasus: Main.o ComponentManager.o EntityManager.o LoadShader.o MessageManager.o System.o TempRender.o SceneLoader.o
+Pegasus: Main.o ComponentManager.o EntityManager.o MessageManager.o System.o  ECSEngine.o LevelLoader.o SceneLoader.o TextureLoader.o ShaderManager.o Gameplay.o RenderSystem.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:

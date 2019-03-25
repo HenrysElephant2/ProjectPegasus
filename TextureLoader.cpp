@@ -15,7 +15,7 @@ GLuint TextureLoader::loadTexture(std::string & filename)
 	int width;
 	int height;
 	int numChannels;
-	unsigned char* image = stbi_load(filename.c_str(), &width, &height, &numChannels, 0);
+	unsigned char* image = stbi_load(filename.c_str(), &width, &height, &numChannels, STBI_rgb_alpha);
 	GLuint tex;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
@@ -25,7 +25,7 @@ GLuint TextureLoader::loadTexture(std::string & filename)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	if(image)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		stbi_image_free(image);
 		textures.insert(std::pair<std::string, GLuint>(filename, tex));
