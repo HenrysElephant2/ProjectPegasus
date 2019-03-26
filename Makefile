@@ -22,25 +22,46 @@ endif
 CLEAN=rm -f $(EXE) *.o *.a
 endif
 
+INC := ./headers
+SRC := ./source
+OBJDIR := ./Objects
 
-Main.o: Main.cpp
-ComponentManager.o: ComponentManager.cpp ComponentManager.h Component.h
-EntityManager.o: EntityManager.cpp EntityManager.h
-MessageManager.o: MessageManager.cpp MessageManager.h
-System.o: System.cpp System.h
-ECSEngine.o: ECSEngine.cpp ECSEngine.h
-LevelLoader.o: LevelLoader.cpp LevelLoader.h
-SceneLoader.o: SceneLoader.cpp LevelLoader.h
-TextureLoader.o: TextureLoader.cpp Material.h stb_image.h
-ShaderManager.o: ShaderManager.cpp ShaderManager.h
-Gameplay.o: Gameplay.cpp Gameplay.h State.h
-RenderSystem.o: RenderSystem.cpp RenderSystem.h
+CC = g++ -g -std=c++11 -c $(CFLG) -I$(INC) $<
 
 
-.c.o:
-	gcc -g -c $(CFLG) $<
-.cpp.o:
-	g++ -g -std=c++11 -c $(CFLG) $<
+Main.o: $(SRC)/Main.cpp
+	$(CC)
+ComponentManager.o: $(SRC)/GameEngine/ComponentManager.cpp $(INC)/ComponentManager.h $(INC)/Component.h
+	$(CC)
+EntityManager.o: $(SRC)/GameEngine/EntityManager.cpp $(INC)/EntityManager.h
+	$(CC)
+MessageManager.o: $(SRC)/GameEngine/MessageManager.cpp $(INC)/MessageManager.h
+	$(CC)
+System.o: $(SRC)/GameEngine/Systems/System.cpp $(INC)/System.h
+	$(CC)
+ECSEngine.o: $(SRC)/GameEngine/ECSEngine.cpp $(INC)/ECSEngine.h
+	$(CC)
+LevelLoader.o: $(SRC)/LevelLoader/LevelLoader.cpp $(INC)/LevelLoader.h
+	$(CC)
+SceneLoader.o: $(SRC)/LevelLoader/SceneLoader.cpp $(INC)/LevelLoader.h
+	$(CC)
+TextureLoader.o: $(SRC)/LevelLoader/TextureLoader.cpp $(INC)/Material.h $(INC)/stb_image.h
+	$(CC)
+ShaderManager.o: $(SRC)/ShaderManager.cpp $(INC)/ShaderManager.h
+	$(CC)
+Gameplay.o: $(SRC)/Gameplay.cpp $(INC)/Gameplay.h $(INC)/State.h
+	$(CC)
+RenderSystem.o: $(SRC)/GameEngine/Systems/RenderSystem.cpp $(INC)/RenderSystem.h
+	$(CC)
+
+
+
+
+# .c.o:
+# 	gcc -g -c $(CFLG) $<
+# #$(OBJDIR)/%.o: %.cpp# .cpp.o:
+#  .cpp.o:
+# 	g++ -g -std=c++11 -c $(CFLG) -I$(INC) $^
 
 
 Pegasus: Main.o ComponentManager.o EntityManager.o MessageManager.o System.o  ECSEngine.o LevelLoader.o SceneLoader.o TextureLoader.o ShaderManager.o Gameplay.o RenderSystem.o
