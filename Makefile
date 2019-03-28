@@ -19,39 +19,39 @@ CFLG=-O3 -Wall
 LIBS=-lglut -lGLU -lGL -lm -lSDL2
 endif
 #  OSX/Linux/Unix/Solaris
-CLEAN=rm -f $(EXE) *.o *.a
+CLEAN=rm -f $(EXE) *.o *.a $(OBJDIR)*.o $(OBJDIR)*.a
 endif
 
 INC := ./headers
 SRC := ./source
-OBJDIR := ./Objects
+OBJDIR := ./Objects/
 
-CC = g++ -g -std=c++11 -c $(CFLG) -I$(INC) $<
+CC = g++ -g -std=c++11 -c $(CFLG) -I$(INC) -o $@ $<
 
 
-Main.o: $(SRC)/Main.cpp
+$(OBJDIR)Main.o: $(SRC)/Main.cpp
 	$(CC)
-ComponentManager.o: $(SRC)/GameEngine/ComponentManager.cpp $(INC)/ComponentManager.h $(INC)/Component.h
+$(OBJDIR)ComponentManager.o: $(SRC)/GameEngine/ComponentManager.cpp $(INC)/ComponentManager.h $(INC)/Component.h
 	$(CC)
-EntityManager.o: $(SRC)/GameEngine/EntityManager.cpp $(INC)/EntityManager.h
+$(OBJDIR)EntityManager.o: $(SRC)/GameEngine/EntityManager.cpp $(INC)/EntityManager.h
 	$(CC)
-MessageManager.o: $(SRC)/GameEngine/MessageManager.cpp $(INC)/MessageManager.h
+$(OBJDIR)MessageManager.o: $(SRC)/GameEngine/MessageManager.cpp $(INC)/MessageManager.h
 	$(CC)
-System.o: $(SRC)/GameEngine/Systems/System.cpp $(INC)/System.h
+$(OBJDIR)System.o: $(SRC)/GameEngine/Systems/System.cpp $(INC)/System.h
 	$(CC)
-ECSEngine.o: $(SRC)/GameEngine/ECSEngine.cpp $(INC)/ECSEngine.h
+$(OBJDIR)ECSEngine.o: $(SRC)/GameEngine/ECSEngine.cpp $(INC)/ECSEngine.h
 	$(CC)
-LevelLoader.o: $(SRC)/LevelLoader/LevelLoader.cpp $(INC)/LevelLoader.h
+$(OBJDIR)LevelLoader.o: $(SRC)/LevelLoader/LevelLoader.cpp $(INC)/LevelLoader.h
 	$(CC)
-SceneLoader.o: $(SRC)/LevelLoader/SceneLoader.cpp $(INC)/LevelLoader.h
+$(OBJDIR)SceneLoader.o: $(SRC)/LevelLoader/SceneLoader.cpp $(INC)/LevelLoader.h
 	$(CC)
-TextureLoader.o: $(SRC)/LevelLoader/TextureLoader.cpp $(INC)/Material.h $(INC)/stb_image.h
+$(OBJDIR)TextureLoader.o: $(SRC)/LevelLoader/TextureLoader.cpp $(INC)/Material.h $(INC)/stb_image.h
 	$(CC)
-ShaderManager.o: $(SRC)/ShaderManager.cpp $(INC)/ShaderManager.h
+$(OBJDIR)ShaderManager.o: $(SRC)/ShaderManager.cpp $(INC)/ShaderManager.h
 	$(CC)
-Gameplay.o: $(SRC)/Gameplay.cpp $(INC)/Gameplay.h $(INC)/State.h
+$(OBJDIR)Gameplay.o: $(SRC)/Gameplay.cpp $(INC)/Gameplay.h $(INC)/State.h
 	$(CC)
-RenderSystem.o: $(SRC)/GameEngine/Systems/RenderSystem.cpp $(INC)/RenderSystem.h
+$(OBJDIR)RenderSystem.o: $(SRC)/GameEngine/Systems/RenderSystem.cpp $(INC)/RenderSystem.h
 	$(CC)
 
 
@@ -64,7 +64,7 @@ RenderSystem.o: $(SRC)/GameEngine/Systems/RenderSystem.cpp $(INC)/RenderSystem.h
 # 	g++ -g -std=c++11 -c $(CFLG) -I$(INC) $^
 
 
-Pegasus: Main.o ComponentManager.o EntityManager.o MessageManager.o System.o  ECSEngine.o LevelLoader.o SceneLoader.o TextureLoader.o ShaderManager.o Gameplay.o RenderSystem.o
+Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:
