@@ -48,6 +48,7 @@ struct Physics:Component {
 	glm::vec3 velocity;
 	float mass;
 	bool freeze; // add this?
+	bool onGround; // useful for player movement?
 };
 
 struct Collider:Component {
