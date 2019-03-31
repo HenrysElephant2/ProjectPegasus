@@ -141,6 +141,8 @@ int main( int argc, char* args[] ) {
 			//rs->update( getElapsedTime() );
 			//std::cout << "updating state" << std::endl;
 			state->update();
+			if( glGetError() != GL_NO_ERROR ) 
+				std::cout << "Fuck" << std::endl;
 			
 			SDL_GL_SwapWindow( gWindow );
 		}
