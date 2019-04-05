@@ -6,6 +6,7 @@ Shader::Shader(GLuint programID)
 	glUseProgram(program);
 	// model, view, and projection matrix uniforms
 	modelMatrixLoc = glGetUniformLocation(program, MODEL_VARIABLE_NAME);
+	normalMatrixLoc = glGetUniformLocation(program, NORMAL_VARIABLE_NAME);
 	viewMatrixLoc = glGetUniformLocation(program, VIEW_VARIABLE_NAME);
 	projectionMatrixLoc = glGetUniformLocation(program, PROJECTION_VARIABLE_NAME);
 
@@ -18,6 +19,7 @@ Shader::Shader(GLuint programID)
 	shininessLoc = glGetUniformLocation(program, SHININESS_VARIABLE_NAME);
 	colorTextureLoc = glGetUniformLocation(program, COLOR_TEXTURE_VARIABLE_NAME);
 	normalTextureLoc = glGetUniformLocation(program, NORMAL_TEXTURE_VARIABLE_NAME);
+	emissiveTextureLoc = glGetUniformLocation(program, EMISSIVE_TEXTURE_VARIABLE_NAME);
 }
 
 Shader::~Shader()
@@ -36,26 +38,41 @@ void Shader::bindMaterial(Material * mat)
 	if(shininessLoc != -1){glUniform1f(shininessLoc, mat->shininess);}
 	if(colorTextureLoc != -1) {glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, mat->texture); glUniform1i(colorTextureLoc, 0);}
 	if(normalTextureLoc != -1) {glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, mat->normals); glUniform1i(normalTextureLoc, 1);}
+	if(emissiveTextureLoc != -1) {glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, mat->emissive); glUniform1i(emissiveTextureLoc, 2);}
 }
 
 void Shader::loadModelMatrix(glm::mat4 * modelMatrix)
 {
-	glUniformMatrix4fv(modelMatrixLoc,1,GL_FALSE,glm::value_ptr(*modelMatrix));
+	if(modelMatrixLoc != -1)
+		glUniformMatrix4fv(modelMatrixLoc,1,GL_FALSE,glm::value_ptr(*modelMatrix));
+}
+
+void Shader::loadNormalMatrix(glm::mat3 *normalMatrix)
+{
+	if(normalMatrixLoc != -1)
+		glUniformMatrix3fv(normalMatrixLoc,1,GL_FALSE,glm::value_ptr(*normalMatrix));
 }
 
 void Shader::loadViewMatrix(glm::mat4 * viewMatrix)
 {
-	glUniformMatrix4fv(viewMatrixLoc,1,GL_FALSE,glm::value_ptr(*viewMatrix));
+	if(viewMatrixLoc != -1)
+		glUniformMatrix4fv(viewMatrixLoc,1,GL_FALSE,glm::value_ptr(*viewMatrix));
 }
 
 void Shader::loadProjectionMatrix(glm::mat4 * projectionMatrix)
 {
-	glUniformMatrix4fv(projectionMatrixLoc,1,GL_FALSE,glm::value_ptr(*projectionMatrix));
+	if(projectionMatrixLoc != -1)
+		glUniformMatrix4fv(projectionMatrixLoc,1,GL_FALSE,glm::value_ptr(*projectionMatrix));
 }
 
 void Shader::bind()
 {
 	glUseProgram(program);
+}
+
+GLuint Shader::getProgramID()
+{
+	return program;
 }
 
 
@@ -214,6 +231,12 @@ void ShaderManager::loadModelMatrix(glm::mat4 *modelMatrix)
 		shaders[current]->loadModelMatrix(modelMatrix);
 }
 
+void ShaderManager::loadNormalMatrix(glm::mat3 *normalMatrix)
+{
+	if(current < shaders.size())
+		shaders[current]->loadNormalMatrix(normalMatrix);
+}
+
 void ShaderManager::loadViewMatrix(glm::mat4 *viewMatrix)
 {
 	if(current < shaders.size())
@@ -224,5 +247,29 @@ void ShaderManager::loadProjectionMatrix(glm::mat4 *projectionMatrix)
 {
 	if(current < shaders.size())
 		shaders[current]->loadProjectionMatrix(projectionMatrix);
+}
+
+GLuint ShaderManager::getProgramID()
+{
+	return shaders[current]->getProgramID();
+}
+
+void ShaderManager::loadShaders(ShaderManager* sm)
+{
+	std::string defaultVert = "Shaders/deferredBasic.vert";
+	std::string defaultFrag = "Shaders/deferredBasic.frag";
+	sm->createProgram(defaultVert,defaultFrag);
+
+	std::string quadVert = "Shaders/PhongShading.vert";
+	std::string quadFrag = "Shaders/PhongShading.frag";
+	sm->createProgram(quadVert,quadFrag);
+
+	std::string quad2Vert = "Shaders/drawQuad.vert";
+	std::string quad2Frag = "Shaders/drawQuad.frag";
+	sm->createProgram(quad2Vert,quad2Frag);
+
+	std::string hdrVert = "Shaders/HDR.vert";
+	std::string hdrFrag = "Shaders/HDR.frag";
+	hdrProgram = sm->createProgram(hdrVert,hdrFrag);
 }
 

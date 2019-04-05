@@ -17,8 +17,8 @@ void LevelLoader::testLevel(ECSEngine * engine)
 	int playerID = engine->addEntity();
 	std::cout << "Player Entity ID: " << playerID << std::endl;
 	Player p = Player(playerID);
-	p.cameraOffset = 25;
-	glm::vec4 playerPos = glm::vec4(0.0,0.0,0.0,1.0);
+	p.cameraOffset = 13;
+	glm::vec4 playerPos = glm::vec4(0.0,6.0,0.0,1.0);
 	glm::vec3 playerOrientation = glm::vec3(0.0,0.0,0.0);
 	Transform t = Transform(playerPos, playerOrientation, 1.0, playerID);
 	engine->addTransform(playerID, t);

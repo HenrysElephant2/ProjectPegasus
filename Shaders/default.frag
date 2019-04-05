@@ -8,8 +8,10 @@ in vec2 tex;
 
 out vec4 FragColor;
 
-uniform sampler2D texSampler;
+uniform vec3 specularMaterialColor;
+
+uniform sampler2D colorTexture;
 
 void main() {
-	FragColor = col * texture(texSampler, tex);
+	FragColor = vec4((.1 * col).xyz,0.0) + texture(colorTexture, tex);
 }

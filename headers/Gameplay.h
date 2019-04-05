@@ -12,7 +12,7 @@ class Gameplay:public State{
 private:
 	ECSEngine* engine;
 	RenderSystem * render_Reference; // only to be used for reshaping window
-	GLuint VAOID;
+	
 public:
 	Gameplay(int width, int height,std::string &level_directory, ShaderManager * shaders_in);
 	void update();

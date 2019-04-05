@@ -30,6 +30,7 @@ bool quit = false;
 bool mousePressed = false;
 
 
+
 bool init() {
 	bool success = true;
 
@@ -58,9 +59,7 @@ bool init() {
 				if( SDL_GL_SetSwapInterval( 1 ) < 0 )
 					printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() );
 				sm = new ShaderManager();
-				std::string defaultVert = "Shaders/default.vert";
-				std::string defaultFrag = "Shaders/default.frag";
-				sm->createProgram(defaultVert,defaultFrag);
+				ShaderManager::loadShaders(sm);
 
 				std::string levelname = "NOT_IMPLEMENTED";
 				state = new Gameplay(SCREEN_WIDTH, SCREEN_HEIGHT, levelname, sm);

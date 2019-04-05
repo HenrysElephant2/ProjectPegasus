@@ -53,6 +53,8 @@ $(OBJDIR)Gameplay.o: $(SRC)/Gameplay.cpp $(INC)/Gameplay.h $(INC)/State.h
 	$(CC)
 $(OBJDIR)RenderSystem.o: $(SRC)/GameEngine/Systems/RenderSystem.cpp $(INC)/RenderSystem.h
 	$(CC)
+$(OBJDIR)FrameBuffer.o: $(SRC)/GameEngine/Systems/FrameBuffer.cpp $(INC)/FrameBuffer.h
+	$(CC)
 
 
 
@@ -64,7 +66,7 @@ $(OBJDIR)RenderSystem.o: $(SRC)/GameEngine/Systems/RenderSystem.cpp $(INC)/Rende
 # 	g++ -g -std=c++11 -c $(CFLG) -I$(INC) $^
 
 
-Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o
+Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o $(OBJDIR)FrameBuffer.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:

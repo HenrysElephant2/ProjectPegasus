@@ -13,7 +13,7 @@ private:
 	std::map<std::string, GLuint> textures; // uses map so it doesn't read a texture multiple time, just returns the GLuint
 public:
 	TextureLoader();
-	GLuint loadTexture(std::string & filename);
+	GLuint loadTexture(std::string & filename, bool undoGamma);
 };
 
 struct Material{
@@ -25,6 +25,7 @@ struct Material{
 	float shininess = 0.0;
 	GLuint texture = 0;
 	GLuint normals = 0;
+	GLuint emissive = 0;
 	//GLuint specular = 0; // currently not planning on using this, but could be useful for models where glossiness is different on diffferent parts of the model
 	//GLuint opacityMap = 0; // not planning on using this, but could be used for cool effects
 
@@ -38,6 +39,7 @@ struct Material{
 		std::cout << "Shininess: " << shininess << std::endl;
 		std::cout << "Diffuse Texture: " << texture << std::endl;
 		std::cout << "Normal Texture: " << normals << std::endl;
+		std::cout << "Emissive Texture: " << emissive << std::endl;
 	}
 };
 

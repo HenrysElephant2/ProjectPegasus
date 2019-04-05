@@ -6,7 +6,7 @@ TextureLoader::TextureLoader()
 {
 
 }
-GLuint TextureLoader::loadTexture(std::string & filename)
+GLuint TextureLoader::loadTexture(std::string & filename, bool undoGamma)
 {
 	if(textures.count(filename) > 0)
 		return textures.at(filename);
@@ -25,7 +25,7 @@ GLuint TextureLoader::loadTexture(std::string & filename)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	if(image)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+		glTexImage2D(GL_TEXTURE_2D, 0, undoGamma?GL_SRGB:GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		stbi_image_free(image);
 		textures.insert(std::pair<std::string, GLuint>(filename, tex));

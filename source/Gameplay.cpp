@@ -9,8 +9,6 @@ Gameplay::Gameplay(int width, int height,std::string &level_directory, ShaderMan
 	std::cout << "reshaping window" << std::endl;
 	render_Reference->reshape(width,height);
 	glClearColor( 0.f, 0.f, 0.f, 1.f );
-	glGenVertexArrays( 1, &VAOID );
-	glBindVertexArray( VAOID );
 	std::cout << "Starting to load level" << std::endl;
 	LevelLoader level = LevelLoader();
 	level.openLevel(level_directory,engine);

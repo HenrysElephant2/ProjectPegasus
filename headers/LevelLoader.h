@@ -51,6 +51,10 @@ struct Mesh{
 	Mesh();
 };
 
+struct LightData{
+
+};
+
 
 struct Vertex {
 	glm::vec4 position;
@@ -85,11 +89,13 @@ class Scene {
 private:
 	std::vector<Mesh> meshes;
 	std::vector<Material> materials;
+	std::vector<Light> lights;
 	TextureLoader texManager;
 
 	void processScene(const aiScene* scene, std::string & filename);
 	void createMesh(unsigned int index, const aiMesh* m);
 	void processMaterials(const aiScene* scene, std::string & filename);
+	void processLights(const aiScene* scene);
 	ComponentWrapper * createWrapper(int index, int entityID);
 
 public:

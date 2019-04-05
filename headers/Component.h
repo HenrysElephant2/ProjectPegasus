@@ -71,4 +71,8 @@ struct Player:Component {
 	Player(int ownerID):Component(ownerID){}
 };
 
+struct Light:Component {
+	
+};
+
 #endif

@@ -32,6 +32,7 @@ void Scene::processScene(const aiScene* scene, std::string & filename)
 	}
 	std::cout << "Finished Reading Scene" << std::endl;
 	processMaterials(scene, filename);
+	processLights(scene);
 }
 
 void Scene::createMesh(unsigned int index, const aiMesh* m)
@@ -57,7 +58,7 @@ void Scene::createMesh(unsigned int index, const aiMesh* m)
 		const aiVector3D* tangent = m->HasTangentsAndBitangents()? &(m->mTangents[i]) : &zero;
 		const aiVector3D* bitangent = m->HasTangentsAndBitangents()? &(m->mBitangents[i]) : &zero;
 
-		Vertex vert = Vertex(glm::vec4(position->x, position->y, position->z, 50.0), 
+		Vertex vert = Vertex(glm::vec4(position->x, position->y, position->z, 1.0), 
 							 glm::vec2(uv->x, uv->y), 
 							 glm::vec3(normal->x,normal->y, normal->z),
 							 glm::vec3(tangent->x, tangent->y, tangent->z),
@@ -117,7 +118,9 @@ void Scene::processMaterials(const aiScene* scene, std::string & filename)
 		int materialIndex = materialIndexOffset + i;
 		materials.push_back(Material());
 		const aiMaterial* currentMaterial = scene->mMaterials[i];
-
+		aiString matName;
+		currentMaterial->Get(AI_MATKEY_NAME, matName);
+		std::cout << "Name: " << matName.C_Str() << std::endl;
 		//get all color properties of the material
 
 		//read ambient color property
@@ -157,6 +160,7 @@ void Scene::processMaterials(const aiScene* scene, std::string & filename)
 		if(currentMaterial->Get(AI_MATKEY_SHININESS, shiny) == AI_SUCCESS)
 		{
 			materials[materialIndex].shininess = shiny;
+			std::cout << "Shininess " << shiny << std::endl;
 		}
 
 		// float shinystrength;
@@ -173,8 +177,8 @@ void Scene::processMaterials(const aiScene* scene, std::string & filename)
 			if(currentMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texture_path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 			{
 				std::string file_path = directory + "/" + texture_path.data;
-				std::cout << "Texture: " << file_path << std::endl;
-				materials[materialIndex].texture = texManager.loadTexture(file_path);
+				std::cout << "Color Texture: " << file_path << std::endl;
+				materials[materialIndex].texture = texManager.loadTexture(file_path, true);
 			}
 		}
 
@@ -187,14 +191,42 @@ void Scene::processMaterials(const aiScene* scene, std::string & filename)
 			if(currentMaterial->GetTexture(aiTextureType_NORMALS, 0, &texture_path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 			{
 				std::string file_path = directory + "/" + texture_path.data;
-				std::cout << "Texture: " << file_path << std::endl;
-				materials[materialIndex].normals = texManager.loadTexture(file_path);
+				std::cout << "Normal Texture: " << file_path << std::endl;
+				materials[materialIndex].normals = texManager.loadTexture(file_path, false);
+			}
+		}
+
+		if(currentMaterial->GetTextureCount(aiTextureType_EMISSIVE) > 0)
+		{
+			//std::cout << "Texture Exists" << std::endl;
+			aiString texture_path;
+			if(currentMaterial->GetTexture(aiTextureType_EMISSIVE, 0, &texture_path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+			{
+				std::string file_path = directory + "/" + texture_path.data;
+				std::cout << "Emissive Texture: " << file_path << std::endl;
+				materials[materialIndex].emissive = texManager.loadTexture(file_path, true);
 			}
 		}
 
 		//materials[materialIndex].print();
 	}
 }
+
+
+void Scene::processLights(const aiScene* scene)
+{
+	std::cout << "Number of lights: " << scene->mNumLights << std::endl;
+	for(int i = 0; i < scene->mNumLights; i++)
+	{
+		const aiLight* currentLight = scene->mLights[i];
+		std::cout << "Name: " << currentLight->mName.C_Str() << std::endl;
+		std::cout << "Type: " << currentLight->mType << std::endl;
+		std::cout << "constant Attenuation: "<< currentLight->mAttenuationConstant << std::endl;
+		std::cout << "linear Attenuation: "<< currentLight->mAttenuationLinear << std::endl;
+		std::cout << "quadratic Attenuation: "<< currentLight->mAttenuationQuadratic << std::endl;
+	}
+}
+
 
 void Scene::print()
 {
@@ -280,7 +312,7 @@ ComponentWrapper * Scene::createWrapper(int index, int entityID)
 {
 	
 	glm::vec3 defaultOrientation = glm::vec3(0.0,0.0,0.0);
-	Transform t = Transform(meshes[index].location, defaultOrientation, 1.0,entityID);
+	Transform t = Transform(meshes[index].location, defaultOrientation, 1.0/50.0,entityID);
 	Renderable r  = Renderable(meshes[index].VBO, meshes[index].IBO, meshes[index].indexCount, 0, materials[meshes[index].materialIndex], entityID);
 	ComponentWrapper *wrapper = new ComponentWrapper(t,r);
 	return wrapper;
