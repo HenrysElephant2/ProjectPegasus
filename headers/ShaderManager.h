@@ -4,6 +4,7 @@
 #include <OpenGL/gl3.h>
 #include <vector>
 #include <iostream>
+#include "Component.h"
 #include "Material.h"
 #include <glm/mat4x4.hpp> 
 #include <glm/gtc/type_ptr.hpp>
@@ -23,6 +24,18 @@
 #define COLOR_TEXTURE_VARIABLE_NAME "colorTexture"
 #define NORMAL_TEXTURE_VARIABLE_NAME "normalTexture"
 #define EMISSIVE_TEXTURE_VARIABLE_NAME "emissiveTexture"
+
+//light variables
+#define MAX_LIGHTS 32
+
+#define LIGHT_ARRAY_VARIABLE_NAME "lights"
+#define LIGHT_POSITION_VARIABLE_NAME "location"
+#define LIGHT_DIFFUSE_VARIABLE_NAME "diffuse"
+#define LIGHT_SPECULAR_VARIABLE_NAME "specular"
+#define LIGHT_LINEAR_VARIABLE_NAME "linearAttenuation"
+#define LIGHT_QUADRATIC_VARIABLE_NAME "quadraticAttenuation"
+
+#define LIGHT_COUNT_VARIABLE_NAME "numLights"
 
 // class shader tries to load all possible uniforms, and if it returns -1 , then don't try to load that uniform when binding material
 class Shader
@@ -44,6 +57,17 @@ private:
 	GLint emissiveTextureLoc;
 	//GLint specularTextureLoc;
 	//GLint opacityTextureLoc;
+
+	//light uniforms
+	std::vector<GLint> lightPositionLoc;
+	std::vector<GLint> lightDiffuseLoc;
+	std::vector<GLint> lightSpecularLoc;
+	std::vector<GLint> lightLinearAttenuationLoc;
+	std::vector<GLint> lightQuadraticAttenuationLoc;
+
+	//GLint lightArrayLoc;
+
+	GLint lightCountLoc;
 public:
 	Shader(GLuint programID);
 	~Shader();
@@ -53,6 +77,8 @@ public:
 	void loadProjectionMatrix(glm::mat4 *projectionMatrix);
 	void bind();
 	void bindMaterial(Material * mat); // load uniforms where the location is not -1, bind textures that are not -1
+	void loadLight(Light * light, Transform * t, int index);
+	void loadLightCount(int count);
 	GLuint getProgramID();
 };
 
@@ -72,6 +98,8 @@ public:
 	void loadNormalMatrix(glm::mat3 *normalMatrix);
 	void loadViewMatrix(glm::mat4 *viewMatrix);
 	void loadProjectionMatrix(glm::mat4 *projectionMatrix);
+	void loadLight(Light * light, Transform * t, int index);
+	void loadLightCount(int count);
 	GLuint getProgramID();
 	static void loadShaders(ShaderManager* sm);
 };

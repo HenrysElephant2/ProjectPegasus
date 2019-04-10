@@ -25,25 +25,52 @@ bool Scene::openFile(std::string& filename)
 void Scene::processScene(const aiScene* scene, std::string & filename)
 {
 	std::cout << "Reading Scene" << std::endl;
-	int numMeshes = scene->mNumMeshes;
-	for(unsigned int i = 0; i < numMeshes; i++)
-	{
-		createMesh(i, scene->mMeshes[i]); // might need to create a separate const aiMesh* variable for scene->m Meshes[i]
-	}
+
+	processNodes(scene->mRootNode, scene);
+
+	// int numMeshes = scene->mNumMeshes;
+	// for(unsigned int i = 0; i < numMeshes; i++)
+	// {
+	// 	std::string test = "";
+	// 	createMesh(scene->mMeshes[i], test); // might need to create a separate const aiMesh* variable for scene->m Meshes[i]
+	// }
 	std::cout << "Finished Reading Scene" << std::endl;
 	processMaterials(scene, filename);
 	processLights(scene);
+	// processNodes(scene->mRootNode, scene);
+	// print();
 }
 
-void Scene::createMesh(unsigned int index, const aiMesh* m)
+void Scene::processNodes(aiNode * node, const aiScene* scene)
+{
+	std::cout << "Node name: " << node->mName.C_Str() << ", Number of Meshes: " << node->mNumMeshes << std::endl;
+	std::string nodeName = std::string(node->mName.C_Str());
+	for(int i = 0; i < node->mNumMeshes; i++)
+	{
+		createMesh(scene->mMeshes[node->mMeshes[i]],nodeName, scene);
+	}
+	for(int i = 0; i < node->mNumChildren; i++)
+	{
+		processNodes(node->mChildren[i], scene);
+	}
+}
+
+void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene)
 {
 	//std::cout << "Reading Mesh" << std::endl;
+	int index = meshes.size();
 	meshes.push_back(Mesh());
+	meshes[index].name = name;
+	std::cout << "Mesh Name: " << meshes[index].name << " Original name: " << name << std::endl;
 	meshes[index].materialIndex = m->mMaterialIndex + materials.size();
 	meshes[index].hasTangents = m->HasTangentsAndBitangents();
-	meshes[index].name = std::string(m->mName.C_Str());
+	//meshes[index].name = std::string(m->mName.C_Str());
 	meshes[index].numVertices = m->mNumVertices;
 	meshes[index].indexCount = m->mNumFaces * 3;
+
+	aiMatrix4x4 transform = getTransformation(scene, meshes[index].name);
+	aiMatrix4x4 normalMatrix = transform;
+	normalMatrix.Inverse().Transpose();
 
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
@@ -52,17 +79,17 @@ void Scene::createMesh(unsigned int index, const aiMesh* m)
 
 	for(unsigned int i = 0; i < m->mNumVertices; i++)
 	{
-		const aiVector3D* position = &(m->mVertices[i]);
+		aiVector3D position = transform * (m->mVertices[i]);
 		const aiVector3D* uv = m->HasTextureCoords(0)? &(m->mTextureCoords[0][i]) : &zero;
-		const aiVector3D* normal = &(m->mNormals[i]);
-		const aiVector3D* tangent = m->HasTangentsAndBitangents()? &(m->mTangents[i]) : &zero;
-		const aiVector3D* bitangent = m->HasTangentsAndBitangents()? &(m->mBitangents[i]) : &zero;
+		aiVector3D normal = normalMatrix * (m->mNormals[i]);
+		aiVector3D tangent = normalMatrix * (m->mTangents[i]);
+		aiVector3D bitangent = normalMatrix * (m->mBitangents[i]);
 
-		Vertex vert = Vertex(glm::vec4(position->x, position->y, position->z, 1.0), 
+		Vertex vert = Vertex(glm::vec4(position.x, position.y, position.z, 1.0), 
 							 glm::vec2(uv->x, uv->y), 
-							 glm::vec3(normal->x,normal->y, normal->z),
-							 glm::vec3(tangent->x, tangent->y, tangent->z),
-							 glm::vec3(bitangent->x, bitangent->y, bitangent->z));
+							 glm::vec3(normal.x,normal.y, normal.z),
+							 glm::vec3(tangent.x, tangent.y, tangent.z),
+							 glm::vec3(bitangent.x, bitangent.y, bitangent.z));
 		vertices.push_back(vert);
 		averageLocation =averageLocation + vert.position;
 	}
@@ -221,10 +248,38 @@ void Scene::processLights(const aiScene* scene)
 		const aiLight* currentLight = scene->mLights[i];
 		std::cout << "Name: " << currentLight->mName.C_Str() << std::endl;
 		std::cout << "Type: " << currentLight->mType << std::endl;
+		
 		std::cout << "constant Attenuation: "<< currentLight->mAttenuationConstant << std::endl;
 		std::cout << "linear Attenuation: "<< currentLight->mAttenuationLinear << std::endl;
 		std::cout << "quadratic Attenuation: "<< currentLight->mAttenuationQuadratic << std::endl;
+
+		int index = lights.size();
+		lights.push_back(LightData());
+		lights[index].name = std::string(currentLight->mName.C_Str());
+		aiMatrix4x4 transform = getTransformation(scene, lights[index].name);
+		aiVector3D transformedLocation = transform * currentLight->mPosition;
+
+		std::cout << "Location: " << transformedLocation.x << "," << transformedLocation.y << "," << transformedLocation.z << std::endl;
+		lights[index].location = glm::vec3(transformedLocation.x, transformedLocation.y, transformedLocation.z);
+		lights[index].diffuse = glm::vec3(currentLight->mColorDiffuse.r, currentLight->mColorDiffuse.g, currentLight->mColorDiffuse.b );
+		lights[index].specular = glm::vec3(currentLight->mColorSpecular.r, currentLight->mColorSpecular.g, currentLight->mColorSpecular.b);
+		lights[index].linearAttenuation = currentLight->mAttenuationLinear;
+		lights[index].quadraticAttenuation = currentLight->mAttenuationQuadratic;
+
 	}
+}
+
+aiMatrix4x4 Scene::getTransformation(const aiScene * scene, std::string &name)
+{
+	aiNode * root = scene->mRootNode;
+	return getTransformationHelper(root->FindNode(name.c_str()));
+}
+
+aiMatrix4x4 Scene::getTransformationHelper(aiNode * node)
+{
+	if(node->mParent == NULL)
+		return node->mTransformation;
+	return getTransformationHelper(node->mParent) * node->mTransformation;
 }
 
 
@@ -253,7 +308,7 @@ void Scene::render()
 	}
 }
 
-ComponentWrapper * Scene::getByName(std::string & name, int entityID)
+ComponentWrapper * Scene::getMeshByName(std::string & name, int entityID)
 {
 	bool found = false;
 	int i = 0; 
@@ -268,10 +323,10 @@ ComponentWrapper * Scene::getByName(std::string & name, int entityID)
 		return NULL;
 	}
 	meshes[i].count++;
-	return createWrapper(i, entityID);
+	return createMeshWrapper(i, entityID);
 
 }
-int Scene::getUnusedCount()
+int Scene::getUnusedMeshCount()
 {
 	int unusedCount = 0;
 	for(int i = 0; i < meshes.size();i++)
@@ -281,7 +336,7 @@ int Scene::getUnusedCount()
 	}	
 	return unusedCount;
 }
-ComponentWrapper * Scene::getUnused(int entityID) // gets first unused 
+ComponentWrapper * Scene::getUnusedMesh(int entityID) // gets first unused 
 {
 	bool found = false;
 	int i = 0;
@@ -296,25 +351,91 @@ ComponentWrapper * Scene::getUnused(int entityID) // gets first unused
 		return NULL;
 	}
 	meshes[i].count++;
-	return createWrapper(i,entityID);
+	return createMeshWrapper(i,entityID);
 }
 
 Mesh::Mesh(){}
 
-// Renderable * Scene::getRenderableComponent()
-// {
-// 	Renderable * r = Renderable();
-// 	r->VBO = 
-// }
-// Transform & Scene::getTransformComponent();
 
-ComponentWrapper * Scene::createWrapper(int index, int entityID)
+
+ComponentWrapper * Scene::createMeshWrapper(int index, int entityID)
 {
 	
 	glm::vec3 defaultOrientation = glm::vec3(0.0,0.0,0.0);
-	Transform t = Transform(meshes[index].location, defaultOrientation, 1.0/50.0,entityID);
+	Transform t = Transform(meshes[index].location, defaultOrientation, 1.0,entityID);
 	Renderable r  = Renderable(meshes[index].VBO, meshes[index].IBO, meshes[index].indexCount, 0, materials[meshes[index].materialIndex], entityID);
-	ComponentWrapper *wrapper = new ComponentWrapper(t,r);
+	ComponentWrapper *wrapper = new ComponentWrapper();
+	std::string lightName = meshes[index].name + "Light";
+	std::cout << "mesh name: " << meshes[index].name <<", light name: " << lightName << std::endl;
+	for(int i = 0; i < lights.size(); i++)
+	{
+		std::cout << "\t"<<lights[i].name << std::endl;
+
+		if(lights[i].name.compare(lightName) == 0)
+		{
+			std::cout << "match found" << std::endl;
+			lights[i].count++;
+			Light l = Light();
+			l.ownerID = entityID;
+			l.location = lights[i].location - glm::vec3(meshes[index].location) * t.scale;
+			std::cout << "light position: " << l.location.x << ", " << l.location.y << ", " << l.location.z << std::endl;
+			std::cout << "light original position: " << lights[i].location.x << ", " << lights[i].location.y << ", " << lights[i].location.z << std::endl;
+			l.diffuse = lights[i].diffuse;
+			l.specular = lights[i].specular;
+			l.linearAttenuation = lights[i].linearAttenuation;
+			l.quadraticAttenuation = lights[i].quadraticAttenuation;
+
+			wrapper->hasLight = true;
+			wrapper->l = l;
+		}
+	}
+	wrapper->hasRenderable = true;
+	wrapper->r = r;
+	wrapper->hasTransform = true;
+	wrapper->t = t;
+	return wrapper;
+}
+
+int Scene::getUnusedLightCount()
+{
+	int unusedCount = 0;
+	for(int i = 0; i < lights.size();i++)
+	{
+		if(lights[i].count == 0)
+			unusedCount++;
+	}	
+	return unusedCount;
+}
+ComponentWrapper * Scene::getUnusedLight(int entityID)
+{
+	bool found = false;
+	int i = 0;
+	while(!found && i < lights.size())
+	{
+		if(lights[i].count == 0)
+			found = true;
+		else i++;
+	}
+	if(!found)
+	{
+		return NULL;
+	}
+	lights[i].count++;
+	return createLightWrapper(i,entityID);
+}
+ComponentWrapper * Scene::createLightWrapper(int index, int entityID)
+{
+	glm::vec3 zeroVec3 = glm::vec3(0.0,0.0,0.0);
+	glm::vec4 lightPosition = glm::vec4(lights[index].location,1.0);
+	Transform t = Transform(lightPosition, zeroVec3, 1.0,entityID);
+	Light l = Light(zeroVec3, lights[index].diffuse, lights[index].specular, lights[index].linearAttenuation, lights[index].quadraticAttenuation, entityID);
+	ComponentWrapper *wrapper = new ComponentWrapper();
+
+	wrapper->hasLight = true;
+	wrapper->l = l;
+	wrapper->hasRenderable = false;
+	wrapper->hasTransform = true;
+	wrapper->t = t;
 	return wrapper;
 }
 

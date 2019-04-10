@@ -19,6 +19,7 @@ private:
 	ComponentManager<Transform> transformManager;
 	ComponentManager<Renderable> renderableManager;
 	ComponentManager<Player> playerManager;
+	ComponentManager<Light> lightManager;
 
 public:
 	ECSEngine(){}
@@ -30,6 +31,7 @@ public:
 	void addTransform(int entityID, Transform &comp);
 	void addRenderable(int entityID, Renderable &comp);
 	void addPlayer(int entityID, Player &comp);
+	void addLight(int entityID, Light &comp);
 	RenderSystem* getRenderSystem();
 
 };

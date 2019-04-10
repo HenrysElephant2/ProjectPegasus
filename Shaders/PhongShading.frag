@@ -9,7 +9,8 @@ uniform sampler2D emissiveTexture;
 
 in vec2 texCoords;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 brightColor;
 
 struct Light {
 	vec3 location;
@@ -17,8 +18,11 @@ struct Light {
 	vec3 specular;
 	float linearAttenuation;
 	float quadraticAttenuation;
-
 };
+
+const int MAX_LIGHTS = 32;
+uniform Light lights[MAX_LIGHTS];
+uniform int numLights;
 
 float tempGamma = 2.2;
 
@@ -31,39 +35,38 @@ void main()
 	vec3 diffuseColor = texture(diffuseTexture, texCoords).rgb;
 	float shininess = texture(diffuseTexture, texCoords).a;
 
-	 vec3 finalColor = diffuseColor * .005; // replace diffuseColor with ambient color
+	vec3 finalColor = diffuseColor * .005; // replace diffuseColor with ambient color
 	//vec3 finalColor = vec3(0.0,0.0,0.0);
 
-	vec3 lightPos = vec3(0.0,1.0,0.0);
-	float linear = 1.0;
-	float quadratic = 0.0;//0001;
+	// vec3 lightPos = vec3(0.0,1.0,0.0);
+	// float linear = 1.0;
+	// float quadratic = 0.0;//0001;
 
 	vec3 viewDirection = normalize(cameraLoc - fragPos);
 
 
 
-	//for all lights
+	for(int i = 0; i < numLights && i < MAX_LIGHTS; i++)
 	{
-		vec3 lightDirection = normalize(lightPos - fragPos);
+		vec3 lightDirection = normalize(lights[i].location - fragPos);
 		float diffuseAmount = max(dot(normal, lightDirection),0.0);
 		
-		vec3 diffuse = diffuseColor * diffuseAmount * vec3(0.3,0.3,0.3); // * lights[i].diffuseColor
+		vec3 diffuse = diffuseColor * diffuseAmount * lights[i].diffuse;
 
 		vec3 R = reflect(-lightDirection,normal);
 		vec3 halfwaydir = normalize(lightDirection + viewDirection);
 
-		 //float specularAmount = max(dot(normal,halfwaydir),0.0);
+		//float specularAmount = max(dot(normal,halfwaydir),0.0);
 		float specularAmount = max(dot(R,viewDirection),0.0);
-		// if(diffuseAmount == 0)
-		// 	specularAmount = 0;
+		
 
 		vec3 specular = vec3(0.0);
 		if(diffuseAmount > 0.0)
-			specular = pow(specularAmount,shininess) * vec3(0.5,0.5,0.5);//* lights[i].specularColor;
+			specular = pow(specularAmount,shininess) * lights[i].specular;
 
 
-		float d = length(lightPos - fragPos);
-		float attenuation = 1.0 / (1.0 + linear * d + quadratic * d * d);
+		float d = length(lights[i].location - fragPos);
+		float attenuation = 1.0 / (1.0 + lights[i].linearAttenuation * d + lights[i].quadraticAttenuation * d * d);
 
 		finalColor += diffuse * attenuation + specular * attenuation;
 
@@ -71,5 +74,6 @@ void main()
 
 	finalColor += texture(emissiveTexture, texCoords).xyz;
 	FragColor = vec4(finalColor, 1.0);
+	brightColor = texture(emissiveTexture, texCoords);
 	
 }

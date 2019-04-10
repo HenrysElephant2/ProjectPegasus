@@ -14,6 +14,7 @@ in float shininess;
 
 uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;// just for testing, this shader shouldn't do normal mapping
+uniform sampler2D emissiveTexture;
 
 void main() {
 	position = fragPos;
@@ -21,4 +22,5 @@ void main() {
 	normal = vec4(fragNormal,1.0);
 	diffuse.rgb = texture(colorTexture, texCoords).rgb;
 	diffuse.a = shininess;
+	emissive = texture(emissiveTexture, texCoords);
 }

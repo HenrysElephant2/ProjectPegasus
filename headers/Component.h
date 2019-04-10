@@ -15,9 +15,9 @@ struct Component {
 
 
 struct Transform:Component {
-	glm::vec4 position;
-	glm::vec3 orientation;
-	float scale;
+	glm::vec4 position = glm::vec4(0.0,0.0,0.0,1.0);
+	glm::vec3 orientation = glm::vec3(0.0,0.0,0.0);
+	float scale = 1.0;
 	Transform(glm::vec4& position_in, glm::vec3& orientation_in, float scale_in, int ownerID) : Component(ownerID)
 	{
 		position = position_in;
@@ -73,7 +73,20 @@ struct Player:Component {
 };
 
 struct Light:Component {
-	
+	glm::vec3 location = glm::vec3(0.0,0.0,0.0);
+	glm::vec3 diffuse = glm::vec3(1.0,0.0,1.0);
+	glm::vec3 specular = glm::vec3(1.0,0.0,1.0);
+	float linearAttenuation = 0.0;
+	float quadraticAttenuation = 0.0;
+	Light(){}
+	Light(glm::vec3 &location_in, glm::vec3 &diffuse_in, glm::vec3 &specular_in, float linearAtt_in, float quadraticAtt_in, int ownerID):Component(ownerID)
+	{
+		location = location_in;
+		diffuse = diffuse_in;
+		specular = specular_in;
+		linearAttenuation = linearAtt_in;
+		quadraticAttenuation = quadraticAtt_in;
+	}
 };
 
 #endif

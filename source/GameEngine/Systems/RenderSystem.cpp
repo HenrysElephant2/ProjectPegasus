@@ -6,6 +6,7 @@ float timeSinceMeasure = 0;
 float test = 0;
 void RenderSystem::update()
 {
+	// make fps measurement. this is for testing
 	Uint64 currentTime = SDL_GetPerformanceCounter();
 	Uint64 freq = SDL_GetPerformanceFrequency();
 	float dt = ((currentTime - previousTime2) / (float)freq);
@@ -13,7 +14,7 @@ void RenderSystem::update()
 	previousTime2 = currentTime;
 	frames++;
 	timeSinceMeasure += dt;
-	if(timeSinceMeasure > 1.0)
+	if(timeSinceMeasure > 5.0)
 	{
 		std::cout << "FPS: " << frames / timeSinceMeasure << std::endl;
 		frames = 0;
@@ -21,14 +22,25 @@ void RenderSystem::update()
 	}
 
 
+	//make list of all lights in the scene
+	std::vector<int> lightList;
+	int limit = lights->getSize();
+	for(int i = 0; i < limit; i++)
+	{
+		Light * l = lights->getComponent(i);
+		if(l)
+			lightList.push_back(i);
+	}
+
+
 	glViewport(0,0,textureWidth, textureHeight);
+	//glViewport(0,0,windowWidth, windowHeight);
 	deferredShadingData.bindFrameBuffer();
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	test += .5 * dt;
-	//std::cout << "updating rendersystem: "<< renderables->getSize() << std::endl;
-	//ComponentManager<int> test = ComponentManager<int>();
+
 	Player * p = player->getComponent(cameraID);
 	Transform * pLoc = transforms->getComponent(cameraID);
 	if(p == NULL)
@@ -37,6 +49,7 @@ void RenderSystem::update()
 		//determine new cameraID
 	}
 
+	//calculate where to place the camera in order to make the view matrix
 	glm::vec3 cameraLoc = glm::vec3(sin(p->cameraYaw+test) * (cos(p->cameraPitch)*p->cameraOffset),
 									sin(p->cameraPitch)*p->cameraOffset,
 									cos(p->cameraYaw+test) * (cos(p->cameraPitch)*p->cameraOffset))
@@ -49,6 +62,7 @@ void RenderSystem::update()
 	glm::vec3 zAxis = glm::vec3(0.0,0.0,1.0);
 
 
+	// render all solid objects
 	int count = renderables->getSize();
 	for(int i = 0; i < count; i++)
 	{
@@ -103,12 +117,13 @@ void RenderSystem::update()
 	glDisable(GL_DEPTH_TEST);
 
 
+
+	// perform shading pass
 	shaders->bindShader(1);
 	glUniform3f(cameraPositionUniformLoc, cameraLoc.x, cameraLoc.y, cameraLoc.z);
-	// std::cout << cameraLoc.x<< ", " <<cameraLoc.y << ", " << cameraLoc.z << std::endl;
-	HDRBuffer.bindFrameBuffer();
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//shaders->bindShader(2);
+	
+	loadLights(&lightList);
+	shadingTarget.bindFrameBuffer();
 	deferredShadingData.bindTexture(positionTexture, GL_TEXTURE0);
 	deferredShadingData.bindTexture(normalTexture, GL_TEXTURE1);
 	deferredShadingData.bindTexture(diffuseTexture, GL_TEXTURE2);
@@ -117,19 +132,61 @@ void RenderSystem::update()
 	glEnable(GL_DEPTH_TEST);
 	renderFullScreenQuad();
 
+
+
+	bloomBuffer[0].bindFrameBuffer();
+	shaders->bindShader(4);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	//deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE0);
+	int pingpong = 0;
+
+	// blur bright texture for bloom effect
+	for(int i = 0; i < BLUR_PASSES; i++)
+	{
+
+		bloomBuffer[pingpong].bindFrameBuffer();
+		shaders->bindShader(4);
+		glUniform1i(horizontalBoolLoc, pingpong);
+		glClear( GL_COLOR_BUFFER_BIT );
+		if(i == 0)
+			shadingTarget.bindTexture(brightTexture, GL_TEXTURE0);
+		else bloomBuffer[!pingpong].bindTexture(bloomTexture[!pingpong], GL_TEXTURE0);
+		renderFullScreenQuad();
+		pingpong = !pingpong;
+	}
+
+	// apply the bloom to the color texture created by the shading pass
+	shaders->bindShader(5);
+	bloomTarget.bindFrameBuffer();
+	glClear( GL_COLOR_BUFFER_BIT );
+	shadingTarget.bindTexture(colorTexture, GL_TEXTURE0);
+	bloomBuffer[!pingpong].bindTexture(bloomTexture[!pingpong], GL_TEXTURE1);
+	renderFullScreenQuad();
+
+
+
+	//apply HDR and render to the screen
 	glViewport(0,0,windowWidth, windowHeight);
 	shaders->bindShader(3);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUniform1f(exposureLoc, 5.0);
-	HDRBuffer.bindTexture(HDRColorTexture, GL_TEXTURE0);
+	bloomTarget.bindTexture(finalColorTexture, GL_TEXTURE0);
+	//bloomBuffer[!pingpong].bindTexture(bloomTexture[!pingpong], GL_TEXTURE0);
+	//deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	renderFullScreenQuad();
 
+	//bloomBuffer[!pingpong].bindTexture(bloomTexture[!pingpong], GL_TEXTURE0);
+	//renderFullScreenQuad();
 
-	//debugging test render normals to double check correctness
+	//glDisable(GL_BLEND);
+
+
+
+	// // debugging test render normals to double check correctness
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// shaders->bindShader(2);
+	// shaders->bindShader(4);
 	// deferredShadingData.bindTexture(normalTexture, GL_TEXTURE0);
 	// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	// // glEnable(GL_DEPTH_TEST);
@@ -176,6 +233,27 @@ void RenderSystem::setUpFrameBuffers()
 
 	deferredShadingData.addDepthBuffer(textureWidth,textureHeight);
 
-	HDRColorTexture = HDRBuffer.addTexture(textureWidth, textureHeight);
+	//set up bloom pingpong textures
+	bloomTexture[0] = bloomBuffer[0].addTexture(textureWidth,textureHeight);
+	bloomTexture[1] = bloomBuffer[1].addTexture(textureWidth,textureHeight);
+
+	//set up shading target textures
+	colorTexture = shadingTarget.addTexture(textureWidth, textureHeight);
+	brightTexture = shadingTarget.addTexture(textureWidth,textureHeight);
+
+	//set up textures for bloomTarget, which is the final framebuffer before rendering to the screen
+	finalColorTexture = bloomTarget.addTexture(textureWidth, textureHeight);
+}
+
+void RenderSystem::loadLights(std::vector<int> *lightList)
+{
+	for(int i = 0; i < lightList->size() && i < MAX_LIGHTS; i++)
+	{
+		int entityID = lightList->at(i);
+		Transform * t = transforms->getComponent(entityID);
+		Light * l = lights->getComponent(entityID);
+		shaders->loadLight(l,t,i);
+	}
+	shaders->loadLightCount(lightList->size());
 }
 

@@ -53,6 +53,15 @@ struct Mesh{
 
 struct LightData{
 
+	std::string name;
+	int count = 0;
+
+	glm::vec3 location;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	float linearAttenuation;
+	float quadraticAttenuation;
+
 };
 
 
@@ -75,13 +84,17 @@ struct Vertex {
 };
 
 struct ComponentWrapper {
+	bool hasRenderable = false;
 	Renderable r;
+	bool hasTransform = false;
 	Transform t;
-	ComponentWrapper(Transform& t_in, Renderable & r_in)
-	{
-		t = t_in;
-		r = r_in;
-	}
+	bool hasLight = false;
+	Light l;
+	// ComponentWrapper(Transform& t_in, Renderable & r_in)
+	// {
+	// 	t = t_in;
+	// 	r = r_in;
+	// }
 };
 
 
@@ -89,21 +102,27 @@ class Scene {
 private:
 	std::vector<Mesh> meshes;
 	std::vector<Material> materials;
-	std::vector<Light> lights;
+	std::vector<LightData> lights;
 	TextureLoader texManager;
 
 	void processScene(const aiScene* scene, std::string & filename);
-	void createMesh(unsigned int index, const aiMesh* m);
+	void createMesh(const aiMesh* m, std::string &name, const aiScene * scene);
 	void processMaterials(const aiScene* scene, std::string & filename);
 	void processLights(const aiScene* scene);
-	ComponentWrapper * createWrapper(int index, int entityID);
+	void processNodes(aiNode * node, const aiScene* scene);
+	aiMatrix4x4 getTransformation(const aiScene * scene, std::string &name);
+	aiMatrix4x4 getTransformationHelper(aiNode * node);
+	ComponentWrapper * createMeshWrapper(int index, int entityID);
+	ComponentWrapper * createLightWrapper(int index, int entityID);
 
 public:
 	Scene();
 	bool openFile(std::string & filename);
-	ComponentWrapper * getByName(std::string & name, int entityID);
-	int getUnusedCount();
-	ComponentWrapper * getUnused(int entityID); // gets first unused mesh
+	ComponentWrapper * getMeshByName(std::string & name, int entityID);
+	int getUnusedMeshCount();
+	ComponentWrapper * getUnusedMesh(int entityID); // gets first unused mesh
+	int getUnusedLightCount();
+	ComponentWrapper * getUnusedLight(int entityID);
 	void print();
 	void render();
 };

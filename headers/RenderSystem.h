@@ -11,6 +11,8 @@
 #include "ShaderManager.h"
 #include "FrameBuffer.h"
 
+#define BLUR_PASSES 8
+
 
 #define VERTEX_ATTRIB 0
 #define RGBA_ATTRIB 1
@@ -28,6 +30,7 @@ private:
 	ComponentManager<Transform> * transforms;
 	ComponentManager<Renderable> * renderables;
 	ComponentManager<Player> * player;
+	ComponentManager<Light> * lights;
 	ShaderManager * shaders;
 	int cameraID = 0;
 	glm::mat4 projection;
@@ -49,8 +52,21 @@ private:
 	int diffuseTexture;
 	int emissiveTexture;
 
-	FrameBuffer HDRBuffer;
-	int HDRColorTexture;
+	// render target for all shading calculations. anything added to brightTexture will have bloom applied to it
+	FrameBuffer shadingTarget;
+	int colorTexture;
+	int brightTexture;
+
+	// framebuffers for pingponging bloom
+	FrameBuffer bloomBuffer[2];
+	int bloomTexture[2];
+	GLint horizontalBoolLoc;
+
+	// target to combine color and bloom texture
+	FrameBuffer bloomTarget;
+	int finalColorTexture;
+
+	// HDR
 	GLint exposureLoc;
 
 
@@ -63,13 +79,17 @@ private:
 
 	void setUpFrameBuffers();
 
+	void loadLights(std::vector<int> *lightList);
+
 public:
-	RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, ComponentManager<Player> * player_in ):System(m)
+	RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
+				 ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in):System(m)
 	{
 		shaders = sm;
 		transforms = transforms_in;
 		renderables = renderables_in;
 		player = player_in;
+		lights = lights_in;
 		glGenVertexArrays( 1, &BASE_VAO );
 		glBindVertexArray( BASE_VAO );
 
@@ -99,6 +119,13 @@ public:
 
 		sm->bindShader(3);
 		exposureLoc = glGetUniformLocation(sm->getProgramID(), "exposure");
+
+		sm->bindShader(4);
+		horizontalBoolLoc = glGetUniformLocation(sm->getProgramID(), "horizontal");
+
+		sm->bindShader(5);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "baseColor"), 0);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "bloomColor"), 1);
 
 		
 

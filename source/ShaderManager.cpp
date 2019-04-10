@@ -20,6 +20,31 @@ Shader::Shader(GLuint programID)
 	colorTextureLoc = glGetUniformLocation(program, COLOR_TEXTURE_VARIABLE_NAME);
 	normalTextureLoc = glGetUniformLocation(program, NORMAL_TEXTURE_VARIABLE_NAME);
 	emissiveTextureLoc = glGetUniformLocation(program, EMISSIVE_TEXTURE_VARIABLE_NAME);
+
+	//load light Array locations
+	std::string testName = LIGHT_ARRAY_VARIABLE_NAME + std::string("[0].") + LIGHT_POSITION_VARIABLE_NAME;
+	if(glGetUniformLocation(program, testName.c_str()) != -1)
+	{
+		for(int i = 0; i < MAX_LIGHTS; i++)
+		{
+			std::string positionName = std::string(LIGHT_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]." + std::string(LIGHT_POSITION_VARIABLE_NAME);
+			lightPositionLoc.push_back(glGetUniformLocation(program, positionName.c_str()));
+
+			std::string diffuseName = std::string(LIGHT_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]." + std::string(LIGHT_DIFFUSE_VARIABLE_NAME);
+			lightDiffuseLoc.push_back(glGetUniformLocation(program, diffuseName.c_str()));
+
+			std::string specularName = std::string(LIGHT_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]." + std::string(LIGHT_SPECULAR_VARIABLE_NAME);
+			lightSpecularLoc.push_back(glGetUniformLocation(program, specularName.c_str()));
+
+			std::string linearName = std::string(LIGHT_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]." + std::string(LIGHT_LINEAR_VARIABLE_NAME);
+			lightLinearAttenuationLoc.push_back(glGetUniformLocation(program, linearName.c_str()));
+
+			std::string quadraticName = std::string(LIGHT_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]." + std::string(LIGHT_QUADRATIC_VARIABLE_NAME);
+			lightQuadraticAttenuationLoc.push_back(glGetUniformLocation(program, quadraticName.c_str()));
+		}
+	}
+	//lightArrayLoc = glGetUniformLocation(program, LIGHT_ARRAY_VARIABLE_NAME);
+	lightCountLoc = glGetUniformLocation(program, LIGHT_COUNT_VARIABLE_NAME);
 }
 
 Shader::~Shader()
@@ -63,6 +88,24 @@ void Shader::loadProjectionMatrix(glm::mat4 * projectionMatrix)
 {
 	if(projectionMatrixLoc != -1)
 		glUniformMatrix4fv(projectionMatrixLoc,1,GL_FALSE,glm::value_ptr(*projectionMatrix));
+}
+
+void Shader::loadLight(Light * light, Transform * t, int index)
+{
+	if(index < lightPositionLoc.size())
+	{
+		glUniform3f(lightPositionLoc[index], light->location.x + t->position.x*t->scale, light->location.y + t->position.y*t->scale, light->location.z + t->position.z*t->scale);
+		glUniform3f(lightDiffuseLoc[index], light->diffuse.x, light->diffuse.y, light->diffuse.z);
+		glUniform3f(lightSpecularLoc[index], light->specular.x, light->specular.y, light->specular.z);
+		glUniform1f(lightLinearAttenuationLoc[index], light->linearAttenuation);
+		glUniform1f(lightQuadraticAttenuationLoc[index], light->quadraticAttenuation);
+	}
+}
+
+void Shader::loadLightCount(int count)
+{
+	if(lightCountLoc != -1)
+		glUniform1i(lightCountLoc, count);
 }
 
 void Shader::bind()
@@ -249,6 +292,20 @@ void ShaderManager::loadProjectionMatrix(glm::mat4 *projectionMatrix)
 		shaders[current]->loadProjectionMatrix(projectionMatrix);
 }
 
+void ShaderManager::loadLight(Light * light, Transform * t, int index)
+{
+	if(current < shaders.size())
+		shaders[current]->loadLight(light,t,index);
+}
+
+void ShaderManager::loadLightCount(int count)
+{
+	if(current < shaders.size())
+		shaders[current]->loadLightCount(count);
+}
+
+
+
 GLuint ShaderManager::getProgramID()
 {
 	return shaders[current]->getProgramID();
@@ -271,5 +328,13 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string hdrVert = "Shaders/HDR.vert";
 	std::string hdrFrag = "Shaders/HDR.frag";
 	hdrProgram = sm->createProgram(hdrVert,hdrFrag);
+
+	std::string blurVert = "Shaders/blur.vert";
+	std::string blurFrag = "Shaders/blur.frag";
+	sm->createProgram(blurVert,blurFrag);
+
+	std::string applyBloomVert = "Shaders/applyBloom.vert";
+	std::string applyBloomFrag = "Shaders/applyBloom.frag";
+	sm->createProgram(applyBloomVert,applyBloomFrag);
 }
 
