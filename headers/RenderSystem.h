@@ -110,20 +110,20 @@ public:
 
 		setUpFrameBuffers();
 
-		sm->bindShader(1);
+		sm->bindShader(ShaderManager::shadingPass);
 		cameraPositionUniformLoc = glGetUniformLocation(sm->getProgramID(), "cameraLoc");
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "positionTexture"), 0);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "diffuseTexture"), 2);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "emissiveTexture"), 3);
 
-		sm->bindShader(3);
+		sm->bindShader(ShaderManager::HDR);
 		exposureLoc = glGetUniformLocation(sm->getProgramID(), "exposure");
 
-		sm->bindShader(4);
+		sm->bindShader(ShaderManager::blur);
 		horizontalBoolLoc = glGetUniformLocation(sm->getProgramID(), "horizontal");
 
-		sm->bindShader(5);
+		sm->bindShader(ShaderManager::applyBloom);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "baseColor"), 0);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "bloomColor"), 1);
 

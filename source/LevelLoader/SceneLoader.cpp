@@ -43,7 +43,7 @@ void Scene::processScene(const aiScene* scene, std::string & filename)
 
 void Scene::processNodes(aiNode * node, const aiScene* scene)
 {
-	std::cout << "Node name: " << node->mName.C_Str() << ", Number of Meshes: " << node->mNumMeshes << std::endl;
+	//std::cout << "Node name: " << node->mName.C_Str() << ", Number of Meshes: " << node->mNumMeshes << std::endl;
 	std::string nodeName = std::string(node->mName.C_Str());
 	for(int i = 0; i < node->mNumMeshes; i++)
 	{
@@ -61,7 +61,7 @@ void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene
 	int index = meshes.size();
 	meshes.push_back(Mesh());
 	meshes[index].name = name;
-	std::cout << "Mesh Name: " << meshes[index].name << " Original name: " << name << std::endl;
+	//std::cout << "Mesh Name: " << meshes[index].name << " Original name: " << name << std::endl;
 	meshes[index].materialIndex = m->mMaterialIndex + materials.size();
 	meshes[index].hasTangents = m->HasTangentsAndBitangents();
 	//meshes[index].name = std::string(m->mName.C_Str());
@@ -364,22 +364,23 @@ ComponentWrapper * Scene::createMeshWrapper(int index, int entityID)
 	glm::vec3 defaultOrientation = glm::vec3(0.0,0.0,0.0);
 	Transform t = Transform(meshes[index].location, defaultOrientation, 1.0,entityID);
 	Renderable r  = Renderable(meshes[index].VBO, meshes[index].IBO, meshes[index].indexCount, 0, materials[meshes[index].materialIndex], entityID);
+	if(r.material.normals == 0)
+		r.program = ShaderManager::deferredBasic;
+	else r.program = ShaderManager::deferredNormal;
 	ComponentWrapper *wrapper = new ComponentWrapper();
 	std::string lightName = meshes[index].name + "Light";
-	std::cout << "mesh name: " << meshes[index].name <<", light name: " << lightName << std::endl;
 	for(int i = 0; i < lights.size(); i++)
 	{
-		std::cout << "\t"<<lights[i].name << std::endl;
 
 		if(lights[i].name.compare(lightName) == 0)
 		{
-			std::cout << "match found" << std::endl;
+			//std::cout << "match found" << std::endl;
 			lights[i].count++;
 			Light l = Light();
 			l.ownerID = entityID;
 			l.location = lights[i].location - glm::vec3(meshes[index].location) * t.scale;
-			std::cout << "light position: " << l.location.x << ", " << l.location.y << ", " << l.location.z << std::endl;
-			std::cout << "light original position: " << lights[i].location.x << ", " << lights[i].location.y << ", " << lights[i].location.z << std::endl;
+			// std::cout << "light position: " << l.location.x << ", " << l.location.y << ", " << l.location.z << std::endl;
+			// std::cout << "light original position: " << lights[i].location.x << ", " << lights[i].location.y << ", " << lights[i].location.z << std::endl;
 			l.diffuse = lights[i].diffuse;
 			l.specular = lights[i].specular;
 			l.linearAttenuation = lights[i].linearAttenuation;

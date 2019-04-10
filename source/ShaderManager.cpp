@@ -311,30 +311,46 @@ GLuint ShaderManager::getProgramID()
 	return shaders[current]->getProgramID();
 }
 
+int ShaderManager::deferredBasic = -1;
+int ShaderManager::deferredNormal = -1;
+int ShaderManager::shadingPass = -1;
+int ShaderManager::drawQuad = -1;
+int ShaderManager::HDR = -1;
+int ShaderManager::applyBloom = -1;
+int ShaderManager::blur = -1;
+
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
 	std::string defaultVert = "Shaders/deferredBasic.vert";
 	std::string defaultFrag = "Shaders/deferredBasic.frag";
-	sm->createProgram(defaultVert,defaultFrag);
+	deferredBasic = sm->createProgram(defaultVert,defaultFrag);
 
-	std::string quadVert = "Shaders/PhongShading.vert";
-	std::string quadFrag = "Shaders/PhongShading.frag";
-	sm->createProgram(quadVert,quadFrag);
+	std::string normalVert = "Shaders/deferredNormalMapped.vert";
+	std::string normalFrag = "Shaders/deferredNormalMapped.frag";
+	deferredNormal = sm->createProgram(normalVert,normalFrag);
 
-	std::string quad2Vert = "Shaders/drawQuad.vert";
-	std::string quad2Frag = "Shaders/drawQuad.frag";
-	sm->createProgram(quad2Vert,quad2Frag);
+	std::string shadingVert = "Shaders/PhongShading.vert";
+	std::string shadingFrag = "Shaders/PhongShading.frag";
+	shadingPass = sm->createProgram(shadingVert,shadingFrag);
+
+	std::string quadVert = "Shaders/drawQuad.vert";
+	std::string quadFrag = "Shaders/drawQuad.frag";
+	drawQuad = sm->createProgram(quadVert,quadFrag);
+
 
 	std::string hdrVert = "Shaders/HDR.vert";
 	std::string hdrFrag = "Shaders/HDR.frag";
-	hdrProgram = sm->createProgram(hdrVert,hdrFrag);
+	HDR = hdrProgram = sm->createProgram(hdrVert,hdrFrag);
 
 	std::string blurVert = "Shaders/blur.vert";
 	std::string blurFrag = "Shaders/blur.frag";
-	sm->createProgram(blurVert,blurFrag);
+	blur = sm->createProgram(blurVert,blurFrag);
 
 	std::string applyBloomVert = "Shaders/applyBloom.vert";
 	std::string applyBloomFrag = "Shaders/applyBloom.frag";
-	sm->createProgram(applyBloomVert,applyBloomFrag);
+	applyBloom = sm->createProgram(applyBloomVert,applyBloomFrag);
 }
+
+
+
 

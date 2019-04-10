@@ -7,6 +7,7 @@
 #include <assimp/material.h>
 
 
+#include "ShaderManager.h"
 #include "Material.h"
 #include "Component.h"
 #include "ECSEngine.h"

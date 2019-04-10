@@ -119,7 +119,7 @@ void RenderSystem::update()
 
 
 	// perform shading pass
-	shaders->bindShader(1);
+	shaders->bindShader(shaders->shadingPass);
 	glUniform3f(cameraPositionUniformLoc, cameraLoc.x, cameraLoc.y, cameraLoc.z);
 	
 	loadLights(&lightList);
@@ -135,7 +135,7 @@ void RenderSystem::update()
 
 
 	bloomBuffer[0].bindFrameBuffer();
-	shaders->bindShader(4);
+	shaders->bindShader(shaders->blur);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	//deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE0);
 	int pingpong = 0;
@@ -145,7 +145,7 @@ void RenderSystem::update()
 	{
 
 		bloomBuffer[pingpong].bindFrameBuffer();
-		shaders->bindShader(4);
+		shaders->bindShader(shaders->blur);
 		glUniform1i(horizontalBoolLoc, pingpong);
 		glClear( GL_COLOR_BUFFER_BIT );
 		if(i == 0)
@@ -156,7 +156,7 @@ void RenderSystem::update()
 	}
 
 	// apply the bloom to the color texture created by the shading pass
-	shaders->bindShader(5);
+	shaders->bindShader(shaders->applyBloom);
 	bloomTarget.bindFrameBuffer();
 	glClear( GL_COLOR_BUFFER_BIT );
 	shadingTarget.bindTexture(colorTexture, GL_TEXTURE0);
@@ -167,7 +167,7 @@ void RenderSystem::update()
 
 	//apply HDR and render to the screen
 	glViewport(0,0,windowWidth, windowHeight);
-	shaders->bindShader(3);
+	shaders->bindShader(shaders->HDR);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUniform1f(exposureLoc, 5.0);
 	bloomTarget.bindTexture(finalColorTexture, GL_TEXTURE0);

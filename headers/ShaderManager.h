@@ -102,6 +102,16 @@ public:
 	void loadLightCount(int count);
 	GLuint getProgramID();
 	static void loadShaders(ShaderManager* sm);
+
+	//shader index values, useful for other classes to easily access these shaders
+	static int deferredBasic;
+	static int deferredNormal;
+	static int shadingPass;
+	static int drawQuad;
+	static int HDR;
+	static int applyBloom;
+	static int blur;
+
 };
 
 static int hdrProgram;
