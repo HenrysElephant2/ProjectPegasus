@@ -2,9 +2,10 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
+#define GL_GLEXT_PROTOTYPES 1
 #include <glm/glm.hpp>
 #include "MessageManager.h"
-#include <OpenGL/gl3.h>
+#include <SDL2/SDL_opengl.h>
 #include "Material.h"
 
 struct Component {

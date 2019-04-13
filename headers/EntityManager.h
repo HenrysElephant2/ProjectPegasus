@@ -2,6 +2,7 @@
 #define ENTITYMANAGER_H
 
 #include <iostream>
+#include <cstring>
 
 
 struct Entity {

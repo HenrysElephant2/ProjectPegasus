@@ -7,6 +7,7 @@
 #include <assimp/material.h>
 
 
+#define GL_GLEXT_PROTOTYPES 1
 #include "ShaderManager.h"
 #include "Material.h"
 #include "Component.h"
@@ -14,7 +15,7 @@
 #include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
-#include <OpenGL/gl3.h>
+#include <SDL2/SDL_opengl.h>
 
 //TO BE DELETED. THIS WAS FOR TESTING MODEL LOADING
 const GLint vertexAttrib1 = 0;

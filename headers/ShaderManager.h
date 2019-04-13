@@ -1,7 +1,9 @@
 #ifndef SHADER_MANAGER_H
 #define SHADER_MANAGER_H
 
-#include <OpenGL/gl3.h>
+#define GL_GLEXT_PROTOTYPES 1
+//#include <OpenGL/gl3.h>
+#include <SDL2/SDL_opengl.h>
 #include <vector>
 #include <iostream>
 #include "Component.h"

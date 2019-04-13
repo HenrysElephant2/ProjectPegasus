@@ -2,8 +2,8 @@
 #define RENDERSYSTEM_H
 
 
-
-#include <OpenGL/gl3.h>
+#define GL_GLEXT_PROTOTYPES 1
+#include <SDL2/SDL_opengl.h>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp> 
