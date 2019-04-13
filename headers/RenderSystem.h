@@ -3,6 +3,7 @@
 
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <SDL2/SDL.h>
 #include "ComponentManager.h"
 #include "Component.h"

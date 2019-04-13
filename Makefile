@@ -5,7 +5,7 @@ all: $(EXE)
 #  MinGW
 ifeq "$(OS)" "Windows_NT"
 CFLG=-O3 -Wall
-LIBS=-lglu32 -lopengl32 -lSDL2
+LIBS=-lglu32 -lopengl32 -lSDL2 -lassimp
 CLEAN=del *.exe *.o *.a
 else
 #  OSX
@@ -15,8 +15,8 @@ CFLG=-O3 -Wall -Wno-deprecated-declarations
 LIBS=-framework OpenGL -F /Library/Frameworks -framework SDL2 -lassimp
 #  Linux/Unix/Solaris
 else
-CFLG=-O3 -Wall
-LIBS=-lglut -lGLU -lGL -lm -lSDL2
+CFLG=-O3 -Wall -fpermissive
+LIBS=-lglut -lGLU -lGL -lm -lSDL2 -lassimp
 endif
 #  OSX/Linux/Unix/Solaris
 CLEAN=rm -f $(EXE) *.o *.a $(OBJDIR)*.o $(OBJDIR)*.a

@@ -1,8 +1,9 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
+#define GL_GLEXT_PROTOTYPES 1
 #include <vector>
-#include <OpenGL/gl3.h>
+#include <SDL2/SDL_opengl.h>
 
 class FrameBuffer {
 private:

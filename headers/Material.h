@@ -1,9 +1,10 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
+#define GL_GLEXT_PROTOTYPES 1
 #include <glm/glm.hpp>
 #include <map>
-#include <OpenGL/gl3.h>
+#include <SDL2/SDL_opengl.h>
 #include <iostream>
 
 
