@@ -15,6 +15,10 @@ Gameplay::Gameplay(int width, int height,std::string &level_directory, ShaderMan
 	std::cout << "Successfully created ECS" << std::endl;
 }
 
+Gameplay::~Gameplay()
+{
+	delete engine;
+}
 
 void Gameplay::update()
 {

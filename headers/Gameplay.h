@@ -15,6 +15,7 @@ private:
 	
 public:
 	Gameplay(int width, int height,std::string &level_directory, ShaderManager * shaders_in);
+	~Gameplay();
 	void update();
 	void keyEvent(SDL_Event * e);
 	void mouseEvent(SDL_Event * e);

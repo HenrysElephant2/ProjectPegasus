@@ -90,7 +90,7 @@ void close() {
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
 	SDL_Quit();
-	//delete state;
+	delete state;
 }
 
 double getElapsedTime() {

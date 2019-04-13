@@ -2,6 +2,7 @@
 #define MESSAGEMANAGER_H
 
 #include "System.h"
+#include <SDL2/SDL.h>
 #include <vector>
 
 #define MESSAGE_TYPE_COUNT 5
@@ -19,6 +20,23 @@ struct BasicMessage {
 	int messageType;
 	BasicMessage(int type) {
 		messageType = type;
+	}
+	virtual void dummy(){}
+};
+
+struct KeyEvent : BasicMessage{
+	SDL_Event * event;
+	KeyEvent(SDL_Event * e):BasicMessage(0)
+	{
+		event = e;
+	}
+};
+
+struct MouseEvent : BasicMessage {
+	SDL_Event * event;
+	MouseEvent(SDL_Event * e):BasicMessage(1)
+	{
+		event = e;
 	}
 };
 
