@@ -1,7 +1,7 @@
 # ProjectPegasus
 
-Libraries: OpenGL, stb_image.h, glm, Assimp
+Alex Burnley and Jason Cummings
 
-To run, type "make" and then "./Pegasus"
+Libraries: OpenGL, stb_image.h (Packaged with code), glm, Assimp
 
-
+To make the program, use the command 'make'. Use './Pegasus' to run the program.

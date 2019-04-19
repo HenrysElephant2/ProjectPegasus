@@ -14,6 +14,8 @@ void LevelLoader::testLevel(ECSEngine * engine)
 	Scene sc = Scene();
 	std::string filename = "testwarehouse.fbx";
 	sc.openFile(filename);
+	filename = "nugget.fbx";//"nugget.fbx";
+	sc.openFile(filename);
 	int playerID = engine->addEntity();
 	std::cout << "Player Entity ID: " << playerID << std::endl;
 	Player p = Player(playerID);
