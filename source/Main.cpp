@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <string>
+#include <iostream>
 //#include "TempRender.h"
 
 #include "LevelLoader.h"
@@ -108,7 +109,6 @@ int main( int argc, char* args[] ) {
 		SDL_Event e;
 		
 		SDL_StartTextInput();
-		
 
 		while( !quit ) {
 			while( SDL_PollEvent( &e ) != 0 ) {

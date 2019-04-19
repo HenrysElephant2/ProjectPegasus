@@ -6,11 +6,13 @@ float timeSinceMeasure = 0;
 float test = 0;
 void RenderSystem::update()
 {
+	GLuint err;
+
 	// make fps measurement. this is for testing
 	Uint64 currentTime = SDL_GetPerformanceCounter();
 	Uint64 freq = SDL_GetPerformanceFrequency();
 	float dt = ((currentTime - previousTime2) / (float)freq);
-	//std::cout << "FPS: " << 1.0 / dt << std::endl;
+	// std::cout << "FPS: " << 1.0 / dt << std::endl;
 	previousTime2 = currentTime;
 	frames++;
 	timeSinceMeasure += dt;
@@ -20,7 +22,6 @@ void RenderSystem::update()
 		frames = 0;
 		timeSinceMeasure = 0;
 	}
-
 
 	//make list of all lights in the scene
 	std::vector<int> lightList;
@@ -32,9 +33,11 @@ void RenderSystem::update()
 			lightList.push_back(i);
 	}
 
+	while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Before " << ner++ << " - " << err << std::endl;}
+
 
 	glViewport(0,0,textureWidth, textureHeight);
-	//glViewport(0,0,windowWidth, windowHeight);
+
 	deferredShadingData.bindFrameBuffer();
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_DEPTH_TEST);
@@ -53,73 +56,44 @@ void RenderSystem::update()
 	glm::vec3 cameraLoc = glm::vec3(sin(p->cameraYaw+test) * (cos(p->cameraPitch)*p->cameraOffset),
 									sin(p->cameraPitch)*p->cameraOffset,
 									cos(p->cameraYaw+test) * (cos(p->cameraPitch)*p->cameraOffset))
-									 + pLoc->position.xyz();
+						  + pLoc->position.xyz();
 	glm::vec3 up = glm::vec3(0.0,1.0,0.0);
 	glm::mat4 view = glm::lookAt(cameraLoc,pLoc->position.xyz(),up);
+	drawAllRenderables( &view, &projection );
+	while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Main " << ner++ << " - " << err << std::endl;}
 
-	glm::vec3 xAxis = glm::vec3(1.0,0.0,0.0);
-	glm::vec3 yAxis = glm::vec3(0.0,1.0,0.0);
-	glm::vec3 zAxis = glm::vec3(0.0,0.0,1.0);
+	renderShadowMaps();
+	// shaders->bindShader(ShaderManager::tempShadows);
+	// Light *testLight = lights->getComponent( lightList[0] );
+	// glActiveTexture(GL_TEXTURE0);
+	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[0]);
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// glViewport(0,0,windowWidth, windowHeight);
+	// renderFullScreenQuad();
+	// while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Regs " << ner++ << " - " << err << std::endl;}
+	// return;
 
+	// renderShadowCubeMaps();
+	// shaders->bindShader(ShaderManager::tempCubeShadows);
+	// Light *testLight = lights->getComponent( lightList[0] );
+	// glActiveTexture(GL_TEXTURE0);
+	// glBindTexture(GL_TEXTURE_CUBE_MAP, testLight->shadowCubeMap);
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// glViewport(0,0,windowWidth, windowHeight);
+	// renderFullScreenQuad();
+	// while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Cubes " << ner++ << " - " << err << std::endl;}
+	// return;
 
-	// render all solid objects
-	int count = renderables->getSize();
-	for(int i = 0; i < count; i++)
-	{
-		Renderable * currentR = renderables->getComponent(i);
-		Transform * currentT = transforms->getComponent(i);
-		
-		if(currentR && currentT)
-		{
-			//create model matrix
-			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(currentT->scale));
-			model = glm::rotate(model, currentT->orientation.x, xAxis);
-			model = glm::rotate(model, currentT->orientation.y, yAxis);
-			model = glm::rotate(model, currentT->orientation.z, zAxis);
-			model = glm::translate(model, currentT->position.xyz()/currentT->position.w);
-
-			glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
-
-			// bind program and uniforms, then draw matrix
-			shaders->bindShader(currentR->program);
-			shaders->bindMaterial(&(currentR->material));
-			shaders->loadModelMatrix(&model);
-			shaders->loadNormalMatrix(&normalMatrix);
-			shaders->loadViewMatrix(&view);
-			shaders->loadProjectionMatrix(&projection);
-
-			glEnableVertexAttribArray( VERTEX_ATTRIB );
-			glEnableVertexAttribArray( RGBA_ATTRIB );
-			glEnableVertexAttribArray( NORM_ATTRIB );
-			glEnableVertexAttribArray( TAN_ATTRIB );
-			glEnableVertexAttribArray( BITAN_ATTRIB );
-			glEnableVertexAttribArray( UV_ATTRIB );
-
-			glBindBuffer( GL_ARRAY_BUFFER, currentR->VBO );
-			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, currentR->IBO );
-			glVertexAttribPointer( VERTEX_ATTRIB, 4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0) );
-			glVertexAttribPointer( RGBA_ATTRIB,   4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0 *sizeof(GLfloat)) );
-			glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(6 *sizeof(GLfloat)) );
-			glVertexAttribPointer( TAN_ATTRIB,    3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(9*sizeof(GLfloat)) );
-			glVertexAttribPointer( BITAN_ATTRIB,  3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(12*sizeof(GLfloat)) );
-			glVertexAttribPointer( UV_ATTRIB,     2, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(4*sizeof(GLfloat)) );
-			glDrawElements( GL_TRIANGLES, currentR->numVertices, GL_UNSIGNED_INT, 0 );
-
-			glDisableVertexAttribArray( VERTEX_ATTRIB );
-			glDisableVertexAttribArray( RGBA_ATTRIB );
-			glDisableVertexAttribArray( NORM_ATTRIB );
-			glDisableVertexAttribArray( TAN_ATTRIB );
-			glDisableVertexAttribArray( BITAN_ATTRIB );
-			glDisableVertexAttribArray( UV_ATTRIB );
-		}
+	glViewport(0,0,textureWidth, textureHeight);
+	shaders->bindShader(ShaderManager::testShadows);
+	bool bufferIndex = 0;
+	for( int i=0; i<lightList.size(); i++ ) {
+		bufferIndex = !bufferIndex;
+		testSingleLight(lightList[i], i, bufferIndex, &view);
 	}
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-
 
 	// perform shading pass
-	shaders->bindShader(shaders->shadingPass);
+	shaders->bindShader(ShaderManager::shadingPass);
 	glUniform3f(cameraPositionUniformLoc, cameraLoc.x, cameraLoc.y, cameraLoc.z);
 	
 	loadLights(&lightList);
@@ -135,7 +109,7 @@ void RenderSystem::update()
 
 
 	bloomBuffer[0].bindFrameBuffer();
-	shaders->bindShader(shaders->blur);
+	shaders->bindShader(ShaderManager::blur);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	//deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE0);
 	int pingpong = 0;
@@ -145,7 +119,7 @@ void RenderSystem::update()
 	{
 
 		bloomBuffer[pingpong].bindFrameBuffer();
-		shaders->bindShader(shaders->blur);
+		shaders->bindShader(ShaderManager::blur);
 		glUniform1i(horizontalBoolLoc, pingpong);
 		glClear( GL_COLOR_BUFFER_BIT );
 		if(i == 0)
@@ -156,7 +130,7 @@ void RenderSystem::update()
 	}
 
 	// apply the bloom to the color texture created by the shading pass
-	shaders->bindShader(shaders->applyBloom);
+	shaders->bindShader(ShaderManager::applyBloom);
 	bloomTarget.bindFrameBuffer();
 	glClear( GL_COLOR_BUFFER_BIT );
 	shadingTarget.bindTexture(colorTexture, GL_TEXTURE0);
@@ -167,9 +141,9 @@ void RenderSystem::update()
 
 	//apply HDR and render to the screen
 	glViewport(0,0,windowWidth, windowHeight);
-	shaders->bindShader(shaders->HDR);
+	shaders->bindShader(ShaderManager::HDR);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glUniform1f(exposureLoc, 5.0);
+	glUniform1f(exposureLoc, 2.0);
 	bloomTarget.bindTexture(finalColorTexture, GL_TEXTURE0);
 	//bloomBuffer[!pingpong].bindTexture(bloomTexture[!pingpong], GL_TEXTURE0);
 	//deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE0);
@@ -191,9 +165,6 @@ void RenderSystem::update()
 	// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	// // glEnable(GL_DEPTH_TEST);
 	// renderFullScreenQuad();
-
-	
-
 }
 
 void RenderSystem::receiveMessage(BasicMessage * message)
@@ -209,6 +180,70 @@ void RenderSystem::reshape( int width, int height ) {
 	projection = glm::perspective(glm::radians(fov), width / (float)height , 0.1f, 100.f);
 }
 
+void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only ) {
+	// render all solid objects
+	int count = renderables->getSize();
+	for(int i = 0; i < count; i++)
+	{
+		Renderable * currentR = renderables->getComponent(i);
+		Transform * currentT = transforms->getComponent(i);
+		
+		if(currentR && currentT)
+		{
+			//create model matrix
+			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(currentT->scale));
+			model = glm::rotate(model, currentT->orientation.x, xAxis);
+			model = glm::rotate(model, currentT->orientation.y, yAxis);
+			model = glm::rotate(model, currentT->orientation.z, zAxis);
+			model = glm::translate(model, currentT->position.xyz()/currentT->position.w);
+
+			// bind program and uniforms, then draw matrix
+			if( !vertex_only ) {
+				glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+
+				shaders->bindShader(currentR->program);
+				shaders->bindMaterial(&(currentR->material));
+				shaders->loadNormalMatrix(&normalMatrix);
+			}
+			shaders->loadModelMatrix(&model);
+			shaders->loadViewMatrix(viewMat);
+			shaders->loadProjectionMatrix(projMat);
+
+			glEnableVertexAttribArray( VERTEX_ATTRIB );
+			if( !vertex_only ) {
+				glEnableVertexAttribArray( RGBA_ATTRIB );
+				glEnableVertexAttribArray( NORM_ATTRIB );
+				glEnableVertexAttribArray( TAN_ATTRIB );
+				glEnableVertexAttribArray( BITAN_ATTRIB );
+				glEnableVertexAttribArray( UV_ATTRIB );
+			}
+
+			glBindBuffer( GL_ARRAY_BUFFER, currentR->VBO );
+			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, currentR->IBO );
+			glVertexAttribPointer( VERTEX_ATTRIB, 4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0) );
+			if( !vertex_only ) {
+				glVertexAttribPointer( RGBA_ATTRIB,   4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0 *sizeof(GLfloat)) );
+				glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(6 *sizeof(GLfloat)) );
+				glVertexAttribPointer( TAN_ATTRIB,    3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(9 *sizeof(GLfloat)) );
+				glVertexAttribPointer( BITAN_ATTRIB,  3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(12*sizeof(GLfloat)) );
+				glVertexAttribPointer( UV_ATTRIB,     2, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(4 *sizeof(GLfloat)) );
+			}
+			glDrawElements( GL_TRIANGLES, currentR->numVertices, GL_UNSIGNED_INT, 0 );
+
+			glDisableVertexAttribArray( VERTEX_ATTRIB );
+			if( !vertex_only ) {
+				glDisableVertexAttribArray( RGBA_ATTRIB );
+				glDisableVertexAttribArray( NORM_ATTRIB );
+				glDisableVertexAttribArray( TAN_ATTRIB );
+				glDisableVertexAttribArray( BITAN_ATTRIB );
+				glDisableVertexAttribArray( UV_ATTRIB );
+			}
+		}
+	}
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+}
+
 void RenderSystem::renderFullScreenQuad()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, fullScreenVBO);
@@ -221,6 +256,105 @@ void RenderSystem::renderFullScreenQuad()
 
 	glDisableVertexAttribArray( VERTEX_ATTRIB_2D );
 	glDisableVertexAttribArray( UV_ATTRIB_2D );
+}
+
+void RenderSystem::renderShadowMaps() {
+	//make list of all lights in the scene
+	std::vector<int> lightList;
+	for( int i=0; i<lights->getSize(); i++ ) {
+		Light * l = lights->getComponent(i);
+		if(l) lightList.push_back(i);
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glViewport(0,0,SHADOW_MAP_DIMENSION,SHADOW_MAP_DIMENSION);
+	shaders->bindShader(ShaderManager::shadows);
+
+	// Render all solid objects from the perspective of all lights to various shadow maps
+	for( int li=0; li<lightList.size(); li++ ) {
+		Light *currentLight = lights->getComponent(lightList[li]);
+		glm::vec4 currentTransform4 = transforms->getComponent(lightList[li])->position;
+		glm::vec3 currentTransform = currentTransform4.xyz() / currentTransform4.w;
+		glm::vec3 lightLoc = currentLight->location + currentTransform;
+
+		for( int smi=0; smi<6; smi++ ) {
+			// Bind buffer and appropriate shadow map
+			shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[smi] );
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glm::vec3 curUp;
+			if( smi == 2 ) curUp = glm::vec3(0.0, 0.0, 1.0);
+			else if( smi == 3 ) curUp = glm::vec3(0.0, 0.0, -1.0);
+			else curUp = glm::vec3(0.0, 1.0, 0.0);
+			glm::mat4 view = glm::lookAt(lightLoc, lightLoc + lightViews[smi], curUp);
+
+			drawAllRenderables( &view, &lightProjection, true );
+		}
+	}
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+}
+
+void RenderSystem::renderShadowCubeMaps() {
+	//make list of all lights in the scene
+	std::vector<int> lightList;
+	for( int i=0; i<lights->getSize(); i++ ) {
+		Light * l = lights->getComponent(i);
+		if(l) lightList.push_back(i);
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	shaders->bindShader(ShaderManager::shadows);
+
+	// Render all solid objects from the perspective of all lights to various shadow maps
+	for( int li=0; li<lightList.size(); li++ ) {
+		Light *currentLight = lights->getComponent(lightList[li]);
+		glm::vec4 currentTransform4 = transforms->getComponent(lightList[li])->position;
+		glm::vec3 currentTransform = currentTransform4.xyz() / currentTransform4.w;
+		glm::vec3 lightLoc = currentLight->location + currentTransform;
+
+		for( int smi=0; smi<6; smi++ ) {
+			// Bind buffer and appropriate shadow map
+			shadowMapBuffer.setCubeTexture( currentLight->shadowCubeMap, smi );
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glViewport(0,0,SHADOW_MAP_DIMENSION,SHADOW_MAP_DIMENSION);
+			glm::vec3 curUp;
+			if( smi == 2 || smi == 3 ) curUp = glm::vec3(0.0, 0.0, 1.0);
+			else curUp = glm::vec3(0.0, 1.0, 0.0);
+			glm::mat4 view = glm::lookAt( lightLoc, lightLoc + lightViews[smi], curUp);
+
+			drawAllRenderables( &view, &lightProjection, true );
+		}
+	}
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+}
+
+void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat ) {
+	shadowTestBuffer[bufferIndex].bindFrameBuffer();
+	shadowTestBuffer[!bufferIndex].bindTexture(shadowTestTexture[!bufferIndex], GL_TEXTURE1);
+	Light *l = lights->getComponent(componentIndex);
+	glm::vec4 currentTransform4 = transforms->getComponent(componentIndex)->position;
+	glm::vec3 currentTransform = currentTransform4.xyz() / currentTransform4.w;
+	glm::vec3 lightLoc = l->location + currentTransform;
+	glUniform1f(shadowTestLightIndexLoc, lightIndex);
+	glUniform3f(shadowTestLightLocLoc, lightLoc.x, lightLoc.y, lightLoc.z);
+	for( int i=0; i<6; i++ ) {
+		glm::vec3 curUp;
+		if( i == 2 ) curUp = glm::vec3(0.0, 0.0, 1.0);
+		else if( i == 3 ) curUp = glm::vec3(0.0, 0.0, -1.0);
+		else curUp = glm::vec3(0.0, 1.0, 0.0);
+		glm::mat4 curView = glm::lookAt(lightLoc, lightLoc + lightViews[i], curUp);
+		glUniformMatrix4fv(shadowTestLightViewLocs[i], 1, GL_FALSE, glm::value_ptr(curView));
+		glActiveTexture(GL_TEXTURE2 + i);
+		glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[i]);
+	}
+
+	//calculate where to place the camera in order to make the view matrix
+	drawAllRenderables( viewMat, &projection, true );
 }
 
 void RenderSystem::setUpFrameBuffers()
@@ -243,6 +377,10 @@ void RenderSystem::setUpFrameBuffers()
 
 	//set up textures for bloomTarget, which is the final framebuffer before rendering to the screen
 	finalColorTexture = bloomTarget.addTexture(textureWidth, textureHeight);
+
+	// Set up shadow test buffers
+	shadowTestTexture[0] = shadowTestBuffer[0].addIntegerTexture(textureWidth,textureHeight);
+	shadowTestTexture[1] = shadowTestBuffer[1].addIntegerTexture(textureWidth,textureHeight);
 }
 
 void RenderSystem::loadLights(std::vector<int> *lightList)

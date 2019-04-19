@@ -18,9 +18,11 @@ public:
 	~FrameBuffer();
 	void bindFrameBuffer();
 	int addTexture(int width, int height);
+	int addIntegerTexture(int width, int height);
 	void bindTexture(int index, GLenum textureUnit); // bind the texture
 	void addDepthBuffer(int width, int height);
-
+	void setDepthOnlyTexture( GLuint depthTex );
+	void setCubeTexture( GLuint texi, int face );
 };
 
 #endif

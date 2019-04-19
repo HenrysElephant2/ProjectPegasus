@@ -35,7 +35,7 @@ void main()
 	vec3 diffuseColor = texture(diffuseTexture, texCoords).rgb;
 	float shininess = texture(diffuseTexture, texCoords).a;
 
-	vec3 finalColor = diffuseColor * .005; // replace diffuseColor with ambient color
+	vec3 finalColor = diffuseColor * 0.005; // replace diffuseColor with ambient color
 	//vec3 finalColor = vec3(0.0,0.0,0.0);
 
 	// vec3 lightPos = vec3(0.0,1.0,0.0);

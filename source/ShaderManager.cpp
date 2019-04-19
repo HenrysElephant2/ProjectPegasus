@@ -110,7 +110,10 @@ void Shader::loadLightCount(int count)
 
 void Shader::bind()
 {
+	GLuint err;
+	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Bitch - " << err <<std::endl;
 	glUseProgram(program);
+	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Cunt - " << err <<std::endl;
 }
 
 GLuint Shader::getProgramID()
@@ -318,6 +321,10 @@ int ShaderManager::drawQuad = -1;
 int ShaderManager::HDR = -1;
 int ShaderManager::applyBloom = -1;
 int ShaderManager::blur = -1;
+int ShaderManager::shadows = -1;
+int ShaderManager::tempShadows = -1;
+int ShaderManager::tempCubeShadows = -1;
+int ShaderManager::testShadows = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
@@ -349,6 +356,23 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string applyBloomVert = "Shaders/applyBloom.vert";
 	std::string applyBloomFrag = "Shaders/applyBloom.frag";
 	applyBloom = sm->createProgram(applyBloomVert,applyBloomFrag);
+
+	std::string shadowsVert = "Shaders/shadowMap.vert";
+	std::string shadowsFrag = "Shaders/shadowMap.frag";
+	shadows = sm->createProgram(shadowsVert,shadowsFrag);
+
+
+	std::string TempShadowsVert = "Shaders/drawQuad.vert";
+	std::string TempShadowsFrag = "Shaders/TempShadows.frag";
+	tempShadows = sm->createProgram(TempShadowsVert,TempShadowsFrag);
+
+	std::string TempCubeShadowsVert = "Shaders/drawQuad.vert";
+	std::string TempCubeShadowsFrag = "Shaders/TempCubeShadows.frag";
+	tempCubeShadows = sm->createProgram(TempCubeShadowsVert,TempCubeShadowsFrag);
+
+	std::string TestShadowsVert = "Shaders/testShadowVolume.vert";
+	std::string TestShadowsFrag = "Shaders/testShadowVolume.frag";
+	testShadows = sm->createProgram(TestShadowsVert,TestShadowsFrag);
 }
 
 
