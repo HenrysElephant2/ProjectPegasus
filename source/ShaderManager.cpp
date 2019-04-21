@@ -318,6 +318,8 @@ int ShaderManager::drawQuad = -1;
 int ShaderManager::HDR = -1;
 int ShaderManager::applyBloom = -1;
 int ShaderManager::blur = -1;
+int ShaderManager::skinnedBasic = -1;
+int ShaderManager::skinnedNormalMapped = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {

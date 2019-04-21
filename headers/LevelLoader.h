@@ -12,6 +12,7 @@
 #include "Material.h"
 #include "Component.h"
 #include "ECSEngine.h"
+#include "Animation.h"
 #include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
@@ -29,7 +30,6 @@ class Scene;
 
 class LevelLoader{
 private:
-	int determineShader(Material &m);
 	void loadShaders();
 	void addUnused(ECSEngine * engine, Scene * sc);
 public:
@@ -50,7 +50,21 @@ struct Mesh{
 	unsigned int materialIndex;
 	bool hasTangents;
 	int count = 0; // number of objects that use this Mesh. used to create render-only entities from non used objects
-	Mesh();
+	Mesh(){}
+};
+
+struct SkinnedMesh{
+	GLuint VBO;
+	GLuint IBO;
+	glm::vec4 location;
+	int numVertices;
+	int indexCount;
+	std::string name;
+	unsigned int materialIndex;
+	bool hasTangents;
+	int count = 0;
+	BoneHierarchy bones;
+	SkinnedMesh(){}
 };
 
 struct LightData{
@@ -85,6 +99,26 @@ struct Vertex {
 	}
 };
 
+struct SkinnedVertex {
+	glm::vec4 position;
+	glm::vec2 uv;
+	glm::vec3 normal;
+	glm::vec3 tangent;
+	glm::vec3 bitangent;
+	glm::vec4 boneWeights = glm::vec4(0.0);
+	glm::ivec4 boneIDs = glm::ivec4(0);
+
+	SkinnedVertex();
+	SkinnedVertex(const glm::vec4 &pos, const glm::vec2 &uvCoords, const glm::vec3 &norm, const glm::vec3 &tan, const glm::vec3 &bitan)
+	{
+		position = pos;
+		uv = uvCoords;
+		normal = norm;
+		tangent = tan;
+		bitangent = bitan;
+	}
+};
+
 struct ComponentWrapper {
 	bool hasRenderable = false;
 	Renderable r;
@@ -103,30 +137,32 @@ struct ComponentWrapper {
 class Scene {
 private:
 	std::vector<Mesh> meshes;
+	std::vector<SkinnedMesh> skinnedMeshes;
 	std::vector<Material> materials;
 	std::vector<LightData> lights;
 	TextureLoader texManager;
 
 	void processScene(const aiScene* scene, std::string & filename);
 	void createMesh(const aiMesh* m, std::string &name, const aiScene * scene);
+	void createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene * scene);
+	void addAnimations(const aiScene * scene, BoneHierarchy * bones);
+	bool determineAnimationAssociation(aiAnimation * animation, BoneHierarchy * bones);
 	void processMaterials(const aiScene* scene, std::string & filename);
 	void processLights(const aiScene* scene);
 	void processNodes(aiNode * node, const aiScene* scene);
 	aiMatrix4x4 getTransformation(const aiScene * scene, std::string &name);
 	aiMatrix4x4 getTransformationHelper(aiNode * node);
-	ComponentWrapper * createMeshWrapper(int index, int entityID);
-	ComponentWrapper * createLightWrapper(int index, int entityID);
+	inline glm::mat4 convertToGLMMatrix(aiMatrix4x4 &original);
+
+	
+	void associateLight(std::string &meshName, Transform &t, int entityID, ECSEngine * ecs);
 
 public:
 	Scene();
 	bool openFile(std::string & filename);
-	ComponentWrapper * getMeshByName(std::string & name, int entityID);
-	int getUnusedMeshCount();
-	ComponentWrapper * getUnusedMesh(int entityID); // gets first unused mesh
-	int getUnusedLightCount();
-	ComponentWrapper * getUnusedLight(int entityID);
 	void print();
 	void render();
+	void populate(ECSEngine * ecs);
 };
 
 #endif

@@ -9,6 +9,7 @@
 #include "Component.h"
 #include "ShaderManager.h"
 #include "RenderSystem.h"
+#include "AnimationSystem.h"
 
 class ECSEngine {
 private:
@@ -16,10 +17,12 @@ private:
 	EntityManager entities;
 	ShaderManager * shaders;
 	RenderSystem rendersystemObject;
+	AnimationSystem animationHandler;
 	ComponentManager<Transform> transformManager;
 	ComponentManager<Renderable> renderableManager;
 	ComponentManager<Player> playerManager;
 	ComponentManager<Light> lightManager;
+	ComponentManager<SkinnedRenderable> skinnedManager;
 
 public:
 	ECSEngine(){}
@@ -32,6 +35,7 @@ public:
 	void addRenderable(int entityID, Renderable &comp);
 	void addPlayer(int entityID, Player &comp);
 	void addLight(int entityID, Light &comp);
+	void addSkinnedRenderable(int entityID, SkinnedRenderable & comp);
 	RenderSystem* getRenderSystem();
 
 };

@@ -193,6 +193,7 @@ void RenderSystem::update()
 	// renderFullScreenQuad();
 
 	
+	glFlush();
 
 }
 

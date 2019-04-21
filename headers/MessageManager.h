@@ -5,13 +5,14 @@
 #include <SDL2/SDL.h>
 #include <vector>
 
-#define MESSAGE_TYPE_COUNT 5
+#define MESSAGE_TYPE_COUNT 6
 
 #define KEY_EVENT 0
 #define MOUSE_EVENT 1 
 #define MOVEMENT_CHANGE 2
 #define COLLISION 3
 #define IMPULSE 4
+#define ANIMATION_MESSAGE 5
 
 class System; // forward declaration
 

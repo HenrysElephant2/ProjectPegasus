@@ -113,6 +113,8 @@ public:
 	static int HDR;
 	static int applyBloom;
 	static int blur;
+	static int skinnedBasic;
+	static int skinnedNormalMapped;
 
 };
 

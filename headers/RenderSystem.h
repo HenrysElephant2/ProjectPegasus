@@ -30,6 +30,7 @@ class RenderSystem:System {
 private:
 	ComponentManager<Transform> * transforms;
 	ComponentManager<Renderable> * renderables;
+	ComponentManager<SkinnedRenderable> * skinnedRenderables;
 	ComponentManager<Player> * player;
 	ComponentManager<Light> * lights;
 	ShaderManager * shaders;
@@ -84,11 +85,12 @@ private:
 
 public:
 	RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in):System(m)
+				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in):System(m)
 	{
 		shaders = sm;
 		transforms = transforms_in;
 		renderables = renderables_in;
+		skinnedRenderables = skinnedRenderables_in;
 		player = player_in;
 		lights = lights_in;
 		glGenVertexArrays( 1, &BASE_VAO );
