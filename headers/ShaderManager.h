@@ -115,8 +115,8 @@ public:
 	static int blur;
 	static int shadows;
 	static int tempShadows;
-	static int tempCubeShadows;
 	static int testShadows;
+	static int tempShadows2;
 
 };
 

@@ -37,7 +37,7 @@ static const glm::vec3 lightViews[6] = {
 	glm::vec3( 0.0, 0.0, 1.0),
 	glm::vec3( 0.0, 0.0,-1.0)
 };
-static glm::mat4 lightProjection = glm::perspective( 90.0, 1.0, .01, 20.0 );
+static glm::mat4 lightProjection = glm::perspective( 90.0, 1.0, .05, 20.0 );
 
 
 class RenderSystem:System {
@@ -66,9 +66,11 @@ private:
 	// Frame Buffer for testing shadows
 	FrameBuffer shadowTestBuffer[2];
 	int shadowTestTexture[2];
+	int shadowTempTexture[2];
 	GLuint shadowTestLightViewLocs[6];
 	GLuint shadowTestLightLocLoc;
 	GLuint shadowTestLightIndexLoc;
+	GLuint shadowTestWindowSizeLoc;
 
 	// frame buffer for storing data for deferred shading
 	FrameBuffer deferredShadingData;
@@ -98,13 +100,12 @@ private:
 	//additional info
 	GLint cameraPositionUniformLoc;
 
-	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
+	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false, bool disableDepth = false );
 
 	// must be used with a shader that is designed to draw a full screen quad. ie the vertex shader shouldn't do any transformations at all to the vertex
 	void renderFullScreenQuad();
 
 	void renderShadowMaps();
-	void renderShadowCubeMaps();
 	void testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat );
 
 	void setUpFrameBuffers();
@@ -146,6 +147,7 @@ public:
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "diffuseTexture"), 2);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "emissiveTexture"), 3);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "shadowTexture"), 4);
 
 		sm->bindShader(ShaderManager::HDR);
 		exposureLoc = glGetUniformLocation(sm->getProgramID(), "exposure");
@@ -166,14 +168,21 @@ public:
 		shadowTestLightViewLocs[3] = glGetUniformLocation(sm->getProgramID(), "LightViews[3]");
 		shadowTestLightViewLocs[4] = glGetUniformLocation(sm->getProgramID(), "LightViews[4]");
 		shadowTestLightViewLocs[5] = glGetUniformLocation(sm->getProgramID(), "LightViews[5]");
+		shadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
+		shadowTestWindowSizeLoc = glGetUniformLocation(sm->getProgramID(), "WindowSize");
+		// Uniform texture locations
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 1);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[0]"), 2);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[1]"), 3);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[2]"), 4);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[3]"), 5);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[4]"), 6);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[5]"), 7);
-		shadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
 		std::cout << "Created RenderSystem" << std::endl;
+
+		sm->bindShader(ShaderManager::tempShadows2);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "intTex"), 0);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "tex"), 1);
 	}
 	RenderSystem():System(NULL){}
 	void update();

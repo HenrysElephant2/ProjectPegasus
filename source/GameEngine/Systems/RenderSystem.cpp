@@ -40,8 +40,6 @@ void RenderSystem::update()
 
 	deferredShadingData.bindFrameBuffer();
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 	test += .5 * dt;
 
 	Player * p = player->getComponent(cameraID);
@@ -63,34 +61,40 @@ void RenderSystem::update()
 	while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Main " << ner++ << " - " << err << std::endl;}
 
 	renderShadowMaps();
+
 	// shaders->bindShader(ShaderManager::tempShadows);
-	// Light *testLight = lights->getComponent( lightList[0] );
+	// Light *testLight = lights->getComponent( lightList[3] );
 	// glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[0]);
+	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[1]);
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// glViewport(0,0,windowWidth, windowHeight);
 	// renderFullScreenQuad();
 	// while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Regs " << ner++ << " - " << err << std::endl;}
 	// return;
 
-	// renderShadowCubeMaps();
-	// shaders->bindShader(ShaderManager::tempCubeShadows);
-	// Light *testLight = lights->getComponent( lightList[0] );
-	// glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_CUBE_MAP, testLight->shadowCubeMap);
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// glViewport(0,0,windowWidth, windowHeight);
-	// renderFullScreenQuad();
-	// while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Cubes " << ner++ << " - " << err << std::endl;}
-	// return;
+	shadowTestBuffer[0].bindFrameBuffer();
+	glClear(GL_COLOR_BUFFER_BIT);
+	shadowTestBuffer[1].bindFrameBuffer();
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glViewport(0,0,textureWidth, textureHeight);
 	shaders->bindShader(ShaderManager::testShadows);
 	bool bufferIndex = 0;
-	for( int i=0; i<lightList.size(); i++ ) {
+	for( int i=0; i<lightList.size(); i++ ) {//
 		bufferIndex = !bufferIndex;
 		testSingleLight(lightList[i], i, bufferIndex, &view);
+		if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Test Light: " << err << " - " << i << std::endl;
 	}
+
+	// shaders->bindShader(ShaderManager::tempShadows2);
+	// shadowTestBuffer[bufferIndex].bindTexture(shadowTestTexture[bufferIndex], GL_TEXTURE0);
+	// shadowTestBuffer[bufferIndex].bindTexture(shadowTempTexture[bufferIndex], GL_TEXTURE1);
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// glViewport(0,0,windowWidth,windowHeight);
+	// renderFullScreenQuad();
+	// while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Regs " << ner++ << " - " << err << std::endl;}
+	// return;
+
 
 	// perform shading pass
 	shaders->bindShader(ShaderManager::shadingPass);
@@ -102,9 +106,11 @@ void RenderSystem::update()
 	deferredShadingData.bindTexture(normalTexture, GL_TEXTURE1);
 	deferredShadingData.bindTexture(diffuseTexture, GL_TEXTURE2);
 	deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE3);
+	shadowTestBuffer[bufferIndex].bindTexture(shadowTestTexture[bufferIndex], GL_TEXTURE4);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_DEPTH_TEST);
 	renderFullScreenQuad();
+	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Issues: " << err << std::endl;
 
 
 
@@ -165,6 +171,8 @@ void RenderSystem::update()
 	// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	// // glEnable(GL_DEPTH_TEST);
 	// renderFullScreenQuad();
+
+	glFlush();
 }
 
 void RenderSystem::receiveMessage(BasicMessage * message)
@@ -180,7 +188,10 @@ void RenderSystem::reshape( int width, int height ) {
 	projection = glm::perspective(glm::radians(fov), width / (float)height , 0.1f, 100.f);
 }
 
-void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only ) {
+void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only, bool disableDepth ) {
+	glEnable(GL_DEPTH_TEST);
+	// if(disableDepth) glDisable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 	// render all solid objects
 	int count = renderables->getSize();
 	for(int i = 0; i < count; i++)
@@ -210,9 +221,9 @@ void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, b
 			shaders->loadProjectionMatrix(projMat);
 
 			glEnableVertexAttribArray( VERTEX_ATTRIB );
+			glEnableVertexAttribArray( NORM_ATTRIB );
 			if( !vertex_only ) {
 				glEnableVertexAttribArray( RGBA_ATTRIB );
-				glEnableVertexAttribArray( NORM_ATTRIB );
 				glEnableVertexAttribArray( TAN_ATTRIB );
 				glEnableVertexAttribArray( BITAN_ATTRIB );
 				glEnableVertexAttribArray( UV_ATTRIB );
@@ -221,9 +232,9 @@ void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, b
 			glBindBuffer( GL_ARRAY_BUFFER, currentR->VBO );
 			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, currentR->IBO );
 			glVertexAttribPointer( VERTEX_ATTRIB, 4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0) );
+			glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(6 *sizeof(GLfloat)) );
 			if( !vertex_only ) {
 				glVertexAttribPointer( RGBA_ATTRIB,   4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0 *sizeof(GLfloat)) );
-				glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(6 *sizeof(GLfloat)) );
 				glVertexAttribPointer( TAN_ATTRIB,    3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(9 *sizeof(GLfloat)) );
 				glVertexAttribPointer( BITAN_ATTRIB,  3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(12*sizeof(GLfloat)) );
 				glVertexAttribPointer( UV_ATTRIB,     2, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(4 *sizeof(GLfloat)) );
@@ -231,15 +242,16 @@ void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, b
 			glDrawElements( GL_TRIANGLES, currentR->numVertices, GL_UNSIGNED_INT, 0 );
 
 			glDisableVertexAttribArray( VERTEX_ATTRIB );
+			glDisableVertexAttribArray( NORM_ATTRIB );
 			if( !vertex_only ) {
 				glDisableVertexAttribArray( RGBA_ATTRIB );
-				glDisableVertexAttribArray( NORM_ATTRIB );
 				glDisableVertexAttribArray( TAN_ATTRIB );
 				glDisableVertexAttribArray( BITAN_ATTRIB );
 				glDisableVertexAttribArray( UV_ATTRIB );
 			}
 		}
 	}
+
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 }
@@ -266,8 +278,6 @@ void RenderSystem::renderShadowMaps() {
 		if(l) lightList.push_back(i);
 	}
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 	glViewport(0,0,SHADOW_MAP_DIMENSION,SHADOW_MAP_DIMENSION);
 	shaders->bindShader(ShaderManager::shadows);
 
@@ -291,57 +301,21 @@ void RenderSystem::renderShadowMaps() {
 			drawAllRenderables( &view, &lightProjection, true );
 		}
 	}
-
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-}
-
-void RenderSystem::renderShadowCubeMaps() {
-	//make list of all lights in the scene
-	std::vector<int> lightList;
-	for( int i=0; i<lights->getSize(); i++ ) {
-		Light * l = lights->getComponent(i);
-		if(l) lightList.push_back(i);
-	}
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	shaders->bindShader(ShaderManager::shadows);
-
-	// Render all solid objects from the perspective of all lights to various shadow maps
-	for( int li=0; li<lightList.size(); li++ ) {
-		Light *currentLight = lights->getComponent(lightList[li]);
-		glm::vec4 currentTransform4 = transforms->getComponent(lightList[li])->position;
-		glm::vec3 currentTransform = currentTransform4.xyz() / currentTransform4.w;
-		glm::vec3 lightLoc = currentLight->location + currentTransform;
-
-		for( int smi=0; smi<6; smi++ ) {
-			// Bind buffer and appropriate shadow map
-			shadowMapBuffer.setCubeTexture( currentLight->shadowCubeMap, smi );
-			glClear(GL_DEPTH_BUFFER_BIT);
-			glViewport(0,0,SHADOW_MAP_DIMENSION,SHADOW_MAP_DIMENSION);
-			glm::vec3 curUp;
-			if( smi == 2 || smi == 3 ) curUp = glm::vec3(0.0, 0.0, 1.0);
-			else curUp = glm::vec3(0.0, 1.0, 0.0);
-			glm::mat4 view = glm::lookAt( lightLoc, lightLoc + lightViews[smi], curUp);
-
-			drawAllRenderables( &view, &lightProjection, true );
-		}
-	}
-
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
 }
 
 void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat ) {
+	GLuint err; 
 	shadowTestBuffer[bufferIndex].bindFrameBuffer();
 	shadowTestBuffer[!bufferIndex].bindTexture(shadowTestTexture[!bufferIndex], GL_TEXTURE1);
+
 	Light *l = lights->getComponent(componentIndex);
 	glm::vec4 currentTransform4 = transforms->getComponent(componentIndex)->position;
 	glm::vec3 currentTransform = currentTransform4.xyz() / currentTransform4.w;
 	glm::vec3 lightLoc = l->location + currentTransform;
-	glUniform1f(shadowTestLightIndexLoc, lightIndex);
+	glUniform1i(shadowTestLightIndexLoc, lightIndex);
 	glUniform3f(shadowTestLightLocLoc, lightLoc.x, lightLoc.y, lightLoc.z);
+	glUniform2f(shadowTestWindowSizeLoc, textureWidth, textureHeight);
+
 	for( int i=0; i<6; i++ ) {
 		glm::vec3 curUp;
 		if( i == 2 ) curUp = glm::vec3(0.0, 0.0, 1.0);
@@ -353,8 +327,11 @@ void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool buf
 		glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[i]);
 	}
 
-	//calculate where to place the camera in order to make the view matrix
-	drawAllRenderables( viewMat, &projection, true );
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+	drawAllRenderables( viewMat, &projection, true, true );
 }
 
 void RenderSystem::setUpFrameBuffers()
@@ -381,6 +358,10 @@ void RenderSystem::setUpFrameBuffers()
 	// Set up shadow test buffers
 	shadowTestTexture[0] = shadowTestBuffer[0].addIntegerTexture(textureWidth,textureHeight);
 	shadowTestTexture[1] = shadowTestBuffer[1].addIntegerTexture(textureWidth,textureHeight);
+	shadowTempTexture[0] = shadowTestBuffer[0].addTexture(textureWidth,textureHeight);
+	shadowTempTexture[1] = shadowTestBuffer[1].addTexture(textureWidth,textureHeight);
+	shadowTestBuffer[0].addDepthBuffer(textureWidth, textureHeight);
+	shadowTestBuffer[1].addDepthBuffer(textureWidth, textureHeight);
 }
 
 void RenderSystem::loadLights(std::vector<int> *lightList)

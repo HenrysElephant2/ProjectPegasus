@@ -5,7 +5,7 @@ in vec2 texCoords;
 out vec4 FragColor;
 
 uniform sampler2D depthMap;
-const float near_plane = 0.01;
+const float near_plane = 0.05;
 const float far_plane  = 20.0;
 
 float LinearizeDepth(float depth)

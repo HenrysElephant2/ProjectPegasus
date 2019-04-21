@@ -84,7 +84,6 @@ struct Light:Component {
 	float linearAttenuation = 0.0;
 	float quadraticAttenuation = 0.0;
 	GLuint shadowMapTextures[6] = {0,0,0,0,0,0}; // A cube of textures representing this light's shadow map: +x, -x, +y, -y, +z, -z
-	GLuint shadowCubeMap = 0;
 
 	Light(){
 		if( shadowMapTextures[0] == 0 ) {
@@ -99,21 +98,6 @@ struct Light:Component {
 			}
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		if( shadowCubeMap == 0 ) {
-			glGenTextures(1, &shadowCubeMap);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, shadowCubeMap);
-			for( int i=0; i<6; i++ ) {
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_DEPTH_COMPONENT24, SHADOW_MAP_DIMENSION, SHADOW_MAP_DIMENSION, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-			}
-		    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-		}
 	}
 	Light(glm::vec3 &location_in, glm::vec3 &diffuse_in, glm::vec3 &specular_in, float linearAtt_in, float quadraticAtt_in, int ownerID):Component(ownerID)
 	{
@@ -134,21 +118,6 @@ struct Light:Component {
 			}
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
-		
-		if( shadowCubeMap == 0 ) {
-			glGenTextures(1, &shadowCubeMap);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, shadowCubeMap);
-			for( int i=0; i<6; i++ ) {
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_DEPTH_COMPONENT24, SHADOW_MAP_DIMENSION, SHADOW_MAP_DIMENSION, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-			}
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-		}
 	}
 };
 

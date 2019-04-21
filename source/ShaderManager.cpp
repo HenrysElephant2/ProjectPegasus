@@ -323,8 +323,8 @@ int ShaderManager::applyBloom = -1;
 int ShaderManager::blur = -1;
 int ShaderManager::shadows = -1;
 int ShaderManager::tempShadows = -1;
-int ShaderManager::tempCubeShadows = -1;
 int ShaderManager::testShadows = -1;
+int ShaderManager::tempShadows2 = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
@@ -366,13 +366,13 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string TempShadowsFrag = "Shaders/TempShadows.frag";
 	tempShadows = sm->createProgram(TempShadowsVert,TempShadowsFrag);
 
-	std::string TempCubeShadowsVert = "Shaders/drawQuad.vert";
-	std::string TempCubeShadowsFrag = "Shaders/TempCubeShadows.frag";
-	tempCubeShadows = sm->createProgram(TempCubeShadowsVert,TempCubeShadowsFrag);
-
 	std::string TestShadowsVert = "Shaders/testShadowVolume.vert";
 	std::string TestShadowsFrag = "Shaders/testShadowVolume.frag";
 	testShadows = sm->createProgram(TestShadowsVert,TestShadowsFrag);
+
+	std::string TempShadows2Vert = "Shaders/drawQuad.vert";
+	std::string TempShadows2Frag = "Shaders/TempShadows2.frag";
+	tempShadows2 = sm->createProgram(TempShadows2Vert,TempShadows2Frag);
 }
 
 
