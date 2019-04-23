@@ -450,12 +450,13 @@ void Scene::processLights(const aiScene* scene)
 		aiMatrix4x4 transform = getTransformation(scene, lights[index].name);
 		aiVector3D transformedLocation = transform * currentLight->mPosition;
 
+		std::cout << "Diffuse: " << currentLight->mColorDiffuse.r << "," << currentLight->mColorDiffuse.g << "," << currentLight->mColorDiffuse.b << std::endl;
 		std::cout << "Location: " << transformedLocation.x << "," << transformedLocation.y << "," << transformedLocation.z << std::endl;
 		lights[index].location = glm::vec3(transformedLocation.x, transformedLocation.y, transformedLocation.z);
 		lights[index].diffuse = glm::vec3(currentLight->mColorDiffuse.r, currentLight->mColorDiffuse.g, currentLight->mColorDiffuse.b );
 		lights[index].specular = glm::vec3(currentLight->mColorSpecular.r, currentLight->mColorSpecular.g, currentLight->mColorSpecular.b);
-		lights[index].linearAttenuation = currentLight->mAttenuationLinear;
-		lights[index].quadraticAttenuation = currentLight->mAttenuationQuadratic;
+		lights[index].linearAttenuation = isinf(currentLight->mAttenuationLinear)?1.0:currentLight->mAttenuationLinear;
+		lights[index].quadraticAttenuation = isinf(currentLight->mAttenuationQuadratic)?1.0:currentLight->mAttenuationQuadratic;
 
 	}
 }

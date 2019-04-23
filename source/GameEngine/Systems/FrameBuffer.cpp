@@ -1,4 +1,5 @@
 #include "FrameBuffer.h"
+#include <iostream>
 FrameBuffer::FrameBuffer()
 {
 	glGenFramebuffers(1, &frameBufferID);
@@ -33,11 +34,31 @@ int FrameBuffer::addTexture(int width, int height)
 	glDrawBuffers(colorAttachments.size(), &colorAttachments[0]);
 	return index;
 }
+int FrameBuffer::addIntegerTexture(int width, int height)
+{
+	bindFrameBuffer();
+	int index = textures.size();
+	textures.push_back(0);
+	glGenTextures(1, &textures[index]);
+	glBindTexture(GL_TEXTURE_2D, textures[index]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, width, height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, textures[index], 0);
+	colorAttachments.push_back(GL_COLOR_ATTACHMENT0 + index);
+
+	glDrawBuffers(colorAttachments.size(), &colorAttachments[0]);
+	return index;
+}
 void FrameBuffer::bindTexture(int index, GLenum textureUnit)
 {
 	glActiveTexture(textureUnit);
 	glBindTexture(GL_TEXTURE_2D, textures[index]);
-}	
+}
 
 void FrameBuffer::addDepthBuffer(int width, int height)
 {
@@ -49,4 +70,18 @@ void FrameBuffer::addDepthBuffer(int width, int height)
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 	}
+}
+
+void FrameBuffer::setCubeTexture( GLuint texi, int face ) {
+	bindFrameBuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texi, 0 );
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+}
+
+void FrameBuffer::setDepthOnlyTexture( GLuint depthTex ) {
+	bindFrameBuffer();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 }

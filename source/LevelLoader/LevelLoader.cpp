@@ -12,10 +12,10 @@ void LevelLoader::openLevel(std::string & directory, ECSEngine * engine)
 void LevelLoader::testLevel(ECSEngine * engine)
 {
 	Scene sc = Scene();
-	std::string filename = "testwarehouse.fbx";
+	std::string filename = "ShadowTest.fbx";//"testwarehouse.fbx";
 	sc.openFile(filename);
-	filename = "fbx/Dragon_Export.fbx";//"nugget.fbx";
-	sc.openFile(filename);
+	filename = "nugget.fbx";
+	//sc.openFile(filename);
 	int playerID = engine->addEntity();
 	std::cout << "Player Entity ID: " << playerID << std::endl;
 	Player p = Player(playerID);

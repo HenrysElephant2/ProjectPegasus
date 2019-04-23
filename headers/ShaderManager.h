@@ -115,6 +115,10 @@ public:
 	static int blur;
 	static int skinnedBasic;
 	static int skinnedNormalMapped;
+	static int shadows;
+	static int tempShadows;
+	static int testShadows;
+	static int tempShadows2;
 
 };
 

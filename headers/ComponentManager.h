@@ -94,7 +94,9 @@ public:
 	int getSize() // returns the size of the componentList. This can be used to determine the minimum number of entities that need to be iterated through by a system
 	{
 		// return componentListSize;
-		return valid.rbegin()->first;
+		if(valid.empty())
+			return 0;
+		return valid.rbegin()->first + 1;
 	}
 
 };

@@ -17,6 +17,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <SDL2/SDL_opengl.h>
+#include <math.h>
 
 //TO BE DELETED. THIS WAS FOR TESTING MODEL LOADING
 const GLint vertexAttrib1 = 0;
