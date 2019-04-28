@@ -351,6 +351,7 @@ int ShaderManager::shadows = -1;
 int ShaderManager::tempShadows = -1;
 int ShaderManager::testShadows = -1;
 int ShaderManager::tempShadows2 = -1;
+int ShaderManager::testShadows2 = -1;
 int ShaderManager::skinnedShadows = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
@@ -400,6 +401,10 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string TempShadows2Vert = "Shaders/drawQuad.vert";
 	std::string TempShadows2Frag = "Shaders/TempShadows2.frag";
 	tempShadows2 = sm->createProgram(TempShadows2Vert,TempShadows2Frag);
+
+	std::string TestShadowsVert2 = "Shaders/drawQuad.vert";
+	std::string TestShadowsFrag2 = "Shaders/testShadowVolume2.frag";
+	testShadows2 = sm->createProgram(TestShadowsVert2,TestShadowsFrag2);
 
 	std::string skinnedBasicVert = "Shaders/SkinnedBasic.vert";
 	std::string skinnedBasicFrag = "Shaders/deferredBasic.frag";

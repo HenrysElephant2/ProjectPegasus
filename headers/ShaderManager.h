@@ -130,6 +130,7 @@ public:
 	static int tempShadows;
 	static int testShadows;
 	static int tempShadows2;
+	static int testShadows2;
 	static int skinnedShadows;
 };
 
