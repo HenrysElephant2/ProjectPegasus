@@ -142,6 +142,11 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 	aiMatrix4x4 normalMatrix = transform;
 	normalMatrix.Inverse().Transpose();
 
+	aiVector3D loc;
+	aiQuaternion rot;
+	transform.DecomposeNoScaling(rot,loc);
+
+
 	std::vector<SkinnedVertex> vertices;
 	std::vector<unsigned int> indices;
 	const aiVector3D zero(0.0f,0.0f,0.0f);
@@ -149,11 +154,11 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 
 	for(unsigned int i = 0; i < m->mNumVertices; i++)
 	{
-		aiVector3D position = transform * (m->mVertices[i]);
+		aiVector3D position = /*transform */ (m->mVertices[i]);
 		const aiVector3D* uv = m->HasTextureCoords(0)? &(m->mTextureCoords[0][i]) : &zero;
-		aiVector3D normal = normalMatrix * (m->mNormals[i]);
-		aiVector3D tangent = normalMatrix * (m->mTangents[i]);
-		aiVector3D bitangent = normalMatrix * (m->mBitangents[i]);
+		aiVector3D normal = /*normalMatrix */ (m->mNormals[i]);
+		aiVector3D tangent = /*normalMatrix */ (m->mTangents[i]);
+		aiVector3D bitangent = /*normalMatrix */ (m->mBitangents[i]);
 
 		SkinnedVertex vert = SkinnedVertex(glm::vec4(position.x, position.y, position.z, 1.0), 
 							 glm::vec2(uv->x, uv->y), 
@@ -167,15 +172,23 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 	averageLocation.y = averageLocation.y / skinnedMeshes[index].numVertices;
 	averageLocation.z = averageLocation.z / skinnedMeshes[index].numVertices;
 	averageLocation.w = averageLocation.w / skinnedMeshes[index].numVertices;
-	skinnedMeshes[index].location = averageLocation;
+	skinnedMeshes[index].location.x = loc.x;
+	skinnedMeshes[index].location.y = loc.y;
+	skinnedMeshes[index].location.z = loc.z;
+	skinnedMeshes[index].location.w = 1.0;
+	skinnedMeshes[index].rotation.x = 0.0;//rot.x;
+	skinnedMeshes[index].rotation.y = 0.0;//rot.y;
+	skinnedMeshes[index].rotation.z = 0.0;//rot.z;
+	skinnedMeshes[index].rotation.w = 0.0;//rot.w;
+
 
 	std::cout << averageLocation.x << ", " << averageLocation.y << ", " << averageLocation.z << ", " << averageLocation.w << std::endl;
 
-	for(int i = 0; i < skinnedMeshes[index].numVertices; i++)
-	{
-		vertices[i].position -= averageLocation;
-		vertices[i].position.w = averageLocation.w;
-	}
+	// for(int i = 0; i < skinnedMeshes[index].numVertices; i++)
+	// {
+	// 	vertices[i].position -= averageLocation;
+	// 	vertices[i].position.w = averageLocation.w;
+	// }
 
 
 	for(unsigned int i = 0; i < m->mNumFaces; i++)
@@ -193,6 +206,7 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 	for(int i = 0; i < m->mNumBones; i++)
 	{
 		std::string boneName = m->mBones[i]->mName.C_Str();
+		std::cout << "Bone: " << boneName << std::endl;
 
 		//add bone to bone Hierarchy
 		glm::mat4 boneTransform = convertToGLMMatrix(m->mBones[i]->mOffsetMatrix);
@@ -201,33 +215,40 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 
 		for(int j = 0; j < m->mBones[i]->mNumWeights; j++)
 		{
-			int id = m->mBones[i]->mWeights[i].mVertexId;
-			float weight = m->mBones[i]->mWeights[i].mWeight;
+			int id = m->mBones[i]->mWeights[j].mVertexId;
+			float weight = m->mBones[i]->mWeights[j].mWeight;
+			//std::cout << "ID: " << id << " Weight: " << weight << std::endl;
 			if(id >= 0 && id < vertices.size())
 			{
-				if(vertices[id].boneWeights.x == 0.0)
-						{
-							vertices[id].boneWeights.x = weight;
-							vertices[id].boneIDs.x = i;
-						}
-						else if(vertices[id].boneWeights.y == 0.0)
-						{
-							vertices[id].boneWeights.y = weight;
-							vertices[id].boneIDs.y = i;
-						}
-						else if(vertices[id].boneWeights.z == 0.0)
-						{
-							vertices[id].boneWeights.z = weight;
-							vertices[id].boneIDs.z = i;
-						}
-						else if(vertices[id].boneWeights.w == 0.0)
-						{
-							vertices[id].boneWeights.w = weight;
-							vertices[id].boneIDs.w = i;
-						}
+				//std::cout << "adding bone weight of " << weight << "to " << id << std::endl;
+				if(vertices[id].boneWeights.x == 0)
+				{
+					vertices[id].boneWeights.x = weight;
+					vertices[id].boneIDs.x = i;
+					//std::cout << "trigger" << std::endl;
+				}
+				else if(vertices[id].boneWeights.y == 0)
+				{
+					vertices[id].boneWeights.y = weight;
+					vertices[id].boneIDs.y = i;
+				}
+				else if(vertices[id].boneWeights.z == 0)
+				{
+					vertices[id].boneWeights.z = weight;
+					vertices[id].boneIDs.z = i;
+				}
+				else if(vertices[id].boneWeights.w == 0)
+				{
+					vertices[id].boneWeights.w = weight;
+					vertices[id].boneIDs.w = i;
+				}
 			}
 		}
 	}
+	// for(int i = 0; i < vertices.size(); i++)
+	// {
+	// 	std::cout << "sum: " << vertices[i].boneWeights.x + vertices[i].boneWeights.y + vertices[i].boneWeights.z + vertices[i].boneWeights.w << std::endl;
+	// }
 	std::cout << "loaded bones" << std::endl;
 	skinnedMeshes[index].bones.constructHierarchy(scene->mRootNode);
 	std::cout << "built Hierarchy" << std::endl;
@@ -262,7 +283,7 @@ void Scene::addAnimations(const aiScene * scene, BoneHierarchy * bones)
 				// add position key to animation
 				for(int j = 0; j < currentAnimation->mChannels[i]->mNumPositionKeys; j++)
 				{
-					Keyframe key = Keyframe();
+					VecKeyframe key = VecKeyframe();
 					key.time = currentAnimation->mChannels[i]->mPositionKeys[j].mTime / currentAnimation->mTicksPerSecond;
 					aiVector3D * temp = &currentAnimation->mChannels[i]->mPositionKeys[j].mValue;
 					key.value = glm::vec4(temp->x, temp->y, temp->z, 1.0);
@@ -270,19 +291,19 @@ void Scene::addAnimations(const aiScene * scene, BoneHierarchy * bones)
 				}
 
 				// add rotation key to animation
-				for(int j = 0; j < currentAnimation->mChannels[i]->mNumPositionKeys; j++)
+				for(int j = 0; j < currentAnimation->mChannels[i]->mNumRotationKeys; j++)
 				{
-					Keyframe key = Keyframe();
+					QuatKeyframe key = QuatKeyframe();
 					key.time = currentAnimation->mChannels[i]->mRotationKeys[j].mTime / currentAnimation->mTicksPerSecond;
 					aiQuaternion * temp = &currentAnimation->mChannels[i]->mRotationKeys[j].mValue;
-					key.value = glm::vec4(temp->x, temp->y, temp->z, temp->w);
+					key.value = glm::quat(temp->w, temp->x, temp->y, temp->z);
 					bones->addRotationKey(animationName, key, boneName);
 				}
 
 				// add scale keys to animation
 				for(int j = 0; j < currentAnimation->mChannels[i]->mNumScalingKeys; j++)
 				{
-					Keyframe key = Keyframe();
+					VecKeyframe key = VecKeyframe();
 					key.time = currentAnimation->mChannels[i]->mScalingKeys[j].mTime / currentAnimation->mTicksPerSecond;
 					aiVector3D * temp = &currentAnimation->mChannels[i]->mScalingKeys[j].mValue;
 					key.value = glm::vec4(temp->x, temp->y, temp->z, 1.0);
@@ -295,6 +316,7 @@ void Scene::addAnimations(const aiScene * scene, BoneHierarchy * bones)
 
 bool Scene::determineAnimationAssociation(aiAnimation * animation, BoneHierarchy * bones)
 {
+	//return true;
 	for(int i = 0; i < animation->mNumChannels; i++)
 	{
 		std::string name = animation->mChannels[i]->mNodeName.C_Str();
@@ -307,11 +329,7 @@ bool Scene::determineAnimationAssociation(aiAnimation * animation, BoneHierarchy
 inline glm::mat4 Scene::convertToGLMMatrix(aiMatrix4x4 &original)
 {
 	glm::mat4 target;
-	target[0][0] = original.a1; target[1][0] = original.a2; target[2][0] = original.a3; target[3][0] = original.a4;
-	target[0][1] = original.b1; target[1][1] = original.b2; target[2][1] = original.b3; target[3][1] = original.b4;
-	target[0][2] = original.c1; target[1][2] = original.c2; target[2][2] = original.c3; target[3][2] = original.c4;
-	target[0][3] = original.d1; target[1][3] = original.d2; target[2][3] = original.d3; target[3][3] = original.d4;
-
+	target = glm::transpose(glm::make_mat4(&original.a1));
 	return target;
 }
 
@@ -516,8 +534,8 @@ void Scene::populate(ECSEngine * ecs)
 													materials[skinnedMeshes[i].materialIndex], entityID, skinnedMeshes[i].bones);
 			std::cout << "Before: " << skinnedMeshes[i].bones.print() << " After: " << r.bones.print() << std::endl;
 			ecs->addSkinnedRenderable(entityID, r);
-
-			Transform t = Transform(skinnedMeshes[i].location, defaultOrientation, 1.0, entityID);
+			glm::vec3 rot = glm::vec3(skinnedMeshes[i].rotation);
+			Transform t = Transform(skinnedMeshes[i].location, rot, 1.0, entityID);
 			ecs->addTransform(entityID, t);
 
 			associateLight(skinnedMeshes[i].name, t, entityID, ecs);

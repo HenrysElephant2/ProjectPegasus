@@ -4,28 +4,41 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <SDL2/SDL.h>
 #include <vector>
 #include <iostream>
 #include <assimp/scene.h>
 
 struct Keyframe {
-		double time;
-		glm::vec4 value;
-	};
+	double time;
+	// glm::vec4 value;
+};
+
+struct VecKeyframe : Keyframe {
+	glm::vec4 value;
+};
+
+struct QuatKeyframe : Keyframe {
+	glm::quat value;
+};
 
 class Animation {
 private:
 	
 	struct BoneAnimation{
-		std::vector<Keyframe> positionKeys;
-		std::vector<Keyframe> rotationKeys;
-		std::vector<Keyframe> scaleKeys;
+		std::vector<VecKeyframe> positionKeys;
+		std::vector<QuatKeyframe> rotationKeys;
+		std::vector<VecKeyframe> scaleKeys;
 	};
 
 	
 	std::vector<BoneAnimation> boneKeyframes;
 	
+	glm::vec4 getVecKeyframeValue(std::vector<VecKeyframe> *keys, float time, bool zeroIfNone);
+	glm::quat getQuatKeyframeValue(std::vector<QuatKeyframe> *keys, float time);
+
 public:
 	double animationLength;
 	std::string animationName;
@@ -37,11 +50,11 @@ public:
 		//boneKeyframes.reserve(numBones);
 	}
 
-	glm::mat4 getBoneTransform(double time, int bone);
+	glm::mat4 getBoneTransform(float time, int bone);
 
-	void addPositionKey(Keyframe &key, int bone);
-	void addRotationKey(Keyframe &key, int bone);
-	void addScaleKey(Keyframe &key, int bone);
+	void addPositionKey(VecKeyframe &key, int bone);
+	void addRotationKey(QuatKeyframe &key, int bone);
+	void addScaleKey(VecKeyframe &key, int bone);
 
 };
 
@@ -54,21 +67,29 @@ private:
 
 		//int parent;
 		std::vector<int> children;
-		glm::mat4 currentTransformation;
-		glm::mat4 offsetMatrix;
+		glm::mat4 currentTransformation = glm::mat4(1.0);
+		glm::mat4 offsetMatrix = glm::mat4(1.0);
+		glm::mat4 inverseBind = glm::mat4(1.0);
+		glm::mat4 transform = glm::mat4(1.0);
 	};
 
 	std::vector<Bone> bones;
 	int root;
 	std::vector<Animation> animations;
-	int currentAnimation;
-	double currentTime;
+	int currentAnimation = 0;
+	double currentTime = 0;
+
+	glm::mat4 globalInverse;
 	// Uint64 previousTime;
 	// Uint64 frequency;
 
-	void constructHierarchyHelper(aiNode * boneNode, int boneIndex);
+	inline glm::mat4 convertToGLMMatrix(aiMatrix4x4 &original);
+
+	void constructHierarchyHelper(aiNode * boneNode, int boneIndex, glm::mat4 offset);
 	void setCurrentTransform(int bone, glm::mat4 parentTransform);
 	aiNode* findHierarchyRootNode(aiNode * rootNode);
+	aiMatrix4x4 getTransformation(aiNode * root, std::string &name);
+	aiMatrix4x4 getTransformationHelper(aiNode * node);
 public:
 
 	BoneHierarchy()
@@ -93,14 +114,17 @@ public:
 	// add an animation to the bone heirarchy
 	void addAnimation(std::string &animationName, double length);
 	//add keyframes to an animation
-	void addPositionKey(std::string &animationName, Keyframe &key, std::string &boneName);
-	void addRotationKey(std::string &animationName, Keyframe &key, std::string &boneName);
-	void addScaleKey(std::string &animationName, Keyframe &key, std::string &boneName);
+	void addPositionKey(std::string &animationName, VecKeyframe &key, std::string &boneName);
+	void addRotationKey(std::string &animationName, QuatKeyframe &key, std::string &boneName);
+	void addScaleKey(std::string &animationName, VecKeyframe &key, std::string &boneName);
 
 	//functions for when the ECS is running
 	void updateAnimation(double dt);
 
 	void changeAnimation(std::string & animationName);
+
+	int getBoneCount();
+	glm::mat4 * getCurrentBoneTransform(int index);
 
 	int print() 
 	{

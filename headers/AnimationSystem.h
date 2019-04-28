@@ -18,6 +18,7 @@ public:
 		m->subscribe(this, ANIMATION_MESSAGE);
 		rigs = rigs_in;
 		frequency = SDL_GetPerformanceFrequency();
+		previousTime = SDL_GetPerformanceCounter();
 	}
 	AnimationSystem():System(NULL){}
 	void update();

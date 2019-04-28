@@ -21,6 +21,9 @@
 #define TAN_ATTRIB 3
 #define BITAN_ATTRIB 4
 #define UV_ATTRIB 5
+#define BONE_WEIGHTS_ATTRIB 6
+#define BONE_IDS_ATTRIB 7
+
 
 #define VERTEX_ATTRIB_2D 0
 #define UV_ATTRIB_2D 1
@@ -102,6 +105,7 @@ private:
 	GLint cameraPositionUniformLoc;
 
 	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false, bool disableDepth = false );
+	void drawSkinnedRenderables(glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false, bool disableDepth = false);
 
 	// must be used with a shader that is designed to draw a full screen quad. ie the vertex shader shouldn't do any transformations at all to the vertex
 	void renderFullScreenQuad();

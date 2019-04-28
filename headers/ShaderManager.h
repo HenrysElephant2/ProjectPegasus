@@ -8,8 +8,11 @@
 #include <iostream>
 #include "Component.h"
 #include "Material.h"
+#include "Animation.h"
 #include <glm/mat4x4.hpp> 
 #include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 //need to #define all the names for shader uniforms
 #define MODEL_VARIABLE_NAME "Model"
@@ -29,6 +32,9 @@
 
 //light variables
 #define MAX_LIGHTS 32
+
+#define MAX_BONES 100
+#define BONE_ARRAY_VARIABLE_NAME "BoneTransforms"
 
 #define LIGHT_ARRAY_VARIABLE_NAME "lights"
 #define LIGHT_POSITION_VARIABLE_NAME "location"
@@ -69,6 +75,9 @@ private:
 
 	//GLint lightArrayLoc;
 
+	std::vector<GLint> boneTransformLocations;
+
+
 	GLint lightCountLoc;
 public:
 	Shader(GLuint programID);
@@ -81,6 +90,7 @@ public:
 	void bindMaterial(Material * mat); // load uniforms where the location is not -1, bind textures that are not -1
 	void loadLight(Light * light, Transform * t, int index);
 	void loadLightCount(int count);
+	void loadBones(BoneHierarchy * bones);
 	GLuint getProgramID();
 };
 
@@ -102,6 +112,7 @@ public:
 	void loadProjectionMatrix(glm::mat4 *projectionMatrix);
 	void loadLight(Light * light, Transform * t, int index);
 	void loadLightCount(int count);
+	void loadBones(BoneHierarchy * bones);
 	GLuint getProgramID();
 	static void loadShaders(ShaderManager* sm);
 
@@ -119,6 +130,7 @@ public:
 	static int tempShadows;
 	static int testShadows;
 	static int tempShadows2;
+	static int skinnedShadows;
 
 };
 

@@ -4,6 +4,7 @@ void AnimationSystem::update()
 {
 	Uint64 currentTime = SDL_GetPerformanceCounter();
 	float dt = (currentTime - previousTime)/((double)frequency);
+	previousTime = currentTime;
 	// std::cout << "Updating animations" << std::endl;
 	int count = rigs->getSize();
 	for(int i = 0; i < count; i++)
@@ -12,6 +13,7 @@ void AnimationSystem::update()
 		if(r)
 		{
 			r->bones.updateAnimation(dt);
+			//std::cout << "updated rig" << std::endl;
 		}
 	}
 }
