@@ -144,7 +144,8 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 
 	aiVector3D loc;
 	aiQuaternion rot;
-	transform.DecomposeNoScaling(rot,loc);
+	aiVector3D scale;
+	transform.Decompose(scale,rot,loc);
 
 
 	std::vector<SkinnedVertex> vertices;
@@ -180,6 +181,8 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 	skinnedMeshes[index].rotation.y = 0.0;//rot.y;
 	skinnedMeshes[index].rotation.z = 0.0;//rot.z;
 	skinnedMeshes[index].rotation.w = 0.0;//rot.w;
+	skinnedMeshes[index].scale = (scale.x + scale.y + scale.z) / 3;
+
 
 
 	std::cout << averageLocation.x << ", " << averageLocation.y << ", " << averageLocation.z << ", " << averageLocation.w << std::endl;
@@ -535,7 +538,7 @@ void Scene::populate(ECSEngine * ecs)
 			std::cout << "Before: " << skinnedMeshes[i].bones.print() << " After: " << r.bones.print() << std::endl;
 			ecs->addSkinnedRenderable(entityID, r);
 			glm::vec3 rot = glm::vec3(skinnedMeshes[i].rotation);
-			Transform t = Transform(skinnedMeshes[i].location, rot, 1.0, entityID);
+			Transform t = Transform(skinnedMeshes[i].location, rot, skinnedMeshes[i].scale, entityID);
 			ecs->addTransform(entityID, t);
 
 			associateLight(skinnedMeshes[i].name, t, entityID, ecs);

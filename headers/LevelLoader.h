@@ -59,6 +59,7 @@ struct SkinnedMesh{
 	GLuint IBO;
 	glm::vec4 location;
 	glm::vec4 rotation;
+	float scale;
 	int numVertices;
 	int indexCount;
 	std::string name;
