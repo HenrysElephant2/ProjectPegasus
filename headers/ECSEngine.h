@@ -9,6 +9,7 @@
 #include "Component.h"
 #include "ShaderManager.h"
 #include "RenderSystem.h"
+#include "PlayerMovementSystem.h"
 
 class ECSEngine {
 private:
@@ -16,6 +17,7 @@ private:
 	EntityManager entities;
 	ShaderManager * shaders;
 	RenderSystem rendersystemObject;
+	PlayerMovementSystem playerMovementSystemObject;
 	ComponentManager<Transform> transformManager;
 	ComponentManager<Renderable> renderableManager;
 	ComponentManager<Player> playerManager;

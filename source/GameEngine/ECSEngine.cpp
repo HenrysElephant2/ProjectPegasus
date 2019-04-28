@@ -6,6 +6,9 @@ ECSEngine::ECSEngine(ShaderManager * shaders_in)
 	std::cout << "Creating Component Managers" << std::endl;
 	std::cout << "Creating Systems" << std::endl;
 	rendersystemObject = RenderSystem(&messenger, shaders, &transformManager, &renderableManager, &playerManager, &lightManager);
+	playerMovementSystemObject = PlayerMovementSystem(&messenger, &transformManager, &playerManager);
+	messenger.subscribe((System*)(&playerMovementSystemObject),KEY_EVENT);
+	messenger.subscribe((System*)(&playerMovementSystemObject),MOUSE_EVENT);
 	std::cout << "Successfully Created Systems" << std::endl;
 }
 
@@ -13,6 +16,7 @@ ECSEngine::ECSEngine(ShaderManager * shaders_in)
 void ECSEngine::update()
 {
 	rendersystemObject.update();
+	playerMovementSystemObject.update();
 }
 
 void ECSEngine::spawnMessage(BasicMessage* message)

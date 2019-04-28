@@ -12,6 +12,7 @@ public:
 	{
 		shaders = shaders_in;
 	}
+	virtual ~State() {}
 	virtual void update() = 0;
 	virtual void keyEvent(SDL_Event * e) = 0;
 	virtual void mouseEvent(SDL_Event * e) = 0;

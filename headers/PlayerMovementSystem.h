@@ -16,18 +16,11 @@ private:
 	Uint64 frequency;
 
 	// keep track of what keys are down
-	bool w_Key, a_Key, s_Key, d_Key, spacebar_Key;
+	bool w_Key, a_Key, s_Key, d_Key, spacebar_Key, shift_Key;
 
 public:
-	PlayerMovementSystem(MessageManager* messengerObject, ComponentManager<Transform> * transforms_in, ComponentManager<Player> * players_in)
-	 : System(messengerObject)
-	{
-		playerManager = players_in;
-		transforms = transforms_in;
-		messengerObject->subscribe(this, KEY_EVENT);
-		messengerObject->subscribe(this, MOUSE_EVENT);
-		frequency = SDL_GetPerformanceFrequency();
-	}
+	PlayerMovementSystem():System(NULL) {}
+	PlayerMovementSystem(MessageManager* messengerObject, ComponentManager<Transform> * transforms_in, ComponentManager<Player> * players_in);
 
 	void update();
 	void receiveMessage(BasicMessage * message);

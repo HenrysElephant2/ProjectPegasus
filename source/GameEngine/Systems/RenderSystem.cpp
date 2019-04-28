@@ -1,12 +1,93 @@
 #include "RenderSystem.h"
 
+glm::vec3 RenderSystem::lightViews[6] = {
+	glm::vec3( 1.0, 0.0, 0.0),
+	glm::vec3(-1.0, 0.0, 0.0),
+	glm::vec3( 0.0, 1.0, 0.0),
+	glm::vec3( 0.0,-1.0, 0.0),
+	glm::vec3( 0.0, 0.0, 1.0),
+	glm::vec3( 0.0, 0.0,-1.0)
+};
+
+RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
+				 ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in):System(m)
+	{
+		shaders = sm;
+		transforms = transforms_in;
+		renderables = renderables_in;
+		player = player_in;
+		lights = lights_in;
+		glGenVertexArrays( 1, &BASE_VAO );
+		glBindVertexArray( BASE_VAO );
+
+		windowHeight = 400;
+		windowWidth = 100;
+
+		textureWidth = 2048;
+		textureHeight = 1080;
+
+		// create a vbo for displaying vertices 
+		float VBO[] = {-1,-1,0,  0,0,  1,-1,0,  1,0,  -1,1,0, 0,1,
+				       -1,1, 0,  0,1,  1,-1,0,  1,0,  1,1,0,  1,1};
+		glGenBuffers(1, &fullScreenVBO);
+	  	glBindBuffer(GL_ARRAY_BUFFER, fullScreenVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 30, &VBO, GL_STATIC_DRAW);
+
+		glViewport(0,0,windowWidth,windowHeight);
+
+		setUpFrameBuffers();
+
+		sm->bindShader(ShaderManager::shadingPass);
+		cameraPositionUniformLoc = glGetUniformLocation(sm->getProgramID(), "cameraLoc");
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "positionTexture"), 0);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "diffuseTexture"), 2);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "emissiveTexture"), 3);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "shadowTexture"), 4);
+
+		sm->bindShader(ShaderManager::HDR);
+		exposureLoc = glGetUniformLocation(sm->getProgramID(), "exposure");
+
+		sm->bindShader(ShaderManager::blur);
+		horizontalBoolLoc = glGetUniformLocation(sm->getProgramID(), "horizontal");
+
+		sm->bindShader(ShaderManager::applyBloom);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "baseColor"), 0);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "bloomColor"), 1);
+
+		sm->bindShader(ShaderManager::testShadows);
+		glUniformMatrix4fv( glGetUniformLocation(sm->getProgramID(), "LightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+		shadowTestLightIndexLoc = glGetUniformLocation(sm->getProgramID(), "LightIndex");
+		shadowTestLightViewLocs[0] = glGetUniformLocation(sm->getProgramID(), "LightViews[0]");
+		shadowTestLightViewLocs[1] = glGetUniformLocation(sm->getProgramID(), "LightViews[1]");
+		shadowTestLightViewLocs[2] = glGetUniformLocation(sm->getProgramID(), "LightViews[2]");
+		shadowTestLightViewLocs[3] = glGetUniformLocation(sm->getProgramID(), "LightViews[3]");
+		shadowTestLightViewLocs[4] = glGetUniformLocation(sm->getProgramID(), "LightViews[4]");
+		shadowTestLightViewLocs[5] = glGetUniformLocation(sm->getProgramID(), "LightViews[5]");
+		shadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
+		shadowTestWindowSizeLoc = glGetUniformLocation(sm->getProgramID(), "WindowSize");
+		// Uniform texture locations
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 1);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap0"), 2);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap1"), 3);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap2"), 4);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap3"), 5);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap4"), 6);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap5"), 7);
+		std::cout << "Created RenderSystem" << std::endl;
+
+		sm->bindShader(ShaderManager::tempShadows2);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "intTex"), 0);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "tex"), 1);
+	}
+
 Uint64 previousTime2 = 0;
 int frames = 0;
 float timeSinceMeasure = 0;
 float test = 0;
 void RenderSystem::update()
 {
-	GLuint err;
+	// GLuint err;
 
 	// make fps measurement. this is for testing
 	Uint64 currentTime = SDL_GetPerformanceCounter();
@@ -33,9 +114,6 @@ void RenderSystem::update()
 			lightList.push_back(i);
 	}
 
-	while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Before " << ner++ << " - " << err << std::endl;}
-
-
 	glViewport(0,0,textureWidth, textureHeight);
 
 	deferredShadingData.bindFrameBuffer();
@@ -51,17 +129,18 @@ void RenderSystem::update()
 	}
 
 	//calculate where to place the camera in order to make the view matrix
-	glm::vec3 cameraLoc = glm::vec3(sin(p->cameraYaw+test) * (cos(p->cameraPitch)*p->cameraOffset),
-									sin(p->cameraPitch)*p->cameraOffset,
-									cos(p->cameraYaw+test) * (cos(p->cameraPitch)*p->cameraOffset))
-						  + pLoc->position.xyz();
+	glm::vec3 cameraLoc = p->cameraOffset * glm::vec3(sin(p->cameraYaw) * cos(p->cameraPitch),
+									sin(p->cameraPitch),
+									cos(p->cameraYaw) * cos(p->cameraPitch))
+						  + glm::vec3(pLoc->position);
 	glm::vec3 up = glm::vec3(0.0,1.0,0.0);
-	glm::mat4 view = glm::lookAt(cameraLoc,pLoc->position.xyz(),up);
+	glm::mat4 view = glm::lookAt(cameraLoc,glm::vec3(pLoc->position),up);
 	drawAllRenderables( &view, &projection );
-	while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Main " << ner++ << " - " << err << std::endl;}
 
+	// Create per-light shadow maps
 	renderShadowMaps();
 
+	Test shadow map display
 	// shaders->bindShader(ShaderManager::tempShadows);
 	// Light *testLight = lights->getComponent( lightList[3] );
 	// glActiveTexture(GL_TEXTURE0);
@@ -69,23 +148,23 @@ void RenderSystem::update()
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// glViewport(0,0,windowWidth, windowHeight);
 	// renderFullScreenQuad();
-	// while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Regs " << ner++ << " - " << err << std::endl;}
 	// return;
 
+	glViewport(0,0,textureWidth, textureHeight);
+
+	// Pingpong between lights, filling in integer shadow texture
+	shaders->bindShader(ShaderManager::testShadows);
 	shadowTestBuffer[0].bindFrameBuffer();
 	glClear(GL_COLOR_BUFFER_BIT);
 	shadowTestBuffer[1].bindFrameBuffer();
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	glViewport(0,0,textureWidth, textureHeight);
-	shaders->bindShader(ShaderManager::testShadows);
 	bool bufferIndex = 0;
-	for( int i=0; i<lightList.size(); i++ ) {//
+	for( int i=0; i<lightList.size(); i++ ) {
 		bufferIndex = !bufferIndex;
 		testSingleLight(lightList[i], i, bufferIndex, &view);
-		if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Test Light: " << err << " - " << i << std::endl;
 	}
 
+	// // Test combined shadow texture	
 	// shaders->bindShader(ShaderManager::tempShadows2);
 	// shadowTestBuffer[bufferIndex].bindTexture(shadowTestTexture[bufferIndex], GL_TEXTURE0);
 	// shadowTestBuffer[bufferIndex].bindTexture(shadowTempTexture[bufferIndex], GL_TEXTURE1);
@@ -110,7 +189,6 @@ void RenderSystem::update()
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_DEPTH_TEST);
 	renderFullScreenQuad();
-	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Issues: " << err << std::endl;
 
 
 
@@ -142,7 +220,6 @@ void RenderSystem::update()
 	shadingTarget.bindTexture(colorTexture, GL_TEXTURE0);
 	bloomBuffer[!pingpong].bindTexture(bloomTexture[!pingpong], GL_TEXTURE1);
 	renderFullScreenQuad();
-
 
 
 	//apply HDR and render to the screen
@@ -188,9 +265,8 @@ void RenderSystem::reshape( int width, int height ) {
 	projection = glm::perspective(glm::radians(fov), width / (float)height , 0.1f, 100.f);
 }
 
-void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only, bool disableDepth ) {
+void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only ) {
 	glEnable(GL_DEPTH_TEST);
-	// if(disableDepth) glDisable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	// render all solid objects
 	int count = renderables->getSize();
@@ -206,7 +282,7 @@ void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, b
 			model = glm::rotate(model, currentT->orientation.x, xAxis);
 			model = glm::rotate(model, currentT->orientation.y, yAxis);
 			model = glm::rotate(model, currentT->orientation.z, zAxis);
-			model = glm::translate(model, currentT->position.xyz()/currentT->position.w);
+			model = glm::translate(model, glm::vec3(currentT->position)/currentT->position.w);
 
 			// bind program and uniforms, then draw matrix
 			if( !vertex_only ) {
@@ -285,7 +361,7 @@ void RenderSystem::renderShadowMaps() {
 	for( int li=0; li<lightList.size(); li++ ) {
 		Light *currentLight = lights->getComponent(lightList[li]);
 		glm::vec4 currentTransform4 = transforms->getComponent(lightList[li])->position;
-		glm::vec3 currentTransform = currentTransform4.xyz() / currentTransform4.w;
+		glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
 		glm::vec3 lightLoc = currentLight->location + currentTransform;
 
 		for( int smi=0; smi<6; smi++ ) {
@@ -304,18 +380,20 @@ void RenderSystem::renderShadowMaps() {
 }
 
 void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat ) {
-	GLuint err; 
+	// Bind current framebuffer and shadow texture
 	shadowTestBuffer[bufferIndex].bindFrameBuffer();
 	shadowTestBuffer[!bufferIndex].bindTexture(shadowTestTexture[!bufferIndex], GL_TEXTURE1);
 
+	// Bind uniforms for current light
 	Light *l = lights->getComponent(componentIndex);
 	glm::vec4 currentTransform4 = transforms->getComponent(componentIndex)->position;
-	glm::vec3 currentTransform = currentTransform4.xyz() / currentTransform4.w;
+	glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
 	glm::vec3 lightLoc = l->location + currentTransform;
 	glUniform1i(shadowTestLightIndexLoc, lightIndex);
 	glUniform3f(shadowTestLightLocLoc, lightLoc.x, lightLoc.y, lightLoc.z);
 	glUniform2f(shadowTestWindowSizeLoc, textureWidth, textureHeight);
 
+	// Bind view matrices and depth maps for all six views
 	for( int i=0; i<6; i++ ) {
 		glm::vec3 curUp;
 		if( i == 2 ) curUp = glm::vec3(0.0, 0.0, 1.0);
@@ -327,11 +405,9 @@ void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool buf
 		glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[i]);
 	}
 
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
-	drawAllRenderables( viewMat, &projection, true, true );
+	// Test
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawAllRenderables( viewMat, &projection, true );
 }
 
 void RenderSystem::setUpFrameBuffers()

@@ -26,11 +26,11 @@ void Gameplay::update()
 }
 void Gameplay::keyEvent(SDL_Event * e)
 {
-
+	engine->spawnMessage( new KeyEvent(e) );
 }
 void Gameplay::mouseEvent(SDL_Event * e)
 {
-
+	engine->spawnMessage( new MouseEvent(e) );
 }
 void Gameplay::reshape(int width, int height)
 {

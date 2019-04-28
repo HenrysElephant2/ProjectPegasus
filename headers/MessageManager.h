@@ -26,7 +26,7 @@ struct BasicMessage {
 
 struct KeyEvent : BasicMessage{
 	SDL_Event * event;
-	KeyEvent(SDL_Event * e):BasicMessage(0)
+	KeyEvent(SDL_Event * e):BasicMessage(KEY_EVENT)
 	{
 		event = e;
 	}
@@ -34,7 +34,7 @@ struct KeyEvent : BasicMessage{
 
 struct MouseEvent : BasicMessage {
 	SDL_Event * event;
-	MouseEvent(SDL_Event * e):BasicMessage(1)
+	MouseEvent(SDL_Event * e):BasicMessage(MOUSE_EVENT)
 	{
 		event = e;
 	}

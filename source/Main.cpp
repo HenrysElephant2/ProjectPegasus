@@ -24,12 +24,11 @@ SDL_GLContext gContext;
 Uint64 previousTime = 0;
 int prevMouseX = 0, prevMouseY = 0;
 
-State* state;
+State *state;
 ShaderManager * sm;
 
 bool quit = false;
-bool mousePressed = false;
-
+bool capturedMode = true;
 
 
 bool init() {
@@ -64,7 +63,7 @@ bool init() {
 
 				std::string levelname = "NOT_IMPLEMENTED";
 				state = new Gameplay(SCREEN_WIDTH, SCREEN_HEIGHT, levelname, sm);
-				
+				SDL_SetRelativeMouseMode(capturedMode?SDL_TRUE:SDL_FALSE);
 			}
 		}
 	}
@@ -72,19 +71,20 @@ bool init() {
 	return success;
 }
 
-void handleKeys( unsigned char key ) {
-	if( key == 'q' )
+void handleKeys( SDL_Event e ) {
+	if( e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_q )
 		quit = true;
+	else if( e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE ) {
+		capturedMode = !capturedMode;
+		SDL_SetRelativeMouseMode(capturedMode?SDL_TRUE:SDL_FALSE);
+	}
+	else if( capturedMode )
+		state->keyEvent( &e );
 }
 
-void handleMouse( int x, int y ) {
-	if( mousePressed ) {
-		int dx = x - prevMouseX;
-		int dy = y - prevMouseY;
-		//rs->setView(dx, dy);
-		prevMouseX = x;
-		prevMouseY = y;
-	}
+void handleMouse( SDL_Event e ) {
+	if( capturedMode )
+		state->mouseEvent( &e );
 }
 
 void close() {
@@ -119,20 +119,11 @@ int main( int argc, char* args[] ) {
                     SCREEN_HEIGHT = e.window.data2;
                    	state->reshape(SCREEN_WIDTH, SCREEN_HEIGHT);
                 }
-				else if( e.type == SDL_TEXTINPUT ) {
-					handleKeys( e.text.text[ 0 ] );
+				else if( e.type == SDL_KEYDOWN || e.type == SDL_KEYUP ) {
+					handleKeys( e );
 				}
-				else if( e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT ) {
-					mousePressed = true;
-					SDL_GetMouseState( &prevMouseX, &prevMouseY );
-				}
-				else if( e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT ) {
-					mousePressed = false;
-				}
-				else if( e.type == SDL_MOUSEMOTION ) {
-					int x = 0, y = 0;
-					SDL_GetMouseState( &x, &y );
-					handleMouse(x, y);
+				else if( e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP ||  e.type == SDL_MOUSEMOTION ) {
+					handleMouse( e );
 				}
 			}
 

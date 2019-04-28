@@ -15,7 +15,7 @@ CFLG=-O3 -Wall -Wno-deprecated-declarations
 LIBS=-framework OpenGL -F /Library/Frameworks -framework SDL2 -lassimp
 #  Linux/Unix/Solaris
 else
-CFLG=-O3 -Wall -fpermissive
+CFLG=-O3 -Wall -Wno-sign-compare -fpermissive
 LIBS=-lglut -lGLU -lGL -lm -lSDL2 -lassimp
 endif
 #  OSX/Linux/Unix/Solaris

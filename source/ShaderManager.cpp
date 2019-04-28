@@ -347,7 +347,7 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 
 	std::string hdrVert = "Shaders/HDR.vert";
 	std::string hdrFrag = "Shaders/HDR.frag";
-	HDR = hdrProgram = sm->createProgram(hdrVert,hdrFrag);
+	HDR = sm->createProgram(hdrVert,hdrFrag);
 
 	std::string blurVert = "Shaders/blur.vert";
 	std::string blurFrag = "Shaders/blur.frag";

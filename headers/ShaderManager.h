@@ -117,10 +117,9 @@ public:
 	static int tempShadows;
 	static int testShadows;
 	static int tempShadows2;
-
 };
 
-static int hdrProgram;
+// static int hdrProgram;
 
 
 #endif
