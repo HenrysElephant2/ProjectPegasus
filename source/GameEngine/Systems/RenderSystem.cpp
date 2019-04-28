@@ -56,7 +56,28 @@ RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentMana
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "baseColor"), 0);
 		glUniform1i(glGetUniformLocation(sm->getProgramID(), "bloomColor"), 1);
 
-		sm->bindShader(ShaderManager::testShadows);
+		// sm->bindShader(ShaderManager::testShadows);
+		// glUniformMatrix4fv( glGetUniformLocation(sm->getProgramID(), "LightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+		// shadowTestLightIndexLoc = glGetUniformLocation(sm->getProgramID(), "LightIndex");
+		// shadowTestLightViewLocs[0] = glGetUniformLocation(sm->getProgramID(), "LightViews[0]");
+		// shadowTestLightViewLocs[1] = glGetUniformLocation(sm->getProgramID(), "LightViews[1]");
+		// shadowTestLightViewLocs[2] = glGetUniformLocation(sm->getProgramID(), "LightViews[2]");
+		// shadowTestLightViewLocs[3] = glGetUniformLocation(sm->getProgramID(), "LightViews[3]");
+		// shadowTestLightViewLocs[4] = glGetUniformLocation(sm->getProgramID(), "LightViews[4]");
+		// shadowTestLightViewLocs[5] = glGetUniformLocation(sm->getProgramID(), "LightViews[5]");
+		// shadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
+		// shadowTestWindowSizeLoc = glGetUniformLocation(sm->getProgramID(), "WindowSize");
+		// // Uniform texture locations
+		// glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 1);
+		// glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap0"), 2);
+		// glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap1"), 3);
+		// glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap2"), 4);
+		// glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap3"), 5);
+		// glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap4"), 6);
+		// glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap5"), 7);
+		// std::cout << "Created RenderSystem" << std::endl;
+
+		sm->bindShader(ShaderManager::testShadows2);
 		glUniformMatrix4fv( glGetUniformLocation(sm->getProgramID(), "LightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightProjection));
 		shadowTestLightIndexLoc = glGetUniformLocation(sm->getProgramID(), "LightIndex");
 		shadowTestLightViewLocs[0] = glGetUniformLocation(sm->getProgramID(), "LightViews[0]");
@@ -66,15 +87,16 @@ RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentMana
 		shadowTestLightViewLocs[4] = glGetUniformLocation(sm->getProgramID(), "LightViews[4]");
 		shadowTestLightViewLocs[5] = glGetUniformLocation(sm->getProgramID(), "LightViews[5]");
 		shadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
-		shadowTestWindowSizeLoc = glGetUniformLocation(sm->getProgramID(), "WindowSize");
 		// Uniform texture locations
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 1);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap0"), 2);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap1"), 3);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap2"), 4);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap3"), 5);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap4"), 6);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap5"), 7);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "positionTexture"), 0);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 2);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap0"), 3);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap1"), 4);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap2"), 5);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap3"), 6);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap4"), 7);
+		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap5"), 8);
 		std::cout << "Created RenderSystem" << std::endl;
 
 		sm->bindShader(ShaderManager::tempShadows2);
@@ -156,7 +178,7 @@ void RenderSystem::update()
 	glViewport(0,0,textureWidth, textureHeight);
 
 	// Pingpong between lights, filling in integer shadow texture
-	shaders->bindShader(ShaderManager::testShadows);
+	shaders->bindShader(ShaderManager::testShadows2);
 	shadowTestBuffer[0].bindFrameBuffer();
 	glClear(GL_COLOR_BUFFER_BIT);
 	shadowTestBuffer[1].bindFrameBuffer();
@@ -470,7 +492,9 @@ void RenderSystem::renderShadowMaps() {
 void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat ) {
 	// Bind current framebuffer and shadow texture
 	shadowTestBuffer[bufferIndex].bindFrameBuffer();
-	shadowTestBuffer[!bufferIndex].bindTexture(shadowTestTexture[!bufferIndex], GL_TEXTURE1);
+	deferredShadingData.bindTexture(positionTexture, GL_TEXTURE0);
+	deferredShadingData.bindTexture(normalTexture, GL_TEXTURE1);
+	shadowTestBuffer[!bufferIndex].bindTexture(shadowTestTexture[!bufferIndex], GL_TEXTURE2);
 
 	// Bind uniforms for current light
 	Light *l = lights->getComponent(componentIndex);
@@ -479,7 +503,6 @@ void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool buf
 	glm::vec3 lightLoc = l->location + currentTransform;
 	glUniform1i(shadowTestLightIndexLoc, lightIndex);
 	glUniform3f(shadowTestLightLocLoc, lightLoc.x, lightLoc.y, lightLoc.z);
-	glUniform2f(shadowTestWindowSizeLoc, textureWidth, textureHeight);
 
 	// Bind view matrices and depth maps for all six views
 	for( int i=0; i<6; i++ ) {
@@ -489,19 +512,13 @@ void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool buf
 		else curUp = glm::vec3(0.0, 1.0, 0.0);
 		glm::mat4 curView = glm::lookAt(lightLoc, lightLoc + lightViews[i], curUp);
 		glUniformMatrix4fv(shadowTestLightViewLocs[i], 1, GL_FALSE, glm::value_ptr(curView));
-		glActiveTexture(GL_TEXTURE2 + i);
+		glActiveTexture(GL_TEXTURE3 + i);
 		glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[i]);
 	}
 
 	// Test
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	drawAllRenderables( viewMat, &projection, true );
-
-	// glClear(GL_COLOR_BUFFER_BIT);
-	// glClear(GL_DEPTH_BUFFER_BIT);
-	// glDepthMask(GL_TRUE);
-	// glDisable(GL_BLEND);
-	drawSkinnedRenderables( viewMat, &projection, true );
+	renderFullScreenQuad();
 }
 
 void RenderSystem::setUpFrameBuffers()
