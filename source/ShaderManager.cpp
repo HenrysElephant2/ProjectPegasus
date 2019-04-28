@@ -43,6 +43,17 @@ Shader::Shader(GLuint programID)
 			lightQuadraticAttenuationLoc.push_back(glGetUniformLocation(program, quadraticName.c_str()));
 		}
 	}
+
+	//check for and load bone transform array locations
+	testName = std::string(BONE_ARRAY_VARIABLE_NAME) + "[0]";
+	if(glGetUniformLocation(program,testName.c_str()) != -1)
+	{
+		for(int i = 0; i < MAX_BONES; i++)
+		{
+			std::string boneTransformName = std::string(BONE_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]";
+			boneTransformLocations.push_back(glGetUniformLocation(program,boneTransformName.c_str()));
+		}
+	}
 	//lightArrayLoc = glGetUniformLocation(program, LIGHT_ARRAY_VARIABLE_NAME);
 	lightCountLoc = glGetUniformLocation(program, LIGHT_COUNT_VARIABLE_NAME);
 }
@@ -106,6 +117,15 @@ void Shader::loadLightCount(int count)
 {
 	if(lightCountLoc != -1)
 		glUniform1i(lightCountLoc, count);
+}
+
+void Shader::loadBones(BoneHierarchy * bones)
+{
+	for(int i = 0; i < bones->getBoneCount() && i < boneTransformLocations.size(); i++)
+	{
+		glUniformMatrix4fv(boneTransformLocations[i],1,GL_FALSE,glm::value_ptr(*bones->getCurrentBoneTransform(i)));
+		//std::cout << glm::to_string(*bones->getCurrentBoneTransform(i)) << std::endl;
+	}
 }
 
 void Shader::bind()
@@ -307,7 +327,11 @@ void ShaderManager::loadLightCount(int count)
 		shaders[current]->loadLightCount(count);
 }
 
-
+void ShaderManager::loadBones(BoneHierarchy * bones)
+{
+	if(current < shaders.size())
+		shaders[current]->loadBones(bones);
+}
 
 GLuint ShaderManager::getProgramID()
 {
@@ -321,10 +345,13 @@ int ShaderManager::drawQuad = -1;
 int ShaderManager::HDR = -1;
 int ShaderManager::applyBloom = -1;
 int ShaderManager::blur = -1;
+int ShaderManager::skinnedBasic = -1;
+int ShaderManager::skinnedNormalMapped = -1;
 int ShaderManager::shadows = -1;
 int ShaderManager::tempShadows = -1;
 int ShaderManager::testShadows = -1;
 int ShaderManager::tempShadows2 = -1;
+int ShaderManager::skinnedShadows = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
@@ -373,6 +400,15 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string TempShadows2Vert = "Shaders/drawQuad.vert";
 	std::string TempShadows2Frag = "Shaders/TempShadows2.frag";
 	tempShadows2 = sm->createProgram(TempShadows2Vert,TempShadows2Frag);
+
+	std::string skinnedBasicVert = "Shaders/SkinnedBasic.vert";
+	std::string skinnedBasicFrag = "Shaders/deferredBasic.frag";
+	skinnedBasic = sm->createProgram(skinnedBasicVert, skinnedBasicFrag);
+
+	std::string skinnedShadowsVert = "Shaders/SkinnedShadowMap.vert";
+	std::string skinnedShadowsFrag = "Shaders/shadowMap.frag";
+	skinnedShadows = sm->createProgram(skinnedShadowsVert, skinnedShadowsFrag);
+
 }
 
 

@@ -20,6 +20,9 @@
 #define TAN_ATTRIB 3
 #define BITAN_ATTRIB 4
 #define UV_ATTRIB 5
+#define BONE_WEIGHTS_ATTRIB 6
+#define BONE_IDS_ATTRIB 7
+
 
 #define VERTEX_ATTRIB_2D 0
 #define UV_ATTRIB_2D 1
@@ -35,6 +38,7 @@ class RenderSystem:System {
 private:
 	ComponentManager<Transform> * transforms;
 	ComponentManager<Renderable> * renderables;
+	ComponentManager<SkinnedRenderable> * skinnedRenderables;
 	ComponentManager<Player> * player;
 	ComponentManager<Light> * lights;
 	ShaderManager * shaders;
@@ -93,6 +97,7 @@ private:
 
 	// Draw everything
 	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
+	void drawSkinnedRenderables(glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
 
 	// must be used with a shader that is designed to draw a full screen quad. ie the vertex shader shouldn't do any transformations at all to the vertex
 	void renderFullScreenQuad();
@@ -111,7 +116,77 @@ private:
 
 public:
 	RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in);
+				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in); //:System(m)
+	// {
+	// 	shaders = sm;
+	// 	transforms = transforms_in;
+	// 	renderables = renderables_in;
+	// 	skinnedRenderables = skinnedRenderables_in;
+	// 	player = player_in;
+	// 	lights = lights_in;
+	// 	glGenVertexArrays( 1, &BASE_VAO );
+	// 	glBindVertexArray( BASE_VAO );
+
+	// 	windowHeight = 400;
+	// 	windowWidth = 100;
+
+	// 	textureWidth = 1920;
+	// 	textureHeight = 1080;
+
+	// 	// create a vbo for displaying vertices 
+	// 	float VBO[] = {-1,-1,0,  0,0,  1,-1,0,  1,0,  -1,1,0, 0,1,
+	// 			       -1,1, 0,  0,1,  1,-1,0,  1,0,  1,1,0,  1,1};
+	// 	glGenBuffers(1, &fullScreenVBO);
+	//   	glBindBuffer(GL_ARRAY_BUFFER, fullScreenVBO);
+	// 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 30, &VBO, GL_STATIC_DRAW);
+
+	// 	glViewport(0,0,windowWidth,windowHeight);
+
+	// 	setUpFrameBuffers();
+
+	// 	sm->bindShader(ShaderManager::shadingPass);
+	// 	cameraPositionUniformLoc = glGetUniformLocation(sm->getProgramID(), "cameraLoc");
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "positionTexture"), 0);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "diffuseTexture"), 2);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "emissiveTexture"), 3);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "shadowTexture"), 4);
+
+	// 	sm->bindShader(ShaderManager::HDR);
+	// 	exposureLoc = glGetUniformLocation(sm->getProgramID(), "exposure");
+
+	// 	sm->bindShader(ShaderManager::blur);
+	// 	horizontalBoolLoc = glGetUniformLocation(sm->getProgramID(), "horizontal");
+
+	// 	sm->bindShader(ShaderManager::applyBloom);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "baseColor"), 0);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "bloomColor"), 1);
+
+	// 	sm->bindShader(ShaderManager::testShadows);
+	// 	glUniformMatrix4fv( glGetUniformLocation(sm->getProgramID(), "LightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+	// 	shadowTestLightIndexLoc = glGetUniformLocation(sm->getProgramID(), "LightIndex");
+	// 	shadowTestLightViewLocs[0] = glGetUniformLocation(sm->getProgramID(), "LightViews[0]");
+	// 	shadowTestLightViewLocs[1] = glGetUniformLocation(sm->getProgramID(), "LightViews[1]");
+	// 	shadowTestLightViewLocs[2] = glGetUniformLocation(sm->getProgramID(), "LightViews[2]");
+	// 	shadowTestLightViewLocs[3] = glGetUniformLocation(sm->getProgramID(), "LightViews[3]");
+	// 	shadowTestLightViewLocs[4] = glGetUniformLocation(sm->getProgramID(), "LightViews[4]");
+	// 	shadowTestLightViewLocs[5] = glGetUniformLocation(sm->getProgramID(), "LightViews[5]");
+	// 	shadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
+	// 	shadowTestWindowSizeLoc = glGetUniformLocation(sm->getProgramID(), "WindowSize");
+	// 	// Uniform texture locations
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 1);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[0]"), 2);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[1]"), 3);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[2]"), 4);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[3]"), 5);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[4]"), 6);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMaps[5]"), 7);
+	// 	std::cout << "Created RenderSystem" << std::endl;
+
+	// 	sm->bindShader(ShaderManager::tempShadows2);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "intTex"), 0);
+	// 	glUniform1i(glGetUniformLocation(sm->getProgramID(), "tex"), 1);
+	// }
 	RenderSystem():System(NULL){}
 	void update();
 	void receiveMessage(BasicMessage * message);

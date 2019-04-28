@@ -23,7 +23,7 @@ void PlayerMovementSystem::update()
 		int j_move = spacebar_Key - shift_Key;
 		int k_move = d_Key - a_Key;
 
-		glm::vec4 dPos = dt * 3.0f * glm::vec4(
+		glm::vec4 dPos = dt * 20.0f * glm::vec4(
 			-i_move * sin(player->cameraYaw) + k_move * cos(player->cameraYaw),
 			j_move,
 			-k_move * sin(player->cameraYaw) - i_move * cos(player->cameraYaw),

@@ -57,6 +57,10 @@ $(OBJDIR)FrameBuffer.o: $(SRC)/GameEngine/Systems/FrameBuffer.cpp $(INC)/FrameBu
 	$(CC)
 $(OBJDIR)PlayerMovementSystem.o: $(SRC)/GameEngine/Systems/PlayerMovementSystem.cpp $(INC)/PlayerMovementSystem.h
 	$(CC)
+$(OBJDIR)Animation.o: $(SRC)/GameEngine/Systems/Animation.cpp $(INC)/Animation.h
+	$(CC)
+$(OBJDIR)AnimationSystem.o: $(SRC)/GameEngine/Systems/AnimationSystem.cpp $(INC)/AnimationSystem.h
+	$(CC)
 
 
 
@@ -68,7 +72,7 @@ $(OBJDIR)PlayerMovementSystem.o: $(SRC)/GameEngine/Systems/PlayerMovementSystem.
 # 	g++ -g -std=c++11 -c $(CFLG) -I$(INC) $^
 
 
-Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o $(OBJDIR)FrameBuffer.o $(OBJDIR)PlayerMovementSystem.o
+Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o $(OBJDIR)FrameBuffer.o $(OBJDIR)PlayerMovementSystem.o $(OBJDIR)Animation.o $(OBJDIR)AnimationSystem.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:

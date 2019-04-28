@@ -7,7 +7,7 @@ Scene::Scene(){
 bool Scene::openFile(std::string& filename)
 {
 	Assimp::Importer Importer;
-	const aiScene* scene = Importer.ReadFile(filename.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
+	const aiScene* scene = Importer.ReadFile(filename.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights);
 
 	if(scene)
 	{
@@ -28,17 +28,11 @@ void Scene::processScene(const aiScene* scene, std::string & filename)
 
 	processNodes(scene->mRootNode, scene);
 
-	// int numMeshes = scene->mNumMeshes;
-	// for(unsigned int i = 0; i < numMeshes; i++)
-	// {
-	// 	std::string test = "";
-	// 	createMesh(scene->mMeshes[i], test); // might need to create a separate const aiMesh* variable for scene->m Meshes[i]
-	// }
+	
 	std::cout << "Finished Reading Scene" << std::endl;
 	processMaterials(scene, filename);
 	processLights(scene);
-	// processNodes(scene->mRootNode, scene);
-	// print();
+	
 }
 
 void Scene::processNodes(aiNode * node, const aiScene* scene)
@@ -47,7 +41,11 @@ void Scene::processNodes(aiNode * node, const aiScene* scene)
 	std::string nodeName = std::string(node->mName.C_Str());
 	for(int i = 0; i < node->mNumMeshes; i++)
 	{
-		createMesh(scene->mMeshes[node->mMeshes[i]],nodeName, scene);
+		if(scene->mMeshes[node->mMeshes[i]]->HasBones())
+			createSkinnedMesh(scene->mMeshes[node->mMeshes[i]],nodeName, scene);
+		else {
+			createMesh(scene->mMeshes[node->mMeshes[i]],nodeName, scene);
+		}
 	}
 	for(int i = 0; i < node->mNumChildren; i++)
 	{
@@ -98,6 +96,7 @@ void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene
 	averageLocation.z = averageLocation.z / meshes[index].numVertices;
 	averageLocation.w = averageLocation.w / meshes[index].numVertices;
 	meshes[index].location = averageLocation;
+	std::cout << "Mesh location: " << averageLocation.x << " " << averageLocation.y << " " << averageLocation.z << std::endl;
 
 	//std::cout << averageLocation.x << ", " << averageLocation.y << ", " << averageLocation.z << ", " << averageLocation.w << std::endl;
 
@@ -125,6 +124,216 @@ void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
 }
+
+
+void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene * scene)
+{
+	std::cout << "Reading Mesh" << std::endl;
+	int index = skinnedMeshes.size();
+	skinnedMeshes.push_back(SkinnedMesh());
+	skinnedMeshes[index].name = name;
+	std::cout << "Mesh Name: " << skinnedMeshes[index].name << " Original name: " << name << std::endl;
+	skinnedMeshes[index].materialIndex = m->mMaterialIndex + materials.size();
+	skinnedMeshes[index].hasTangents = m->HasTangentsAndBitangents();
+	skinnedMeshes[index].numVertices = m->mNumVertices;
+	skinnedMeshes[index].indexCount = m->mNumFaces * 3;
+
+	aiMatrix4x4 transform = getTransformation(scene, skinnedMeshes[index].name);
+	aiMatrix4x4 normalMatrix = transform;
+	normalMatrix.Inverse().Transpose();
+
+	aiVector3D loc;
+	aiQuaternion rot;
+	transform.DecomposeNoScaling(rot,loc);
+
+
+	std::vector<SkinnedVertex> vertices;
+	std::vector<unsigned int> indices;
+	const aiVector3D zero(0.0f,0.0f,0.0f);
+	glm::vec4 averageLocation = glm::vec4(0.0,0.0,0.0,0.0); // used to compute a transform component for the mesh
+
+	for(unsigned int i = 0; i < m->mNumVertices; i++)
+	{
+		aiVector3D position = /*transform */ (m->mVertices[i]);
+		const aiVector3D* uv = m->HasTextureCoords(0)? &(m->mTextureCoords[0][i]) : &zero;
+		aiVector3D normal = /*normalMatrix */ (m->mNormals[i]);
+		aiVector3D tangent = /*normalMatrix */ (m->mTangents[i]);
+		aiVector3D bitangent = /*normalMatrix */ (m->mBitangents[i]);
+
+		SkinnedVertex vert = SkinnedVertex(glm::vec4(position.x, position.y, position.z, 1.0), 
+							 glm::vec2(uv->x, uv->y), 
+							 glm::vec3(normal.x,normal.y, normal.z),
+							 glm::vec3(tangent.x, tangent.y, tangent.z),
+							 glm::vec3(bitangent.x, bitangent.y, bitangent.z));
+		vertices.push_back(vert);
+		averageLocation = averageLocation + vert.position;
+	}
+	averageLocation.x = averageLocation.x / skinnedMeshes[index].numVertices;
+	averageLocation.y = averageLocation.y / skinnedMeshes[index].numVertices;
+	averageLocation.z = averageLocation.z / skinnedMeshes[index].numVertices;
+	averageLocation.w = averageLocation.w / skinnedMeshes[index].numVertices;
+	skinnedMeshes[index].location.x = loc.x;
+	skinnedMeshes[index].location.y = loc.y;
+	skinnedMeshes[index].location.z = loc.z;
+	skinnedMeshes[index].location.w = 1.0;
+	skinnedMeshes[index].rotation.x = 0.0;//rot.x;
+	skinnedMeshes[index].rotation.y = 0.0;//rot.y;
+	skinnedMeshes[index].rotation.z = 0.0;//rot.z;
+	skinnedMeshes[index].rotation.w = 0.0;//rot.w;
+
+
+	std::cout << averageLocation.x << ", " << averageLocation.y << ", " << averageLocation.z << ", " << averageLocation.w << std::endl;
+
+	// for(int i = 0; i < skinnedMeshes[index].numVertices; i++)
+	// {
+	// 	vertices[i].position -= averageLocation;
+	// 	vertices[i].position.w = averageLocation.w;
+	// }
+
+
+	for(unsigned int i = 0; i < m->mNumFaces; i++)
+	{
+		const aiFace &face = m->mFaces[i];
+		indices.push_back(face.mIndices[0]);
+		indices.push_back(face.mIndices[1]);
+		indices.push_back(face.mIndices[2]);
+	}
+
+	//BoneHierarchy bones = BoneHierarchy();
+	// load bones into VBO
+
+	std::cout << "loading bones" << std::endl;
+	for(int i = 0; i < m->mNumBones; i++)
+	{
+		std::string boneName = m->mBones[i]->mName.C_Str();
+		std::cout << "Bone: " << boneName << std::endl;
+
+		//add bone to bone Hierarchy
+		glm::mat4 boneTransform = convertToGLMMatrix(m->mBones[i]->mOffsetMatrix);
+
+		skinnedMeshes[index].bones.addBone(boneName, boneTransform);
+
+		for(int j = 0; j < m->mBones[i]->mNumWeights; j++)
+		{
+			int id = m->mBones[i]->mWeights[j].mVertexId;
+			float weight = m->mBones[i]->mWeights[j].mWeight;
+			//std::cout << "ID: " << id << " Weight: " << weight << std::endl;
+			if(id >= 0 && id < vertices.size())
+			{
+				//std::cout << "adding bone weight of " << weight << "to " << id << std::endl;
+				if(vertices[id].boneWeights.x == 0)
+				{
+					vertices[id].boneWeights.x = weight;
+					vertices[id].boneIDs.x = i;
+					//std::cout << "trigger" << std::endl;
+				}
+				else if(vertices[id].boneWeights.y == 0)
+				{
+					vertices[id].boneWeights.y = weight;
+					vertices[id].boneIDs.y = i;
+				}
+				else if(vertices[id].boneWeights.z == 0)
+				{
+					vertices[id].boneWeights.z = weight;
+					vertices[id].boneIDs.z = i;
+				}
+				else if(vertices[id].boneWeights.w == 0)
+				{
+					vertices[id].boneWeights.w = weight;
+					vertices[id].boneIDs.w = i;
+				}
+			}
+		}
+	}
+	// for(int i = 0; i < vertices.size(); i++)
+	// {
+	// 	std::cout << "sum: " << vertices[i].boneWeights.x + vertices[i].boneWeights.y + vertices[i].boneWeights.z + vertices[i].boneWeights.w << std::endl;
+	// }
+	std::cout << "loaded bones" << std::endl;
+	skinnedMeshes[index].bones.constructHierarchy(scene->mRootNode);
+	std::cout << "built Hierarchy" << std::endl;
+	glGenBuffers(1, &(skinnedMeshes[index].VBO));
+  	glBindBuffer(GL_ARRAY_BUFFER, skinnedMeshes[index].VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(SkinnedVertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &(skinnedMeshes[index].IBO));
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skinnedMeshes[index].IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
+    std::cout << "built VBOS" << std::endl;
+    addAnimations(scene, &skinnedMeshes[index].bones);
+    std::cout << "done" << std::endl;
+}
+	
+void Scene::addAnimations(const aiScene * scene, BoneHierarchy * bones)
+{	
+	for(int animationIndex = 0; animationIndex < scene->mNumAnimations; animationIndex++)
+	{
+		aiAnimation * currentAnimation = scene->mAnimations[animationIndex];
+		std::cout << "Testing animation: " << currentAnimation->mName.C_Str() << std::endl;
+		if(determineAnimationAssociation(currentAnimation, bones))
+		{
+			std::string animationName = currentAnimation->mName.C_Str();
+			bones->addAnimation(animationName, currentAnimation->mDuration / currentAnimation->mTicksPerSecond);
+			std::cout << "Adding animation: " << animationName << std::endl;
+
+			for(int i = 0; i < currentAnimation->mNumChannels; i++)
+			{
+				std::string boneName = currentAnimation->mChannels[i]->mNodeName.C_Str();
+
+				// add position key to animation
+				for(int j = 0; j < currentAnimation->mChannels[i]->mNumPositionKeys; j++)
+				{
+					VecKeyframe key = VecKeyframe();
+					key.time = currentAnimation->mChannels[i]->mPositionKeys[j].mTime / currentAnimation->mTicksPerSecond;
+					aiVector3D * temp = &currentAnimation->mChannels[i]->mPositionKeys[j].mValue;
+					key.value = glm::vec4(temp->x, temp->y, temp->z, 1.0);
+					bones->addPositionKey(animationName, key, boneName);
+				}
+
+				// add rotation key to animation
+				for(int j = 0; j < currentAnimation->mChannels[i]->mNumRotationKeys; j++)
+				{
+					QuatKeyframe key = QuatKeyframe();
+					key.time = currentAnimation->mChannels[i]->mRotationKeys[j].mTime / currentAnimation->mTicksPerSecond;
+					aiQuaternion * temp = &currentAnimation->mChannels[i]->mRotationKeys[j].mValue;
+					key.value = glm::quat(temp->w, temp->x, temp->y, temp->z);
+					bones->addRotationKey(animationName, key, boneName);
+				}
+
+				// add scale keys to animation
+				for(int j = 0; j < currentAnimation->mChannels[i]->mNumScalingKeys; j++)
+				{
+					VecKeyframe key = VecKeyframe();
+					key.time = currentAnimation->mChannels[i]->mScalingKeys[j].mTime / currentAnimation->mTicksPerSecond;
+					aiVector3D * temp = &currentAnimation->mChannels[i]->mScalingKeys[j].mValue;
+					key.value = glm::vec4(temp->x, temp->y, temp->z, 1.0);
+					bones->addScaleKey(animationName, key, boneName);
+				}
+			}
+		}
+	}
+}
+
+bool Scene::determineAnimationAssociation(aiAnimation * animation, BoneHierarchy * bones)
+{
+	//return true;
+	for(int i = 0; i < animation->mNumChannels; i++)
+	{
+		std::string name = animation->mChannels[i]->mNodeName.C_Str();
+		if(bones->getBoneIndex(name) != -1)
+			return true;
+	}
+	return false;
+}
+
+inline glm::mat4 Scene::convertToGLMMatrix(aiMatrix4x4 &original)
+{
+	glm::mat4 target;
+	target = glm::transpose(glm::make_mat4(&original.a1));
+	return target;
+}
+
+
 
 void Scene::processMaterials(const aiScene* scene, std::string & filename)
 {
@@ -259,12 +468,13 @@ void Scene::processLights(const aiScene* scene)
 		aiMatrix4x4 transform = getTransformation(scene, lights[index].name);
 		aiVector3D transformedLocation = transform * currentLight->mPosition;
 
+		std::cout << "Diffuse: " << currentLight->mColorDiffuse.r << "," << currentLight->mColorDiffuse.g << "," << currentLight->mColorDiffuse.b << std::endl;
 		std::cout << "Location: " << transformedLocation.x << "," << transformedLocation.y << "," << transformedLocation.z << std::endl;
 		lights[index].location = glm::vec3(transformedLocation.x, transformedLocation.y, transformedLocation.z);
 		lights[index].diffuse = glm::vec3(currentLight->mColorDiffuse.r, currentLight->mColorDiffuse.g, currentLight->mColorDiffuse.b );
 		lights[index].specular = glm::vec3(currentLight->mColorSpecular.r, currentLight->mColorSpecular.g, currentLight->mColorSpecular.b);
-		lights[index].linearAttenuation = currentLight->mAttenuationLinear;
-		lights[index].quadraticAttenuation = currentLight->mAttenuationQuadratic;
+		lights[index].linearAttenuation = isinf(currentLight->mAttenuationLinear)?1.0:currentLight->mAttenuationLinear;
+		lights[index].quadraticAttenuation = isinf(currentLight->mAttenuationQuadratic)?1.0:currentLight->mAttenuationQuadratic;
 
 	}
 }
@@ -308,136 +518,87 @@ void Scene::render()
 	}
 }
 
-ComponentWrapper * Scene::getMeshByName(std::string & name, int entityID)
+
+void Scene::populate(ECSEngine * ecs)
 {
-	bool found = false;
-	int i = 0; 
-	while(!found && i < meshes.size())
-	{
-		if(name.compare(meshes[i].name) == 0)
-			found = true;
-		i++;
-	}
-	if(!found)
-	{
-		return NULL;
-	}
-	meshes[i].count++;
-	return createMeshWrapper(i, entityID);
-
-}
-int Scene::getUnusedMeshCount()
-{
-	int unusedCount = 0;
-	for(int i = 0; i < meshes.size();i++)
-	{
-		if(meshes[i].count == 0)
-			unusedCount++;
-	}	
-	return unusedCount;
-}
-ComponentWrapper * Scene::getUnusedMesh(int entityID) // gets first unused 
-{
-	bool found = false;
-	int i = 0;
-	while(!found && i < meshes.size())
-	{
-		if(meshes[i].count == 0)
-			found = true;
-		else i++;
-	}
-	if(!found)
-	{
-		return NULL;
-	}
-	meshes[i].count++;
-	return createMeshWrapper(i,entityID);
-}
-
-Mesh::Mesh(){}
-
-
-
-ComponentWrapper * Scene::createMeshWrapper(int index, int entityID)
-{
-	
 	glm::vec3 defaultOrientation = glm::vec3(0.0,0.0,0.0);
-	Transform t = Transform(meshes[index].location, defaultOrientation, 1.0,entityID);
-	Renderable r  = Renderable(meshes[index].VBO, meshes[index].IBO, meshes[index].indexCount, 0, materials[meshes[index].materialIndex], entityID);
-	if(r.material.normals == 0)
-		r.program = ShaderManager::deferredBasic;
-	else r.program = ShaderManager::deferredNormal;
-	ComponentWrapper *wrapper = new ComponentWrapper();
-	std::string lightName = meshes[index].name + "Light";
+
+	for(int i = 0; i < skinnedMeshes.size(); i++)
+	{
+		if(skinnedMeshes[i].count == 0)
+		{
+			skinnedMeshes[i].count++;
+			int entityID = ecs->addEntity();
+			SkinnedRenderable r = SkinnedRenderable(skinnedMeshes[i].VBO, skinnedMeshes[i].IBO, skinnedMeshes[i].indexCount, 
+													materials[skinnedMeshes[i].materialIndex].normals == 0? ShaderManager::skinnedBasic:ShaderManager::skinnedNormalMapped,
+													materials[skinnedMeshes[i].materialIndex], entityID, skinnedMeshes[i].bones);
+			std::cout << "Before: " << skinnedMeshes[i].bones.print() << " After: " << r.bones.print() << std::endl;
+			ecs->addSkinnedRenderable(entityID, r);
+			glm::vec3 rot = glm::vec3(skinnedMeshes[i].rotation);
+			Transform t = Transform(skinnedMeshes[i].location, rot, 1.0, entityID);
+			ecs->addTransform(entityID, t);
+
+			associateLight(skinnedMeshes[i].name, t, entityID, ecs);
+		}
+	}
+
+	for(int i = 0; i < meshes.size(); i++)
+	{
+		if(meshes[i].count == 0)
+		{
+			meshes[i].count++;
+			int entityID = ecs->addEntity();
+			Renderable r = Renderable(meshes[i].VBO, meshes[i].IBO, meshes[i].indexCount, 
+													materials[meshes[i].materialIndex].normals == 0? ShaderManager::deferredBasic:ShaderManager::deferredNormal,
+													materials[meshes[i].materialIndex], entityID);
+			ecs->addRenderable(entityID, r);
+
+			Transform t = Transform(meshes[i].location, defaultOrientation, 1.0, entityID);
+			ecs->addTransform(entityID, t);
+
+			associateLight(meshes[i].name, t, entityID, ecs);
+		}
+	}
+
+	for(int i = 0; i < lights.size(); i++)
+	{
+		if(lights[i].count == 0)
+		{
+			lights[i].count++;
+
+			int entityID = ecs->addEntity();
+			glm::vec4 lightPosition = glm::vec4(lights[i].location,1.0);
+			Transform t = Transform(lightPosition, defaultOrientation, 1.0,entityID);
+			Light l = Light(defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
+			ecs->addTransform(entityID, t);
+			ecs->addLight(entityID, l);
+		}
+	}
+
+
+}
+
+void Scene::associateLight(std::string &meshName, Transform &t, int entityID, ECSEngine * ecs)
+{
+	std::string lightName = meshName + "Light";
 	for(int i = 0; i < lights.size(); i++)
 	{
 
 		if(lights[i].name.compare(lightName) == 0)
 		{
-			//std::cout << "match found" << std::endl;
+			std::cout << "Light Match found" << std::endl;
 			lights[i].count++;
 			Light l = Light();
 			l.ownerID = entityID;
-			l.location = lights[i].location - glm::vec3(meshes[index].location) * t.scale;
-			// std::cout << "light position: " << l.location.x << ", " << l.location.y << ", " << l.location.z << std::endl;
-			// std::cout << "light original position: " << lights[i].location.x << ", " << lights[i].location.y << ", " << lights[i].location.z << std::endl;
+			l.location = lights[i].location - glm::vec3(t.position) * t.scale;
 			l.diffuse = lights[i].diffuse;
 			l.specular = lights[i].specular;
 			l.linearAttenuation = lights[i].linearAttenuation;
 			l.quadraticAttenuation = lights[i].quadraticAttenuation;
 
-			wrapper->hasLight = true;
-			wrapper->l = l;
+			ecs->addLight(entityID, l);
 		}
 	}
-	wrapper->hasRenderable = true;
-	wrapper->r = r;
-	wrapper->hasTransform = true;
-	wrapper->t = t;
-	return wrapper;
-}
-
-int Scene::getUnusedLightCount()
-{
-	int unusedCount = 0;
-	for(int i = 0; i < lights.size();i++)
-	{
-		if(lights[i].count == 0)
-			unusedCount++;
-	}	
-	return unusedCount;
-}
-ComponentWrapper * Scene::getUnusedLight(int entityID)
-{
-	bool found = false;
-	int i = 0;
-	while(!found && i < lights.size())
-	{
-		if(lights[i].count == 0)
-			found = true;
-		else i++;
-	}
-	if(!found)
-	{
-		return NULL;
-	}
-	lights[i].count++;
-	return createLightWrapper(i,entityID);
-}
-ComponentWrapper * Scene::createLightWrapper(int index, int entityID)
-{
-	glm::vec3 zeroVec3 = glm::vec3(0.0,0.0,0.0);
-	glm::vec4 lightPosition = glm::vec4(lights[index].location,1.0);
-	Transform t = Transform(lightPosition, zeroVec3, 1.0,entityID);
-	Light l = Light(zeroVec3, lights[index].diffuse, lights[index].specular, lights[index].linearAttenuation, lights[index].quadraticAttenuation, entityID);
-	ComponentWrapper *wrapper = new ComponentWrapper();
-
-	wrapper->hasLight = true;
-	wrapper->l = l;
-	wrapper->hasRenderable = false;
-	wrapper->hasTransform = true;
-	wrapper->t = t;
-	return wrapper;
 }
 
 

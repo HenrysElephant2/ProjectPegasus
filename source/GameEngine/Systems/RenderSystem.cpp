@@ -10,11 +10,12 @@ glm::vec3 RenderSystem::lightViews[6] = {
 };
 
 RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in):System(m)
+				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in):System(m)
 	{
 		shaders = sm;
 		transforms = transforms_in;
 		renderables = renderables_in;
+		skinnedRenderables = skinnedRenderables_in;
 		player = player_in;
 		lights = lights_in;
 		glGenVertexArrays( 1, &BASE_VAO );
@@ -135,6 +136,8 @@ void RenderSystem::update()
 						  + glm::vec3(pLoc->position);
 	glm::vec3 up = glm::vec3(0.0,1.0,0.0);
 	glm::mat4 view = glm::lookAt(cameraLoc,glm::vec3(pLoc->position),up);
+	// glm::mat4 view = glm::lookAt(cameraLoc,pLoc->position.xyz(),up);
+	drawSkinnedRenderables( &view, &projection );
 	drawAllRenderables( &view, &projection );
 
 	// Create per-light shadow maps
@@ -142,9 +145,9 @@ void RenderSystem::update()
 
 	// // Test shadow map display
 	// shaders->bindShader(ShaderManager::tempShadows);
-	// Light *testLight = lights->getComponent( lightList[3] );
+	// Light *testLight = lights->getComponent( lightList[0] );
 	// glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[1]);
+	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[0]);
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// glViewport(0,0,windowWidth, windowHeight);
 	// renderFullScreenQuad();
@@ -249,7 +252,12 @@ void RenderSystem::update()
 	// // glEnable(GL_DEPTH_TEST);
 	// renderFullScreenQuad();
 
-	glFlush();
+	//glFlush();
+	glFinish();
+	currentTime = SDL_GetPerformanceCounter();
+
+	std::cout << "Time to render: " << (currentTime - previousTime2) / (float)freq << std::endl;
+
 }
 
 void RenderSystem::receiveMessage(BasicMessage * message)
@@ -264,6 +272,83 @@ void RenderSystem::reshape( int width, int height ) {
 	glViewport(0,0,width,height);
 	projection = glm::perspective(glm::radians(fov), width / (float)height , 0.1f, 100.f);
 }
+
+void RenderSystem::drawSkinnedRenderables(glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only)
+{
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	// render all solid objects
+	int count = skinnedRenderables->getSize();
+	for(int i = 0; i < count; i++)
+	{
+		SkinnedRenderable * currentR = skinnedRenderables->getComponent(i);
+		Transform * currentT = transforms->getComponent(i);
+		
+		if(currentR && currentT)
+		{
+			//create model matrix
+			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(currentT->scale));
+			model = glm::rotate(model, currentT->orientation.x, xAxis);
+			model = glm::rotate(model, currentT->orientation.y, yAxis);
+			model = glm::rotate(model, currentT->orientation.z, zAxis);
+			model = glm::translate(model, glm::vec3(currentT->position)/currentT->position.w);
+
+			// bind program and uniforms, then draw matrix
+			if( !vertex_only ) {
+				glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+
+				shaders->bindShader(currentR->program);
+				shaders->bindMaterial(&(currentR->material));
+				shaders->loadNormalMatrix(&normalMatrix);
+			}
+			shaders->loadModelMatrix(&model);
+			shaders->loadViewMatrix(viewMat);
+			shaders->loadProjectionMatrix(projMat);
+
+			shaders->loadBones(&currentR->bones);
+
+			glEnableVertexAttribArray( VERTEX_ATTRIB );
+			glEnableVertexAttribArray( NORM_ATTRIB );
+			if( !vertex_only ) {
+				glEnableVertexAttribArray( RGBA_ATTRIB );
+				glEnableVertexAttribArray( TAN_ATTRIB );
+				glEnableVertexAttribArray( BITAN_ATTRIB );
+				glEnableVertexAttribArray( UV_ATTRIB );
+			}
+			glEnableVertexAttribArray(BONE_IDS_ATTRIB);
+			glEnableVertexAttribArray(BONE_WEIGHTS_ATTRIB);
+
+			glBindBuffer( GL_ARRAY_BUFFER, currentR->VBO );
+			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, currentR->IBO );
+			glVertexAttribPointer( VERTEX_ATTRIB, 4, GL_FLOAT, GL_FALSE, 19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(0) );
+			glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(6 *sizeof(GLfloat)) );
+			if( !vertex_only ) {
+				glVertexAttribPointer( RGBA_ATTRIB,   4, GL_FLOAT, GL_FALSE, 19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(0 *sizeof(GLfloat)) );
+				glVertexAttribPointer( TAN_ATTRIB,    3, GL_FLOAT, GL_FALSE, 19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(9 *sizeof(GLfloat)) );
+				glVertexAttribPointer( BITAN_ATTRIB,  3, GL_FLOAT, GL_FALSE, 19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(12*sizeof(GLfloat)) );
+				glVertexAttribPointer( UV_ATTRIB,     2, GL_FLOAT, GL_FALSE, 19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(4 *sizeof(GLfloat)) );
+			}
+			glVertexAttribPointer(BONE_WEIGHTS_ATTRIB, 4, GL_FLOAT, GL_FALSE, 19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(15*sizeof(GLfloat)));
+			glVertexAttribIPointer(BONE_IDS_ATTRIB, 4, GL_INT,  19 * sizeof(GLfloat) + 4 * sizeof(GLint), (GLvoid*)(19*sizeof(GLfloat)));
+			glDrawElements( GL_TRIANGLES, currentR->numVertices, GL_UNSIGNED_INT, 0 );
+
+			glDisableVertexAttribArray( VERTEX_ATTRIB );
+			glDisableVertexAttribArray( NORM_ATTRIB );
+			if( !vertex_only ) {
+				glDisableVertexAttribArray( RGBA_ATTRIB );
+				glDisableVertexAttribArray( TAN_ATTRIB );
+				glDisableVertexAttribArray( BITAN_ATTRIB );
+				glDisableVertexAttribArray( UV_ATTRIB );
+			}
+			glDisableVertexAttribArray(BONE_IDS_ATTRIB);
+			glDisableVertexAttribArray(BONE_WEIGHTS_ATTRIB);
+		}
+	}
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+}
+
 
 void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only ) {
 	glEnable(GL_DEPTH_TEST);
@@ -355,7 +440,7 @@ void RenderSystem::renderShadowMaps() {
 	}
 
 	glViewport(0,0,SHADOW_MAP_DIMENSION,SHADOW_MAP_DIMENSION);
-	shaders->bindShader(ShaderManager::shadows);
+	
 
 	// Render all solid objects from the perspective of all lights to various shadow maps
 	for( int li=0; li<lightList.size(); li++ ) {
@@ -374,6 +459,9 @@ void RenderSystem::renderShadowMaps() {
 			else curUp = glm::vec3(0.0, 1.0, 0.0);
 			glm::mat4 view = glm::lookAt(lightLoc, lightLoc + lightViews[smi], curUp);
 
+			shaders->bindShader(ShaderManager::skinnedShadows);
+			drawSkinnedRenderables( &view, &lightProjection, true );
+			shaders->bindShader(ShaderManager::shadows);
 			drawAllRenderables( &view, &lightProjection, true );
 		}
 	}
@@ -408,6 +496,12 @@ void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool buf
 	// Test
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	drawAllRenderables( viewMat, &projection, true );
+
+	// glClear(GL_COLOR_BUFFER_BIT);
+	// glClear(GL_DEPTH_BUFFER_BIT);
+	// glDepthMask(GL_TRUE);
+	// glDisable(GL_BLEND);
+	drawSkinnedRenderables( viewMat, &projection, true );
 }
 
 void RenderSystem::setUpFrameBuffers()
