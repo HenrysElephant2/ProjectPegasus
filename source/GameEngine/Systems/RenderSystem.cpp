@@ -140,7 +140,7 @@ void RenderSystem::update()
 	// Create per-light shadow maps
 	renderShadowMaps();
 
-	Test shadow map display
+	// // Test shadow map display
 	// shaders->bindShader(ShaderManager::tempShadows);
 	// Light *testLight = lights->getComponent( lightList[3] );
 	// glActiveTexture(GL_TEXTURE0);
