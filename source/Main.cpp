@@ -58,12 +58,6 @@ bool init() {
 			else {
 				if( SDL_GL_SetSwapInterval( 1 ) < 0 )
 					printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() );
-				sm = new ShaderManager();
-				ShaderManager::loadShaders(sm);
-
-				std::string levelname = "NOT_IMPLEMENTED";
-				state = new Gameplay(SCREEN_WIDTH, SCREEN_HEIGHT, levelname, sm);
-				SDL_SetRelativeMouseMode(capturedMode?SDL_TRUE:SDL_FALSE);
 			}
 		}
 	}
@@ -106,6 +100,17 @@ int main( int argc, char* args[] ) {
 		printf( "Failed to initialize!\n" );
 	}
 	else {
+		sm = new ShaderManager();
+		ShaderManager::loadShaders(sm);
+
+		std::string levelname;
+		if(argc == 2)
+			levelname = args[1];
+		else levelname = "";
+		state = new Gameplay(SCREEN_WIDTH, SCREEN_HEIGHT, levelname, sm);
+
+
+		SDL_SetRelativeMouseMode(capturedMode?SDL_TRUE:SDL_FALSE);
 		SDL_Event e;
 		
 		SDL_StartTextInput();

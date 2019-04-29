@@ -6,6 +6,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/material.h>
 
+#include <fstream>
+
 
 #define GL_GLEXT_PROTOTYPES 1
 #include "ShaderManager.h"

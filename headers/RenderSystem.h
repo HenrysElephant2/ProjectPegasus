@@ -31,7 +31,7 @@ static const glm::vec3 xAxis = glm::vec3(1.0,0.0,0.0);
 static const glm::vec3 yAxis = glm::vec3(0.0,1.0,0.0);
 static const glm::vec3 zAxis = glm::vec3(0.0,0.0,1.0);
 
-static glm::mat4 lightProjection = glm::perspective( 90.0, 1.0, .05, 20.0 );
+static glm::mat4 lightProjection = glm::perspective( 90.0, 1.0, .05, 100.0 );
 
 
 class RenderSystem:System {

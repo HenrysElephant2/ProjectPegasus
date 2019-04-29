@@ -83,7 +83,8 @@ void main() {
 		// get depth of current fragment from light's perspective
 		float currentDepth = projloc.z;
 		// check whether current frag pos is in shadow
-		float bias = 0.0005;
+		float bias = 0.00005;
+		//float bias = max(0.00001 * (1.0 - dot(norm, lightDir)), 0.000001); 
 		lit = currentDepth - bias < closestDepth ? 1.0 : 0.0;
 	}
 

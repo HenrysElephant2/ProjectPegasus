@@ -167,9 +167,9 @@ void RenderSystem::update()
 
 	// // Test shadow map display
 	// shaders->bindShader(ShaderManager::tempShadows);
-	// Light *testLight = lights->getComponent( lightList[0] );
+	// Light *testLight = lights->getComponent( lightList[1] );
 	// glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[0]);
+	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[1]);
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// glViewport(0,0,windowWidth, windowHeight);
 	// renderFullScreenQuad();
@@ -274,8 +274,8 @@ void RenderSystem::update()
 	// // glEnable(GL_DEPTH_TEST);
 	// renderFullScreenQuad();
 
-	//glFlush();
-	glFinish();
+	glFlush();
+	//glFinish();
 	currentTime = SDL_GetPerformanceCounter();
 
 	std::cout << "Time to render: " << (currentTime - previousTime2) / (float)freq << std::endl;

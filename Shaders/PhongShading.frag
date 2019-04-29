@@ -46,12 +46,12 @@ void main()
 
 	vec3 viewDirection = normalize(cameraLoc - fragPos);
 
-
+	brightColor = vec4(0.0);
 
 	for(int i = 0; i < numLights && i < MAX_LIGHTS; i++) //numLights
 	{
 		float shadowVal = float(shadow & (1u << i));
-		// shadowVal = 1.0;
+		
 
 		vec3 lightDirection = normalize(lights[i].location - fragPos);
 		float diffuseAmount = max(dot(normal, lightDirection),0.0);
@@ -74,10 +74,13 @@ void main()
 		float attenuation = 1.0 / (1.0 + lights[i].linearAttenuation * d + lights[i].quadraticAttenuation * d * d);
 
 		finalColor += shadowVal * (diffuse * attenuation + specular * attenuation);
+
+		brightColor += vec4(shadowVal * (specular * attenuation),0.0);
+
 	}
 
 	finalColor += texture(emissiveTexture, texCoords).xyz;
 	FragColor = vec4(finalColor, 1.0);
-	brightColor = texture(emissiveTexture, texCoords);
+	brightColor += texture(emissiveTexture, texCoords);
 	
 }

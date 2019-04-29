@@ -17,9 +17,11 @@ ECSEngine::ECSEngine(ShaderManager * shaders_in)
 
 void ECSEngine::update()
 {
+	
+	playerMovementSystemObject.update();
 	animationHandler.update();
 	rendersystemObject.update();
-	playerMovementSystemObject.update();
+	
 }
 
 void ECSEngine::spawnMessage(BasicMessage* message)
