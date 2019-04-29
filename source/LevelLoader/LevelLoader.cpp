@@ -36,7 +36,7 @@ void LevelLoader::openLevel(std::string & directory, ECSEngine * engine)
 void LevelLoader::testLevel(ECSEngine * engine)
 {
 	Scene sc = Scene();
-	std::string filename = "Warehouse_Full.fbx";//"AnimationTest2.fbx";//"ShadowTest.fbx";//"testwarehouse.fbx";
+	std::string filename = "Levels/TestLevel/Warehouse_Full.fbx";//"AnimationTest2.fbx";//"ShadowTest.fbx";//"testwarehouse.fbx";
 	sc.openFile(filename);
 	filename = "nugget.fbx";
 	//sc.openFile(filename);
