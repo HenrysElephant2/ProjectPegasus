@@ -9,7 +9,7 @@ ECSEngine::ECSEngine(ShaderManager * shaders_in)
 	playerMovementSystemObject = PlayerMovementSystem(&messenger, &transformManager, &playerManager);
 	messenger.subscribe((System*)(&playerMovementSystemObject),KEY_EVENT);
 	messenger.subscribe((System*)(&playerMovementSystemObject),MOUSE_EVENT);
-	rendersystemObject = RenderSystem(&messenger, shaders, &transformManager, &renderableManager, &skinnedManager, &playerManager, &lightManager);
+	rendersystemObject = RenderSystem(&messenger, shaders, &transformManager, &renderableManager, &skinnedManager, &playerManager, &lightManager, &particleManager);
 	animationHandler = AnimationSystem(&messenger, &skinnedManager);
 	std::cout << "Successfully Created Systems" << std::endl;
 }
@@ -61,6 +61,11 @@ void ECSEngine::addLight(int entityID, Light &comp)
 void ECSEngine::addSkinnedRenderable(int entityID, SkinnedRenderable & comp)
 {
 	skinnedManager.addComponent(entityID, comp);
+}
+
+void ECSEngine::addParticleSystem(int entityID, ParticleSystem &comp)
+{
+	particleManager.addComponent(entityID, comp);
 }
 
 RenderSystem* ECSEngine::getRenderSystem()

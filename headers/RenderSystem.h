@@ -42,6 +42,7 @@ private:
 	ComponentManager<SkinnedRenderable> * skinnedRenderables;
 	ComponentManager<Player> * player;
 	ComponentManager<Light> * lights;
+	ComponentManager<ParticleSystem> * particleSystems;
 	ShaderManager * shaders;
 	int cameraID = 0;
 	glm::mat4 projection;
@@ -84,7 +85,6 @@ private:
 	int brightTexture;
 
 	// Framebuffer and textures for particle calculation
-	GLuint particlesVBO;
 	GLuint pTimeLoc;
 	float ptime = 0;
 
@@ -107,7 +107,7 @@ private:
 	// Draw everything
 	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
 	void drawSkinnedRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
-	void renderTempParticleSystem( glm::mat4 *viewMat, glm::mat4 *projMat );
+	void renderParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat );
 
 	// must be used with a shader that is designed to draw a full screen quad. ie the vertex shader shouldn't do any transformations at all to the vertex
 	void renderFullScreenQuad();
@@ -127,7 +127,7 @@ private:
 
 public:
 	RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in);
+				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in, ComponentManager<ParticleSystem> * ps_in );
 	RenderSystem():System(NULL){}
 	void update();
 	void receiveMessage(BasicMessage * message);

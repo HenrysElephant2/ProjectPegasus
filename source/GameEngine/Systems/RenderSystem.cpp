@@ -10,7 +10,7 @@ glm::vec3 RenderSystem::lightViews[6] = {
 };
 
 RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in):System(m)
+				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in, ComponentManager<ParticleSystem> * ps_in ):System(m)
 	{
 		shaders = sm;
 		transforms = transforms_in;
@@ -18,6 +18,7 @@ RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentMana
 		skinnedRenderables = skinnedRenderables_in;
 		player = player_in;
 		lights = lights_in;
+		particleSystems = ps_in;
 		glGenVertexArrays( 1, &BASE_VAO );
 		glBindVertexArray( BASE_VAO );
 
@@ -94,28 +95,6 @@ RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentMana
 
 		sm->bindShader(ShaderManager::displayParticles);
 		pTimeLoc = glGetUniformLocation(sm->getProgramID(), "time");
-		float *particles = new float[64*10];
-		float *p = particles;
-		for( int i=0; i<64; i++ ) {
-			// Location
-			*p++ = 0;
-			*p++ = 10;
-			*p++ = 0;
-
-			// RGB
-			*p++ = 0.2;
-			*p++ = 0.8;
-			*p++ = 1.0;
-			*p++ = 1.0;
-
-			// Velocity
-			*p++ = rand()*4.0/RAND_MAX-2.0;
-			*p++ = rand()*4.0/RAND_MAX-2.0;
-			*p++ = rand()*4.0/RAND_MAX-2.0;
-		}
-		glGenBuffers(1, &particlesVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, particlesVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (p-particles), particles, GL_STATIC_DRAW);
 
 		std::cout << "Created RenderSystem" << std::endl;
 	}
@@ -177,7 +156,7 @@ void RenderSystem::update()
 	// glm::mat4 view = glm::lookAt(cameraLoc,pLoc->position.xyz(),up);
 	drawSkinnedRenderables( &view, &projection );
 	drawAllRenderables( &view, &projection );
-	renderTempParticleSystem( &view, &projection );
+	renderParticleSystems( &view, &projection );
 
 	// Create per-light shadow maps
 	renderShadowMaps();
@@ -584,32 +563,42 @@ void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightInde
 	renderFullScreenQuad();
 }
 
-void RenderSystem::renderTempParticleSystem( glm::mat4 *viewMat, glm::mat4 *projMat ) {
+void RenderSystem::renderParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat ) {
 	glPointSize(3.0);
-	shaders->bindShader(ShaderManager::displayParticles);
-	glUniform1f(pTimeLoc, ptime);
-	glEnable(GL_DEPTH_TEST);
+	int count = particleSystems->getSize();
+	for( int i=0; i<count; i++ ) {
+		ParticleSystem *currentPS = particleSystems->getComponent(i);
 
-	glm::mat4 model = glm::mat4(1.0f);
-	shaders->loadModelMatrix(&model);
-	shaders->loadViewMatrix(viewMat);
-	shaders->loadProjectionMatrix(projMat);
+		if( currentPS ) {
+			shaders->bindShader(currentPS->program);
+			glUniform1f(pTimeLoc, ptime);
+			glEnable(GL_DEPTH_TEST);
 
-	glBindBuffer(GL_ARRAY_BUFFER, particlesVBO);
-	glEnableVertexAttribArray( VERTEX_ATTRIB );
-	glEnableVertexAttribArray( RGBA_ATTRIB );
-	glEnableVertexAttribArray( NORM_ATTRIB );
+			glm::mat4 model = glm::mat4(1.0f);
+			shaders->loadModelMatrix(&model);
+			shaders->loadViewMatrix(viewMat);
+			shaders->loadProjectionMatrix(projMat);
 
-	glVertexAttribPointer( VERTEX_ATTRIB, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)(0) );
-	glVertexAttribPointer( RGBA_ATTRIB,   4, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)) );
-	glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)(7*sizeof(GLfloat)) );
-	glDrawArrays(GL_POINTS, 0, 64);
+			glBindBuffer(GL_ARRAY_BUFFER, currentPS->VBO);
+			glEnableVertexAttribArray( VERTEX_ATTRIB );
+			glEnableVertexAttribArray( RGBA_ATTRIB );
+			glEnableVertexAttribArray( NORM_ATTRIB );
+			glEnableVertexAttribArray( UV_ATTRIB );
 
-	glDisableVertexAttribArray( VERTEX_ATTRIB );
-	glDisableVertexAttribArray( RGBA_ATTRIB );
-	glDisableVertexAttribArray( NORM_ATTRIB );
+			glVertexAttribPointer( VERTEX_ATTRIB, 3, GL_FLOAT, GL_FALSE, 12 * sizeof(GLfloat), (GLvoid*)(0) );
+			glVertexAttribPointer( RGBA_ATTRIB,   4, GL_FLOAT, GL_FALSE, 12 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)) );
+			glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 12 * sizeof(GLfloat), (GLvoid*)(7*sizeof(GLfloat)) );
+			glVertexAttribPointer( UV_ATTRIB,     2, GL_FLOAT, GL_FALSE, 12 * sizeof(GLfloat), (GLvoid*)(10*sizeof(GLfloat)) );
+			glDrawArrays(GL_POINTS, 0, currentPS->nParticles);
 
-	glDisable( GL_DEPTH_TEST );
+			glDisableVertexAttribArray( VERTEX_ATTRIB );
+			glDisableVertexAttribArray( RGBA_ATTRIB );
+			glDisableVertexAttribArray( NORM_ATTRIB );
+			glEnableVertexAttribArray( UV_ATTRIB );
+
+			glDisable( GL_DEPTH_TEST );
+		}
+	}
 }
 
 void RenderSystem::setUpFrameBuffers()

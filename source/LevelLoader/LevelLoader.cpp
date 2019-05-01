@@ -50,6 +50,42 @@ void LevelLoader::testLevel(ECSEngine * engine)
 	engine->addTransform(playerID, t);
 	engine->addPlayer(playerID,p);
 
+	float *particles = new float[64*12];
+	float *tempP = particles;
+	for( int i=0; i<64; i++ ) {
+		// Location
+		*tempP++ = 8;
+		float ystart = 6;
+		*tempP++ = ystart;
+		*tempP++ = 10.3;
+
+		// RGB
+		*tempP++ = 1.0;
+		*tempP++ = 0.8;
+		*tempP++ = 0.2;
+		*tempP++ = 1.0;
+
+		// Velocity
+		*tempP++ = rand()*4.0/RAND_MAX-2.0;
+		float yvel = rand()*4.0/RAND_MAX-2.0;
+		*tempP++ = yvel;
+		*tempP++ = rand()*4.0/RAND_MAX-2.0;
+
+		// Interaction times
+		float y0 = (-yvel - sqrt(yvel*yvel + 4*7.0*ystart)) / (-2*7.0);
+		*tempP++ = y0;
+		*tempP++ = rand()*1.5/RAND_MAX+0.5;
+		std::cout << yvel << " " << y0 << std::endl;
+	}
+	std::cout << (tempP-particles)/12 << std::endl;
+	GLuint particlesVBO;
+	glGenBuffers(1, &particlesVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, particlesVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (tempP-particles), particles, GL_STATIC_DRAW);
+
+	int psID = engine->addEntity();
+	ParticleSystem ps = ParticleSystem( particlesVBO, (tempP-particles)/12, ShaderManager::displayParticles );
+	engine->addParticleSystem(psID, ps);
 
 	sc.populate(engine);
 }
