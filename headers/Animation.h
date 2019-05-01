@@ -80,6 +80,7 @@ private:
 	double currentTime = 0;
 
 	glm::mat4 globalInverse;
+	glm::mat4 baseOffset;
 	// Uint64 previousTime;
 	// Uint64 frequency;
 

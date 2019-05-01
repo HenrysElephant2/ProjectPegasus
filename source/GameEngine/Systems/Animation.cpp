@@ -148,6 +148,8 @@ void BoneHierarchy::constructHierarchy(aiNode * rootNode)
 	aiMatrix4x4 global = rootNode->mTransformation;
 	global.Inverse();
 	globalInverse = (convertToGLMMatrix(global));
+	global = getTransformation(rootNode, rootName);
+	baseOffset = convertToGLMMatrix(global);
 }
 
 inline glm::mat4 BoneHierarchy::convertToGLMMatrix(aiMatrix4x4 &original)
@@ -284,8 +286,8 @@ void BoneHierarchy::updateAnimation(double dt)
 		//std::cout << "Length" << animations[currentAnimation].animationLength  << " " << currentTime << std::endl;
 		while(currentTime > animations[currentAnimation].animationLength)
 			currentTime -= animations[currentAnimation].animationLength;
-
-		setCurrentTransform(root, glm::mat4(1.0));
+		glm::mat4 temp = glm::mat4(1.0);
+		setCurrentTransform(root, glm::rotate(glm::mat4(1.0), -3.14f, glm::vec3(1.0,0.0,0.0)) * baseOffset);//glm::mat4(1.0));
 	}
 	//std::cout << root << std::endl;
 	

@@ -177,7 +177,7 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 	skinnedMeshes[index].location.y = loc.y;
 	skinnedMeshes[index].location.z = loc.z;
 	skinnedMeshes[index].location.w = 1.0;
-	skinnedMeshes[index].rotation.x = 0.0;//rot.x;
+	skinnedMeshes[index].rotation.x = 0.0;//-3.14 / 2.0;//rot.x;
 	skinnedMeshes[index].rotation.y = 0.0;//rot.y;
 	skinnedMeshes[index].rotation.z = 0.0;//rot.z;
 	skinnedMeshes[index].rotation.w = 0.0;//rot.w;
