@@ -2,7 +2,7 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
-#define SHADOW_MAP_DIMENSION 1024
+#define SHADOW_MAP_DIMENSION 2048
 
 #define GL_GLEXT_PROTOTYPES 1
 #include <glm/glm.hpp>
@@ -107,6 +107,7 @@ struct Player:Component {
 };
 
 struct Light:Component {
+	bool directional = false;
 	glm::vec3 location = glm::vec3(0.0,0.0,0.0);
 	glm::vec3 diffuse = glm::vec3(1.0,0.0,1.0);
 	glm::vec3 specular = glm::vec3(1.0,0.0,1.0);
@@ -115,7 +116,7 @@ struct Light:Component {
 	GLuint shadowMapTextures[6] = {0,0,0,0,0,0}; // A cube of textures representing this light's shadow map: +x, -x, +y, -y, +z, -z
 
 	Light(){
-		if( shadowMapTextures[0] == 0 ) {
+		if( shadowMapTextures[0] == 0 )  {
 			for( unsigned int i=0; i<6; i++ ) {
 				glGenTextures(1, &shadowMapTextures[i]);
 				glBindTexture(GL_TEXTURE_2D, shadowMapTextures[i]);
@@ -128,8 +129,7 @@ struct Light:Component {
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	Light(glm::vec3 &location_in, glm::vec3 &diffuse_in, glm::vec3 &specular_in, float linearAtt_in, float quadraticAtt_in, int ownerID):Component(ownerID)
-	{
+	Light(glm::vec3 &location_in, glm::vec3 &diffuse_in, glm::vec3 &specular_in, float linearAtt_in, float quadraticAtt_in, int ownerID):Component(ownerID) {
 		location = location_in;
 		diffuse = diffuse_in;
 		specular = specular_in;
@@ -148,6 +148,18 @@ struct Light:Component {
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+};
+
+struct ParticleSystem:Component {
+	GLuint VBO;
+	int nParticles;
+	int program;
+	ParticleSystem( GLuint VBO_in, int numParts, int program_in ) {
+		VBO = VBO_in;
+		nParticles = numParts;
+		program = program_in;
+	}
+	ParticleSystem(){}
 };
 
 #endif

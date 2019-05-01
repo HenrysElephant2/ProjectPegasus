@@ -25,6 +25,7 @@ private:
 	ComponentManager<Player> playerManager;
 	ComponentManager<Light> lightManager;
 	ComponentManager<SkinnedRenderable> skinnedManager;
+	ComponentManager<ParticleSystem> particleManager;
 
 public:
 	ECSEngine(){}
@@ -38,6 +39,7 @@ public:
 	void addPlayer(int entityID, Player &comp);
 	void addLight(int entityID, Light &comp);
 	void addSkinnedRenderable(int entityID, SkinnedRenderable & comp);
+	void addParticleSystem(int entityID, ParticleSystem &comp);
 	RenderSystem* getRenderSystem();
 
 };

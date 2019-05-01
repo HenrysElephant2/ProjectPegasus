@@ -55,6 +55,7 @@ Shader::Shader(GLuint programID)
 		}
 	}
 	//lightArrayLoc = glGetUniformLocation(program, LIGHT_ARRAY_VARIABLE_NAME);
+
 	lightCountLoc = glGetUniformLocation(program, LIGHT_COUNT_VARIABLE_NAME);
 }
 
@@ -131,9 +132,9 @@ void Shader::loadBones(BoneHierarchy * bones)
 void Shader::bind()
 {
 	GLuint err;
-	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Bitch - " << err <<std::endl;
+	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Before bind of program " << program << " - " << err <<std::endl;
 	glUseProgram(program);
-	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Cunt - " << err <<std::endl;
+	if( (err = glGetError()) != GL_NO_ERROR ) std::cout << "Error binding program " << program << " - " << err <<std::endl;
 }
 
 GLuint Shader::getProgramID()
@@ -349,10 +350,11 @@ int ShaderManager::skinnedBasic = -1;
 int ShaderManager::skinnedNormalMapped = -1;
 int ShaderManager::shadows = -1;
 int ShaderManager::tempShadows = -1;
-int ShaderManager::testShadows = -1;
 int ShaderManager::tempShadows2 = -1;
-int ShaderManager::testShadows2 = -1;
+int ShaderManager::testShadows = -1;
+int ShaderManager::testShadowsDirectional = -1;
 int ShaderManager::skinnedShadows = -1;
+int ShaderManager::displayParticles = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
@@ -389,31 +391,35 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string shadowsFrag = "Shaders/shadowMap.frag";
 	shadows = sm->createProgram(shadowsVert,shadowsFrag);
 
+	std::string skinnedShadowsVert = "Shaders/SkinnedShadowMap.vert";
+	std::string skinnedShadowsFrag = "Shaders/shadowMap.frag";
+	skinnedShadows = sm->createProgram(skinnedShadowsVert, skinnedShadowsFrag);
 
 	std::string TempShadowsVert = "Shaders/drawQuad.vert";
 	std::string TempShadowsFrag = "Shaders/TempShadows.frag";
 	tempShadows = sm->createProgram(TempShadowsVert,TempShadowsFrag);
 
-	std::string TestShadowsVert = "Shaders/testShadowVolume.vert";
-	std::string TestShadowsFrag = "Shaders/testShadowVolume.frag";
-	testShadows = sm->createProgram(TestShadowsVert,TestShadowsFrag);
-
 	std::string TempShadows2Vert = "Shaders/drawQuad.vert";
 	std::string TempShadows2Frag = "Shaders/TempShadows2.frag";
 	tempShadows2 = sm->createProgram(TempShadows2Vert,TempShadows2Frag);
 
-	std::string TestShadowsVert2 = "Shaders/drawQuad.vert";
-	std::string TestShadowsFrag2 = "Shaders/testShadowVolume2.frag";
-	testShadows2 = sm->createProgram(TestShadowsVert2,TestShadowsFrag2);
+	std::string TestShadowsVert = "Shaders/drawQuad.vert";
+	std::string TestShadowsFrag = "Shaders/testShadowVolume.frag";
+	testShadows = sm->createProgram(TestShadowsVert,TestShadowsFrag);
+
+	std::string TestShadowsDirectionalVert = "Shaders/drawQuad.vert";
+	std::string TestShadowsDirectionalFrag = "Shaders/testShadowVolumeDirectional.frag";
+	testShadowsDirectional = sm->createProgram(TestShadowsDirectionalVert,TestShadowsDirectionalFrag);
 
 	std::string skinnedBasicVert = "Shaders/SkinnedBasic.vert";
 	std::string skinnedBasicFrag = "Shaders/deferredBasic.frag";
 	skinnedBasic = sm->createProgram(skinnedBasicVert, skinnedBasicFrag);
 
-	std::string skinnedShadowsVert = "Shaders/SkinnedShadowMap.vert";
-	std::string skinnedShadowsFrag = "Shaders/shadowMap.frag";
-	skinnedShadows = sm->createProgram(skinnedShadowsVert, skinnedShadowsFrag);
+	std::string displayParticlesVert = "Shaders/sparkParticles.vert";
+	std::string displayParticlesFrag = "Shaders/sparkParticles.frag";
+	displayParticles = sm->createProgram(displayParticlesVert, displayParticlesFrag);
 
+	if( glGetError() != GL_NO_ERROR ) std::cout << "Error creating a shader" << std::endl;
 }
 
 

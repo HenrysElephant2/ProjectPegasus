@@ -96,7 +96,7 @@ void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene
 	averageLocation.z = averageLocation.z / meshes[index].numVertices;
 	averageLocation.w = averageLocation.w / meshes[index].numVertices;
 	meshes[index].location = averageLocation;
-	std::cout << "Mesh location: " << averageLocation.x << " " << averageLocation.y << " " << averageLocation.z << std::endl;
+	// std::cout << "Mesh location: " << averageLocation.x << " " << averageLocation.y << " " << averageLocation.z << std::endl;
 
 	//std::cout << averageLocation.x << ", " << averageLocation.y << ", " << averageLocation.z << ", " << averageLocation.w << std::endl;
 
