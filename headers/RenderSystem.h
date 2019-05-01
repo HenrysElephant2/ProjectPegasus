@@ -32,6 +32,7 @@ static const glm::vec3 yAxis = glm::vec3(0.0,1.0,0.0);
 static const glm::vec3 zAxis = glm::vec3(0.0,0.0,1.0);
 
 static glm::mat4 lightProjection = glm::perspective( 90.0, 1.0, .05, 100.0 );
+static glm::mat4 lightOrthoProjection = glm::ortho( -20.0, 20.0, -20.0, -20.0, -100.0, 100.0 );
 
 
 class RenderSystem:System {
@@ -65,7 +66,10 @@ private:
 	GLuint shadowTestLightViewLocs[6];
 	GLuint shadowTestLightLocLoc;
 	GLuint shadowTestLightIndexLoc;
-	GLuint shadowTestWindowSizeLoc;
+
+	GLuint directionalShadowTestLightViewLoc;
+	GLuint directionalShadowTestLightLocLoc;
+	GLuint directionalShadowTestLightIndexLoc;
 
 	// frame buffer for storing data for deferred shading
 	FrameBuffer deferredShadingData;
@@ -78,6 +82,11 @@ private:
 	FrameBuffer shadingTarget;
 	int colorTexture;
 	int brightTexture;
+
+	// Framebuffer and textures for particle calculation
+	GLuint particlesVBO;
+	GLuint pTimeLoc;
+	float ptime = 0;
 
 	// framebuffers for pingponging bloom
 	FrameBuffer bloomBuffer[2];
@@ -97,7 +106,8 @@ private:
 
 	// Draw everything
 	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
-	void drawSkinnedRenderables(glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
+	void drawSkinnedRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
+	void renderTempParticleSystem( glm::mat4 *viewMat, glm::mat4 *projMat );
 
 	// must be used with a shader that is designed to draw a full screen quad. ie the vertex shader shouldn't do any transformations at all to the vertex
 	void renderFullScreenQuad();
@@ -107,6 +117,7 @@ private:
 
 	// Perform shadow tests for a single light
 	void testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat );
+	void testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat );
 
 	void setUpFrameBuffers();
 
