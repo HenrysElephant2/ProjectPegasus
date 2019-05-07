@@ -26,7 +26,7 @@ void main() {
 	vec3 norm = normalize(texture(normalTexture, texCoords).rgb);
 
 	vec3 lightDir = loc - LightLoc;
-	float lit = 0.0;
+	uint lit = 0u;
 
 	if( dot(norm, lightDir) < 0.0 ) {
 		vec3 projloc;
@@ -75,11 +75,11 @@ void main() {
 		// check whether current frag pos is in shadow
 		float bias = 0.000013;
 		//float bias = max(0.00001 * (1.0 - dot(norm, lightDir)), 0.000001); 
-		lit = currentDepth - bias < closestDepth ? 1.0 : 0.0;
+		lit = currentDepth - bias < closestDepth ? 1u : 0u;
 	}
 
 	uint current = texture(currentTex, texCoords).r;
 
 	// Set corresponding bit of integer texture to reflect shadow value
-	FragColor = current | (uint(lit) << (LightIndex));
+	FragColor = current | (lit << (LightIndex));
 }

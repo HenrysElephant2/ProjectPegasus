@@ -32,7 +32,7 @@ static const glm::vec3 yAxis = glm::vec3(0.0,1.0,0.0);
 static const glm::vec3 zAxis = glm::vec3(0.0,0.0,1.0);
 
 static glm::mat4 lightProjection = glm::perspective( 90.0, 1.0, .05, 100.0 );
-static glm::mat4 lightOrthoProjection = glm::ortho( -20.0, 20.0, -20.0, -20.0, -100.0, 100.0 );
+static glm::mat4 lightOrthoProjection = glm::ortho( -40.0, 40.0, -40.0, 40.0, -100.0, 100.0 );
 
 
 class RenderSystem:System {
@@ -113,11 +113,11 @@ private:
 	void renderFullScreenQuad();
 
 	// Create per-light shadow maps
-	void renderShadowMaps();
+	void renderShadowMaps( glm::vec3 playerLoc );
 
 	// Perform shadow tests for a single light
-	void testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat );
-	void testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat );
+	void testSingleLight( int componentIndex, int lightIndex, bool bufferIndex );
+	void testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::vec3 playerLoc );
 
 	void setUpFrameBuffers();
 
