@@ -174,7 +174,7 @@ void RenderSystem::update()
 
 
 	// Create per-light shadow maps
-	renderShadowMaps();
+	renderShadowMaps( glm::vec3(pLoc->position) );
 
 	// // Test shadow map display
 	// shaders->bindShader(ShaderManager::tempShadows);
@@ -197,10 +197,10 @@ void RenderSystem::update()
 	for( int i=0; i<lightList.size(); i++ ) {
 		Light *currentLight = lights->getComponent(lightList[i]);
 		bufferIndex = !bufferIndex;
-		if( currentLight->directional )
-			testSingleDirectionalLight(lightList[i], i, bufferIndex, &view);
+		if( /*currentLight->directional*/ i == 1 )
+			testSingleDirectionalLight(lightList[i], i, bufferIndex, glm::vec3(pLoc->position));
 		else
-			testSingleLight(lightList[i], i, bufferIndex, &view);
+			testSingleLight(lightList[i], i, bufferIndex);
 	}
 
 	// // Test combined shadow texture	
@@ -210,7 +210,6 @@ void RenderSystem::update()
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// glViewport(0,0,windowWidth,windowHeight);
 	// renderFullScreenQuad();
-	// while( (err = glGetError()) != GL_NO_ERROR ) {int ner = 0; std::cout << "Regs " << ner++ << " - " << err << std::endl;}
 	// return;
 
 
@@ -356,7 +355,6 @@ void RenderSystem::reshape( int width, int height ) {
 	windowHeight = height;
 	glViewport(0,0,width,height);
 	projection = glm::perspective(glm::radians(fov), width / (float)height , 0.1f, 100.f);
-	// projection = glm::ortho( -20.0, 20.0, -20.0, -20.0, -100.0, 100.0 );
 }
 
 void RenderSystem::drawSkinnedRenderables(glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only)
@@ -517,7 +515,7 @@ void RenderSystem::renderFullScreenQuad()
 	glDisableVertexAttribArray( UV_ATTRIB_2D );
 }
 
-void RenderSystem::renderShadowMaps() {
+void RenderSystem::renderShadowMaps( glm::vec3 playerLoc ) {
 	//make list of all lights in the scene
 	std::vector<int> lightList;
 	for( int i=0; i<lights->getSize(); i++ ) {
@@ -535,11 +533,11 @@ void RenderSystem::renderShadowMaps() {
 		glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
 		glm::vec3 lightLoc = currentLight->location + currentTransform;
 
-		if( currentLight->directional ) {
+		if( /*currentLight->directional*/ li == 1 ) {
 			shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[0] );
 			glClear(GL_DEPTH_BUFFER_BIT);
 			glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-			glm::mat4 view = glm::lookAt(lightLoc, glm::vec3(0,0,0), curUp);
+			glm::mat4 view = glm::lookAt( playerLoc + glm::normalize(lightLoc), playerLoc, curUp);
 
 			shaders->bindShader(ShaderManager::skinnedShadows);
 			drawSkinnedRenderables( &view, &lightOrthoProjection, true );
@@ -551,10 +549,8 @@ void RenderSystem::renderShadowMaps() {
 				// Bind buffer and appropriate shadow map
 				shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[smi] );
 				glClear(GL_DEPTH_BUFFER_BIT);
-				glm::vec3 curUp;
-				if( smi == 2 ) curUp = glm::vec3(0.0, 0.0, 1.0);
-				else if( smi == 3 ) curUp = glm::vec3(0.0, 0.0, -1.0);
-				else curUp = glm::vec3(0.0, 1.0, 0.0);
+				glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
+				if( smi == 2 || smi == 3 ) curUp = glm::vec3(0.0, 0.0, 1.0);
 				glm::mat4 view = glm::lookAt(lightLoc, lightLoc + lightViews[smi], curUp);
 
 				shaders->bindShader(ShaderManager::skinnedShadows);
@@ -566,7 +562,7 @@ void RenderSystem::renderShadowMaps() {
 	}
 }
 
-void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat ) {
+void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool bufferIndex ) {
 	shaders->bindShader(ShaderManager::testShadows);
 	// Bind current framebuffer and shadow texture
 	shadowTestBuffer[bufferIndex].bindFrameBuffer();
@@ -584,10 +580,8 @@ void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool buf
 
 	// Bind view matrices and depth maps for all six views
 	for( int i=0; i<6; i++ ) {
-		glm::vec3 curUp;
-		if( i == 2 ) curUp = glm::vec3(0.0, 0.0, 1.0);
-		else if( i == 3 ) curUp = glm::vec3(0.0, 0.0, -1.0);
-		else curUp = glm::vec3(0.0, 1.0, 0.0);
+		glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
+		if( i == 2 || i == 3 ) curUp = glm::vec3(0.0, 0.0, 1.0);
 		glm::mat4 curView = glm::lookAt(lightLoc, lightLoc + lightViews[i], curUp);
 		glUniformMatrix4fv(shadowTestLightViewLocs[i], 1, GL_FALSE, glm::value_ptr(curView));
 		glActiveTexture(GL_TEXTURE3 + i);
@@ -600,7 +594,7 @@ void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool buf
 }
 
 
-void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::mat4 *viewMat ) {
+void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::vec3 playerLoc ) {
 	shaders->bindShader(ShaderManager::testShadowsDirectional);
 	// Bind current framebuffer and shadow texture
 	shadowTestBuffer[bufferIndex].bindFrameBuffer();
@@ -617,7 +611,7 @@ void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightInde
 	glUniform3f(directionalShadowTestLightLocLoc, lightLoc.x, lightLoc.y, lightLoc.z);
 
 	glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-	glm::mat4 curView = glm::lookAt(lightLoc, glm::vec3(0,0,0), curUp);
+	glm::mat4 curView = glm::lookAt(playerLoc + glm::normalize(lightLoc), playerLoc, curUp);
 	glUniformMatrix4fv(directionalShadowTestLightViewLoc, 1, GL_FALSE, glm::value_ptr(curView));
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[0]);
