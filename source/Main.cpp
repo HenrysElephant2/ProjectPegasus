@@ -100,14 +100,14 @@ int main( int argc, char* args[] ) {
 		printf( "Failed to initialize!\n" );
 	}
 	else {
-		sm = new ShaderManager();
+		sm = ShaderManager::createShaderManager();
 		ShaderManager::loadShaders(sm);
 
 		std::string levelname;
 		if(argc == 2)
 			levelname = args[1];
 		else levelname = "";
-		state = new Gameplay(SCREEN_WIDTH, SCREEN_HEIGHT, levelname, sm);
+		state = new Gameplay(SCREEN_WIDTH, SCREEN_HEIGHT, levelname);
 
 
 		SDL_SetRelativeMouseMode(capturedMode?SDL_TRUE:SDL_FALSE);
@@ -136,10 +136,11 @@ int main( int argc, char* args[] ) {
 			//rs->update( getElapsedTime() );
 			//std::cout << "updating state" << std::endl;
 			state->update();
+			SDL_GL_SwapWindow( gWindow );
 			if( glGetError() != GL_NO_ERROR ) 
 				std::cout << "Fuck" << std::endl;
 			
-			SDL_GL_SwapWindow( gWindow );
+			
 		}
 		
 		SDL_StopTextInput();

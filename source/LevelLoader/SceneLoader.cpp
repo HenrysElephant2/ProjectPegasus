@@ -7,7 +7,7 @@ Scene::Scene(){
 bool Scene::openFile(std::string& filename)
 {
 	Assimp::Importer Importer;
-	const aiScene* scene = Importer.ReadFile(filename.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights | aiProcess_FlipUVs);
+	const aiScene* scene = Importer.ReadFile(filename.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights | aiProcess_FlipUVs | aiProcess_GenUVCoords);
 
 	if(scene)
 	{
@@ -521,6 +521,68 @@ void Scene::render()
 	}
 }
 
+
+int Scene::populateByName(std::string &name, ECSEngine * ecs)
+{
+	glm::vec3 defaultOrientation = glm::vec3(0.0,0.0,0.0);
+
+	for(int i = 0; i < skinnedMeshes.size(); i++)
+	{
+		if(skinnedMeshes[i].name.compare(name) == 0)
+		{
+			skinnedMeshes[i].count++;
+			int entityID = ecs->addEntity();
+			SkinnedRenderable r = SkinnedRenderable(skinnedMeshes[i].VBO, skinnedMeshes[i].IBO, skinnedMeshes[i].indexCount, 
+													materials[skinnedMeshes[i].materialIndex].normals == 0? ShaderManager::skinnedBasic:ShaderManager::skinnedNormalMapped,
+													materials[skinnedMeshes[i].materialIndex], entityID, skinnedMeshes[i].bones);
+			//std::cout << "Before: " << skinnedMeshes[i].bones.print() << " After: " << r.bones.print() << std::endl;
+			ecs->addSkinnedRenderable(entityID, r);
+			glm::vec3 rot = glm::vec3(skinnedMeshes[i].rotation);
+			Transform t = Transform(skinnedMeshes[i].location, rot, skinnedMeshes[i].scale, entityID);
+			ecs->addTransform(entityID, t);
+
+			associateLight(skinnedMeshes[i].name, t, entityID, ecs);
+			return entityID;
+		}
+	}
+
+	for(int i = 0; i < meshes.size(); i++)
+	{
+		if(meshes[i].name.compare(name) == 0)
+		{
+			meshes[i].count++;
+			int entityID = ecs->addEntity();
+			Renderable r = Renderable(meshes[i].VBO, meshes[i].IBO, meshes[i].indexCount, 
+													materials[meshes[i].materialIndex].normals == 0? ShaderManager::deferredBasic:ShaderManager::deferredNormal,
+													materials[meshes[i].materialIndex], entityID);
+			ecs->addRenderable(entityID, r);
+
+			Transform t = Transform(meshes[i].location, defaultOrientation, 1.0, entityID);
+			ecs->addTransform(entityID, t);
+
+			associateLight(meshes[i].name, t, entityID, ecs);
+			return entityID;
+		}
+	}
+
+	for(int i = 0; i < lights.size(); i++)
+	{
+		if(lights[i].name.compare(name) == 0)
+		{
+			lights[i].count++;
+
+			int entityID = ecs->addEntity();
+			glm::vec4 lightPosition = glm::vec4(lights[i].location,1.0);
+			Transform t = Transform(lightPosition, defaultOrientation, 1.0,entityID);
+			Light l = Light(defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
+			ecs->addTransform(entityID, t);
+			ecs->addLight(entityID, l);
+			return entityID;
+		}
+	}
+
+	return -1;
+}
 
 void Scene::populate(ECSEngine * ecs)
 {

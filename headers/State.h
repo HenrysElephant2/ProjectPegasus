@@ -6,12 +6,8 @@
 
 class State {
 protected:
-	ShaderManager * shaders;
 public:
-	State(ShaderManager * shaders_in)
-	{
-		shaders = shaders_in;
-	}
+	State(){}
 	virtual ~State() {}
 	virtual void update() = 0;
 	virtual void keyEvent(SDL_Event * e) = 0;

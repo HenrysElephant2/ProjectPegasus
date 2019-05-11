@@ -99,8 +99,11 @@ private:
 	int current;
 	std::vector<Shader *> shaders;
 	GLuint loadShaderFromFile(GLenum type, std::string & filename);
-public:
 	ShaderManager();
+
+	static ShaderManager * singletonObject;
+public:
+	
 	~ShaderManager();
 	int createProgram(std::string & vertexShader, std::string & fragShader);
 	int createProgram(std::string & vertexShader, std::string & geometryShader, std::string & fragShader);
@@ -114,6 +117,9 @@ public:
 	void loadLightCount(int count);
 	void loadBones(BoneHierarchy * bones);
 	GLuint getProgramID();
+
+	static ShaderManager * createShaderManager();
+
 	static void loadShaders(ShaderManager* sm);
 
 	//shader index values, useful for other classes to easily access these shaders
@@ -133,6 +139,7 @@ public:
 	static int testShadows;
 	static int testShadowsDirectional;
 	static int displayParticles;
+	static int volumetricLightScattering;
 };
 
 // static int hdrProgram;

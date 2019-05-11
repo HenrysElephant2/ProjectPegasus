@@ -9,95 +9,109 @@ glm::vec3 RenderSystem::lightViews[6] = {
 	glm::vec3( 0.0, 0.0,-1.0)
 };
 
-RenderSystem::RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
+RenderSystem::RenderSystem(MessageManager * m, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
 				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in, ComponentManager<ParticleSystem> * ps_in ):System(m)
-	{
-		shaders = sm;
-		transforms = transforms_in;
-		renderables = renderables_in;
-		skinnedRenderables = skinnedRenderables_in;
-		player = player_in;
-		lights = lights_in;
-		particleSystems = ps_in;
-		glGenVertexArrays( 1, &BASE_VAO );
-		glBindVertexArray( BASE_VAO );
+{
+	shaders = ShaderManager::createShaderManager();
+	transforms = transforms_in;
+	renderables = renderables_in;
+	skinnedRenderables = skinnedRenderables_in;
+	player = player_in;
+	lights = lights_in;
+	particleSystems = ps_in;
+	glGenVertexArrays( 1, &BASE_VAO );
+	glBindVertexArray( BASE_VAO );
 
-		windowHeight = 400;
-		windowWidth = 100;
+	windowHeight = 400;
+	windowWidth = 100;
 
-		textureWidth = 2048;
-		textureHeight = 1080;
+	textureWidth = 2048;
+	textureHeight = 1080;
 
-		// create a vbo for displaying vertices 
-		float VBO[] = {-1,-1,0,  0,0,  1,-1,0,  1,0,  -1,1,0, 0,1,
-				       -1,1, 0,  0,1,  1,-1,0,  1,0,  1,1,0,  1,1};
-		glGenBuffers(1, &fullScreenVBO);
-	  	glBindBuffer(GL_ARRAY_BUFFER, fullScreenVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 30, &VBO, GL_STATIC_DRAW);
+	// create a vbo for displaying vertices 
+	float VBO[] = {-1,-1,0,  0,0,  1,-1,0,  1,0,  -1,1,0, 0,1,
+			       -1,1, 0,  0,1,  1,-1,0,  1,0,  1,1,0,  1,1};
+	glGenBuffers(1, &fullScreenVBO);
+  	glBindBuffer(GL_ARRAY_BUFFER, fullScreenVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 30, &VBO, GL_STATIC_DRAW);
 
-		glViewport(0,0,windowWidth,windowHeight);
+	glViewport(0,0,windowWidth,windowHeight);
 
-		setUpFrameBuffers();
+	setUpFrameBuffers();
 
-		sm->bindShader(ShaderManager::shadingPass);
-		cameraPositionUniformLoc = glGetUniformLocation(sm->getProgramID(), "cameraLoc");
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "positionTexture"), 0);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "diffuseTexture"), 2);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "emissiveTexture"), 3);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "shadowTexture"), 4);
+	shaders->bindShader(ShaderManager::shadingPass);
+	cameraPositionUniformLoc = glGetUniformLocation(shaders->getProgramID(), "cameraLoc");
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "positionTexture"), 0);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "normalTexture"), 1);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "diffuseTexture"), 2);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "emissiveTexture"), 3);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "shadowTexture"), 4);
 
-		sm->bindShader(ShaderManager::HDR);
-		exposureLoc = glGetUniformLocation(sm->getProgramID(), "exposure");
+	// shaders->bindShader(ShaderManager::occlusionMapSetup);
+	// depthLoc = glGetUniformLocation(shaders->getProgramID(), "depth");
+	// lightScreenPositionLoc = glGetUniformLocation(shaders->getProgramID(), "lightScreenPosition");
 
-		sm->bindShader(ShaderManager::blur);
-		horizontalBoolLoc = glGetUniformLocation(sm->getProgramID(), "horizontal");
+	shaders->bindShader(ShaderManager::HDR);
+	exposureLoc = glGetUniformLocation(shaders->getProgramID(), "exposure");
 
-		sm->bindShader(ShaderManager::applyBloom);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "baseColor"), 0);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "bloomColor"), 1);
+	shaders->bindShader(ShaderManager::blur);
+	horizontalBoolLoc = glGetUniformLocation(shaders->getProgramID(), "horizontal");
 
-		sm->bindShader(ShaderManager::testShadows);
-		glUniformMatrix4fv( glGetUniformLocation(sm->getProgramID(), "LightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
-		shadowTestLightIndexLoc = glGetUniformLocation(sm->getProgramID(), "LightIndex");
-		shadowTestLightViewLocs[0] = glGetUniformLocation(sm->getProgramID(), "LightViews[0]");
-		shadowTestLightViewLocs[1] = glGetUniformLocation(sm->getProgramID(), "LightViews[1]");
-		shadowTestLightViewLocs[2] = glGetUniformLocation(sm->getProgramID(), "LightViews[2]");
-		shadowTestLightViewLocs[3] = glGetUniformLocation(sm->getProgramID(), "LightViews[3]");
-		shadowTestLightViewLocs[4] = glGetUniformLocation(sm->getProgramID(), "LightViews[4]");
-		shadowTestLightViewLocs[5] = glGetUniformLocation(sm->getProgramID(), "LightViews[5]");
-		shadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
-		// Uniform texture locations
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "positionTexture"), 0);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 2);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap0"), 3);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap1"), 4);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap2"), 5);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap3"), 6);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap4"), 7);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap5"), 8);
+	shaders->bindShader(ShaderManager::applyBloom);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "baseColor"), 0);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "bloomColor"), 1);
 
-		sm->bindShader(ShaderManager::testShadowsDirectional);
-		glUniformMatrix4fv( glGetUniformLocation(sm->getProgramID(), "LightProjection"), 1, GL_FALSE, glm::value_ptr(lightOrthoProjection));
-		directionalShadowTestLightIndexLoc = glGetUniformLocation(sm->getProgramID(), "LightIndex");
-		directionalShadowTestLightViewLoc = glGetUniformLocation(sm->getProgramID(), "LightView");
-		directionalShadowTestLightLocLoc = glGetUniformLocation(sm->getProgramID(), "LightLoc");
-		// Uniform texture locations
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "positionTexture"), 0);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "normalTexture"), 1);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "currentTex"), 2);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "ShadowMap"), 3);
 
-		sm->bindShader(ShaderManager::tempShadows2);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "intTex"), 0);
-		glUniform1i(glGetUniformLocation(sm->getProgramID(), "tex"), 1);
+	shaders->bindShader(ShaderManager::volumetricLightScattering);
+	sunScreenCoordLoc = glGetUniformLocation(shaders->getProgramID(), "sunScreenCoords");
+	densityLoc = glGetUniformLocation(shaders->getProgramID(), "Density");
+	weightLoc = glGetUniformLocation(shaders->getProgramID(), "Weight");
+	decayLoc = glGetUniformLocation(shaders->getProgramID(), "Decay");
 
-		sm->bindShader(ShaderManager::displayParticles);
-		pTimeLoc = glGetUniformLocation(sm->getProgramID(), "time");
 
-		std::cout << "Created RenderSystem" << std::endl;
-	}
+	shaders->bindShader(ShaderManager::testShadows);
+	glUniformMatrix4fv( glGetUniformLocation(shaders->getProgramID(), "LightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+	shadowTestLightIndexLoc = glGetUniformLocation(shaders->getProgramID(), "LightIndex");
+	shadowTestLightViewLocs[0] = glGetUniformLocation(shaders->getProgramID(), "LightViews[0]");
+	shadowTestLightViewLocs[1] = glGetUniformLocation(shaders->getProgramID(), "LightViews[1]");
+	shadowTestLightViewLocs[2] = glGetUniformLocation(shaders->getProgramID(), "LightViews[2]");
+	shadowTestLightViewLocs[3] = glGetUniformLocation(shaders->getProgramID(), "LightViews[3]");
+	shadowTestLightViewLocs[4] = glGetUniformLocation(shaders->getProgramID(), "LightViews[4]");
+	shadowTestLightViewLocs[5] = glGetUniformLocation(shaders->getProgramID(), "LightViews[5]");
+	shadowTestLightLocLoc = glGetUniformLocation(shaders->getProgramID(), "LightLoc");
+
+	// Uniform texture locations
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "positionTexture"), 0);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "normalTexture"), 1);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "currentTex"), 2);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap0"), 3);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap1"), 4);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap2"), 5);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap3"), 6);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap4"), 7);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap5"), 8);
+
+	shaders->bindShader(ShaderManager::testShadowsDirectional);
+	glUniformMatrix4fv( glGetUniformLocation(shaders->getProgramID(), "LightProjection"), 1, GL_FALSE, glm::value_ptr(lightOrthoProjection));
+	directionalShadowTestLightIndexLoc = glGetUniformLocation(shaders->getProgramID(), "LightIndex");
+	directionalShadowTestLightViewLoc = glGetUniformLocation(shaders->getProgramID(), "LightView");
+	directionalShadowTestLightLocLoc = glGetUniformLocation(shaders->getProgramID(), "LightLoc");
+	// Uniform texture locations
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "positionTexture"), 0);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "normalTexture"), 1);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "currentTex"), 2);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap"), 3);
+
+	shaders->bindShader(ShaderManager::tempShadows2);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "intTex"), 0);
+	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "tex"), 1);
+
+	shaders->bindShader(ShaderManager::displayParticles);
+	pTimeLoc = glGetUniformLocation(shaders->getProgramID(), "time");
+
+	std::cout << "Created RenderSystem" << std::endl;
+}
+
 
 Uint64 previousTime2 = 0;
 int frames = 0;
@@ -157,6 +171,7 @@ void RenderSystem::update()
 	drawSkinnedRenderables( &view, &projection );
 	drawAllRenderables( &view, &projection );
 	renderParticleSystems( &view, &projection );
+
 
 	// Create per-light shadow maps
 	renderShadowMaps();
@@ -246,6 +261,55 @@ void RenderSystem::update()
 	renderFullScreenQuad();
 
 
+
+	// apply volumetric light scattering post process
+	
+	// hardcoded sunID - NEEDS TO BE CHANGED
+	if(lightList.size() > 1)
+		sunID = lightList[1];
+
+	Light * sun = lights->getComponent(sunID);
+	Transform * sunLoc = transforms->getComponent(sunID);
+
+	if(sun && sunLoc)
+	{
+		glm::vec4 lightScreenLoc = projection * view * (glm::vec4(sun->location,0.0) + sunLoc->position / sunLoc->position.w);
+		// only apply volumetric light scattering if looking towards the light emitting it
+		if(lightScreenLoc.w > 0.0f)
+		{
+			//std::cout << "Light loc: " << lightScreenLoc.x << ", " << lightScreenLoc.y <<", " << lightScreenLoc.z << ", " << lightScreenLoc.w << std::endl;
+			float wVal = lightScreenLoc.w;
+			lightScreenLoc = lightScreenLoc / abs(lightScreenLoc.w);
+			
+			if(abs(lightScreenLoc.x) > 5 || abs(lightScreenLoc.y) > 5)
+			{
+				lightScreenLoc = glm::normalize(lightScreenLoc) * 6.0f;
+			}
+			lightScreenLoc += glm::vec4(1.0,1.0,0.0,0.0);
+			lightScreenLoc = lightScreenLoc * .5f;
+		
+			shaders->bindShader(ShaderManager::volumetricLightScattering);
+			bloomTarget.bindFrameBuffer();
+			deferredShadingData.bindTexture(occlusionTexture, GL_TEXTURE0);
+			
+			//load uniforms
+			glUniform2f(sunScreenCoordLoc, lightScreenLoc.x, lightScreenLoc.y);
+			// linearly reduce weight of volumetric light scattering when looking almost perpendicular to lights
+			if(wVal < 45.0)
+				glUniform1f(weightLoc, fmaxf(wVal/1500.0f - .01f, 0.0f));
+			else glUniform1f(weightLoc, .02);
+			glUniform1f(densityLoc, .2);
+			glUniform1f(decayLoc, .9);
+			
+		
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			renderFullScreenQuad();
+			glDisable(GL_BLEND);
+		}
+	}
+
+
 	//apply HDR and render to the screen
 	glViewport(0,0,windowWidth, windowHeight);
 	shaders->bindShader(ShaderManager::HDR);
@@ -268,7 +332,7 @@ void RenderSystem::update()
 	// // debugging test render normals to double check correctness
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// shaders->bindShader(4);
-	// deferredShadingData.bindTexture(normalTexture, GL_TEXTURE0);
+	// deferredShadingData.bindTexture(occlusionTexture, GL_TEXTURE0);
 	// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	// // glEnable(GL_DEPTH_TEST);
 	// renderFullScreenQuad();
@@ -277,7 +341,7 @@ void RenderSystem::update()
 	glFinish();
 	currentTime = SDL_GetPerformanceCounter();
 
-	std::cout << "Time to render: " << (currentTime - previousTime2) / (float)freq << std::endl;
+	//std::cout << "Time to render: " << (currentTime - previousTime2) / (float)freq << std::endl;
 
 }
 
@@ -608,6 +672,7 @@ void RenderSystem::setUpFrameBuffers()
 	normalTexture = deferredShadingData.addTexture(textureWidth,textureHeight);
 	diffuseTexture = deferredShadingData.addTexture(textureWidth,textureHeight);
 	emissiveTexture = deferredShadingData.addTexture(textureWidth,textureHeight);
+	occlusionTexture = deferredShadingData.addTexture(textureWidth,textureHeight);
 
 	deferredShadingData.addDepthBuffer(textureWidth,textureHeight);
 

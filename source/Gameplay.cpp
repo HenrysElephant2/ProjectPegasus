@@ -1,9 +1,9 @@
 #include "Gameplay.h"
 
-Gameplay::Gameplay(int width, int height,std::string &level_directory, ShaderManager * shaders_in):State(shaders_in)
+Gameplay::Gameplay(int width, int height,std::string &level_directory):State()
 {
 	std::cout << "Creating ECS" << std::endl;
-	engine = new ECSEngine(shaders);
+	engine = new ECSEngine();
 	std::cout << "Created ECS" << std::endl;
 	render_Reference = engine->getRenderSystem();
 	std::cout << "reshaping window" << std::endl;

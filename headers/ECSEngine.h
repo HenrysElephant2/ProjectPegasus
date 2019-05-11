@@ -14,6 +14,11 @@
 
 class ECSEngine {
 private:
+
+	static ECSEngine * object;
+
+	
+
 	MessageManager messenger;
 	EntityManager entities;
 	ShaderManager * shaders;
@@ -28,8 +33,8 @@ private:
 	ComponentManager<ParticleSystem> particleManager;
 
 public:
-	ECSEngine(){}
-	ECSEngine(ShaderManager * shaders_in);
+	
+	ECSEngine();
 	//~ECSEngine(){}
 	void update();
 	void spawnMessage(BasicMessage* message);
@@ -41,6 +46,9 @@ public:
 	void addSkinnedRenderable(int entityID, SkinnedRenderable & comp);
 	void addParticleSystem(int entityID, ParticleSystem &comp);
 	RenderSystem* getRenderSystem();
+
+	static ECSEngine * createECS();
+
 
 };
 

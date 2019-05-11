@@ -167,7 +167,8 @@ public:
 	bool openFile(std::string & filename);
 	void print();
 	void render();
-	void populate(ECSEngine * ecs);
+	int populateByName(std::string &name, ECSEngine * ecs); // adds entity by name and returns entity id. -1 if not added due to no name match
+	void populate(ECSEngine * ecs); // creates and adds all unused entities
 };
 
 #endif
