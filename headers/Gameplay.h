@@ -14,7 +14,7 @@ private:
 	RenderSystem * render_Reference; // only to be used for reshaping window
 	
 public:
-	Gameplay(int width, int height,std::string &level_directory, ShaderManager * shaders_in);
+	Gameplay(int width, int height,std::string &level_directory);
 	~Gameplay();
 	void update();
 	void keyEvent(SDL_Event * e);

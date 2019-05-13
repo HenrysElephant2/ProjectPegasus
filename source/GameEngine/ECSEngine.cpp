@@ -1,15 +1,15 @@
 #include "ECSEngine.h"
 
-ECSEngine::ECSEngine(ShaderManager * shaders_in)
+ECSEngine::ECSEngine()
 {
-	shaders = shaders_in;
+	shaders = ShaderManager::createShaderManager();
 	std::cout << "Creating Component Managers" << std::endl;
 	std::cout << "Creating Systems" << std::endl;
 	// rendersystemObject = RenderSystem(&messenger, shaders, &transformManager, &renderableManager, &playerManager, &lightManager);
 	playerMovementSystemObject = PlayerMovementSystem(&messenger, &transformManager, &playerManager);
 	messenger.subscribe((System*)(&playerMovementSystemObject),KEY_EVENT);
 	messenger.subscribe((System*)(&playerMovementSystemObject),MOUSE_EVENT);
-	rendersystemObject = RenderSystem(&messenger, shaders, &transformManager, &renderableManager, &skinnedManager, &playerManager, &lightManager, &particleManager);
+	rendersystemObject = RenderSystem(&messenger, &transformManager, &renderableManager, &skinnedManager, &playerManager, &lightManager, &particleManager);
 	animationHandler = AnimationSystem(&messenger, &skinnedManager);
 	std::cout << "Successfully Created Systems" << std::endl;
 }

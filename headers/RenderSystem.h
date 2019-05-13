@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL2/SDL.h>
+#include <cstdlib>
 #include "ComponentManager.h"
 #include "Component.h"
 #include "System.h"
@@ -78,6 +79,7 @@ private:
 	int normalTexture;
 	int diffuseTexture;
 	int emissiveTexture;
+	int occlusionTexture;
 
 	// render target for all shading calculations. anything added to brightTexture will have bloom applied to it
 	FrameBuffer shadingTarget;
@@ -96,6 +98,13 @@ private:
 	// target to combine color and bloom texture
 	FrameBuffer bloomTarget;
 	int finalColorTexture;
+
+	// uniform variables for volumetric light scattering
+	int sunID = -1;
+	GLuint sunScreenCoordLoc;
+	GLuint densityLoc;
+	GLuint weightLoc;
+	GLuint decayLoc;
 
 	// HDR
 	GLint exposureLoc;
@@ -126,7 +135,7 @@ private:
 	static glm::vec3 lightViews[6];
 
 public:
-	RenderSystem(MessageManager * m, ShaderManager * sm, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
+	RenderSystem(MessageManager * m, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
 				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in, ComponentManager<ParticleSystem> * ps_in );
 	RenderSystem():System(NULL){}
 	void update();

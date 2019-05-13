@@ -339,6 +339,15 @@ GLuint ShaderManager::getProgramID()
 	return shaders[current]->getProgramID();
 }
 
+ShaderManager * ShaderManager::singletonObject = NULL;
+
+ShaderManager * ShaderManager::createShaderManager()
+{
+	if(!singletonObject)
+		singletonObject = new ShaderManager();
+	return singletonObject;
+}
+
 int ShaderManager::deferredBasic = -1;
 int ShaderManager::deferredNormal = -1;
 int ShaderManager::shadingPass = -1;
@@ -355,6 +364,7 @@ int ShaderManager::testShadows = -1;
 int ShaderManager::testShadowsDirectional = -1;
 int ShaderManager::skinnedShadows = -1;
 int ShaderManager::displayParticles = -1;
+int ShaderManager::volumetricLightScattering = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
@@ -373,7 +383,6 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string quadVert = "Shaders/drawQuad.vert";
 	std::string quadFrag = "Shaders/drawQuad.frag";
 	drawQuad = sm->createProgram(quadVert,quadFrag);
-
 
 	std::string hdrVert = "Shaders/HDR.vert";
 	std::string hdrFrag = "Shaders/HDR.frag";
@@ -418,6 +427,10 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string displayParticlesVert = "Shaders/sparkParticles.vert";
 	std::string displayParticlesFrag = "Shaders/sparkParticles.frag";
 	displayParticles = sm->createProgram(displayParticlesVert, displayParticlesFrag);
+
+	std::string vlsVert = "Shaders/drawQuad.vert";
+	std::string vlsFrag = "Shaders/VolumetricLightScattering.frag";
+	volumetricLightScattering = sm->createProgram(vlsVert, vlsFrag);
 
 	if( glGetError() != GL_NO_ERROR ) std::cout << "Error creating a shader" << std::endl;
 }
