@@ -153,10 +153,9 @@ void RenderSystem::update()
 						  + glm::vec3(pLoc->position);
 	glm::vec3 up = glm::vec3(0.0,1.0,0.0);
 	glm::mat4 view = glm::lookAt(cameraLoc,glm::vec3(pLoc->position),up);
-	// glm::mat4 view = glm::lookAt(cameraLoc,pLoc->position.xyz(),up);
 	drawSkinnedRenderables( &view, &projection );
 	drawAllRenderables( &view, &projection );
-	renderParticleSystems( &view, &projection );
+	drawParticleSystems( &view, &projection );
 
 	// Create per-light shadow maps
 	renderShadowMaps( glm::vec3(pLoc->position) );
@@ -557,7 +556,7 @@ void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightInde
 	renderFullScreenQuad();
 }
 
-void RenderSystem::renderParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat ) {
+void RenderSystem::drawParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat ) {
 	glPointSize(3.0);
 	int count = particleSystems->getSize();
 	for( int i=0; i<count; i++ ) {
