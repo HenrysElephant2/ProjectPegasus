@@ -42,6 +42,7 @@
 #define LIGHT_SPECULAR_VARIABLE_NAME "specular"
 #define LIGHT_LINEAR_VARIABLE_NAME "linearAttenuation"
 #define LIGHT_QUADRATIC_VARIABLE_NAME "quadraticAttenuation"
+#define LIGHT_DIRECTIONAL_VARIABLE_NAME "directional"
 
 #define LIGHT_COUNT_VARIABLE_NAME "numLights"
 
@@ -72,6 +73,7 @@ private:
 	std::vector<GLint> lightSpecularLoc;
 	std::vector<GLint> lightLinearAttenuationLoc;
 	std::vector<GLint> lightQuadraticAttenuationLoc;
+	std::vector<GLint> lightDirectionalLoc;
 
 	//GLint lightArrayLoc;
 

@@ -31,7 +31,7 @@ const GLint texAttrib1    = 5;
 
 class Scene;
 
-class LevelLoader{
+class LevelLoader {
 private:
 	void loadShaders();
 	void addUnused(ECSEngine * engine, Scene * sc);
@@ -43,7 +43,7 @@ public:
 
 
 
-struct Mesh{
+struct Mesh {
 	GLuint VBO;
 	GLuint IBO;
 	glm::vec4 location;
@@ -56,7 +56,7 @@ struct Mesh{
 	Mesh(){}
 };
 
-struct SkinnedMesh{
+struct SkinnedMesh {
 	GLuint VBO;
 	GLuint IBO;
 	glm::vec4 location;
@@ -72,17 +72,17 @@ struct SkinnedMesh{
 	SkinnedMesh(){}
 };
 
-struct LightData{
+struct LightData {
 
 	std::string name;
 	int count = 0;
 
+	bool directional;
 	glm::vec3 location;
 	glm::vec3 diffuse;
 	glm::vec3 specular;
 	float linearAttenuation;
 	float quadraticAttenuation;
-
 };
 
 

@@ -20,6 +20,7 @@ uniform sampler2D ShadowMap2;
 uniform sampler2D ShadowMap3;
 uniform sampler2D ShadowMap4;
 uniform sampler2D ShadowMap5;
+uniform sampler2D CombinedShadowMap;
 
 void main() {
 	vec3 loc = texture(positionTexture, texCoords).rgb;
@@ -33,6 +34,8 @@ void main() {
 		float closestDepth;
 		vec4 lightSpaceLoc;
 
+		
+		
 		if(abs(lightDir.x) > max(abs(lightDir.y),abs(lightDir.z))) {
 			if( lightDir.x > 0 ) {
 				lightSpaceLoc = LightProjection * LightViews[0] * vec4(loc,1.0);

@@ -75,9 +75,7 @@ void LevelLoader::testLevel(ECSEngine * engine)
 		float y0 = (-yvel - sqrt(yvel*yvel + 4*7.0*ystart)) / (-2*7.0);
 		*tempP++ = y0;
 		*tempP++ = rand()*1.5/RAND_MAX+0.5;
-		std::cout << yvel << " " << y0 << std::endl;
 	}
-	std::cout << (tempP-particles)/12 << std::endl;
 	GLuint particlesVBO;
 	glGenBuffers(1, &particlesVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, particlesVBO);

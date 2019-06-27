@@ -19,6 +19,7 @@ struct Light {
 	vec3 specular;
 	float linearAttenuation;
 	float quadraticAttenuation;
+	bool directional;
 };
 
 const int MAX_LIGHTS = 32;
@@ -53,7 +54,7 @@ void main()
 		float shadowVal = float(shadow & (1u << i));
 		
 
-		vec3 lightDirection = normalize(lights[i].location - fragPos);
+		vec3 lightDirection = lights[i].directional ? normalize(lights[i].location) : normalize(lights[i].location - fragPos);
 		float diffuseAmount = max(dot(normal, lightDirection),0.0);
 		
 		vec3 diffuse = diffuseColor * diffuseAmount * lights[i].diffuse;
