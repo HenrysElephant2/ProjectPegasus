@@ -55,13 +55,14 @@ void Scene::processNodes(aiNode * node, const aiScene* scene)
 
 void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene)
 {
-	//std::cout << "Reading Mesh" << std::endl;
+	std::cout << "Reading Mesh" << std::endl;
 	int index = meshes.size();
 	meshes.push_back(Mesh());
 	meshes[index].name = name;
-	//std::cout << "Mesh Name: " << meshes[index].name << " Original name: " << name << std::endl;
+	std::cout << "Mesh Name: " << meshes[index].name << " Original name: " << name << std::endl;
 	meshes[index].materialIndex = m->mMaterialIndex + materials.size();
 	meshes[index].hasTangents = m->HasTangentsAndBitangents();
+	//std::cout << "Has Tangents and Bitangents? " << m->HasTangentsAndBitangents();
 	//meshes[index].name = std::string(m->mName.C_Str());
 	meshes[index].numVertices = m->mNumVertices;
 	meshes[index].indexCount = m->mNumFaces * 3;
@@ -75,13 +76,19 @@ void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene
 	const aiVector3D zero(0.0f,0.0f,0.0f);
 	glm::vec4 averageLocation = glm::vec4(0.0,0.0,0.0,0.0); // used to compute a transform component for the mesh
 
+	std::cout << "Reading vertices" << std::endl;
 	for(unsigned int i = 0; i < m->mNumVertices; i++)
 	{
 		aiVector3D position = transform * (m->mVertices[i]);
+		//std::cout << "Read Position" << std::endl;
 		const aiVector3D* uv = m->HasTextureCoords(0)? &(m->mTextureCoords[0][i]) : &zero;
+		//std::cout << "Read UV" << std::endl;
 		aiVector3D normal = normalMatrix * (m->mNormals[i]);
+		//std::cout << "Read normal" << std::endl;
 		aiVector3D tangent = normalMatrix * (m->mTangents[i]);
+		//std::cout << "Read tangent" << std::endl;
 		aiVector3D bitangent = normalMatrix * (m->mBitangents[i]);
+		//std::cout << "Read normals" << std::endl;
 
 		Vertex vert = Vertex(glm::vec4(position.x, position.y, position.z, 1.0), 
 							 glm::vec2(uv->x, uv->y), 
@@ -89,8 +96,9 @@ void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene
 							 glm::vec3(tangent.x, tangent.y, tangent.z),
 							 glm::vec3(bitangent.x, bitangent.y, bitangent.z));
 		vertices.push_back(vert);
-		averageLocation =averageLocation + vert.position;
+		averageLocation = averageLocation + vert.position;
 	}
+	std::cout << "Finished Reading vertices" << std::endl;
 	averageLocation.x = averageLocation.x / meshes[index].numVertices;
 	averageLocation.y = averageLocation.y / meshes[index].numVertices;
 	averageLocation.z = averageLocation.z / meshes[index].numVertices;
@@ -98,12 +106,13 @@ void Scene::createMesh(const aiMesh* m, std::string &name, const aiScene * scene
 	meshes[index].location = averageLocation;
 	// std::cout << "Mesh location: " << averageLocation.x << " " << averageLocation.y << " " << averageLocation.z << std::endl;
 
-	//std::cout << averageLocation.x << ", " << averageLocation.y << ", " << averageLocation.z << ", " << averageLocation.w << std::endl;
+	std::cout << "averageLocation: " << averageLocation.x << ", " << averageLocation.y << ", " << averageLocation.z << ", " << averageLocation.w << std::endl;
 
 	for(int i = 0; i < meshes[index].numVertices; i++)
 	{
 		vertices[i].position -= averageLocation;
 		vertices[i].position.w = averageLocation.w;
+		//std::cout << vertices[i].position.x << ", " << vertices[i].position.y << ", " << vertices[i].position.z << std::endl;
 	}
 
 
@@ -155,6 +164,7 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 
 	for(unsigned int i = 0; i < m->mNumVertices; i++)
 	{
+		//std::cout << "Vertex: " << (transform * m->mVertices[i]).x << ", " << (transform * m->mVertices[i]).y << ", " << (transform * m->mVertices[i]).z <<std::endl;
 		aiVector3D position = /*transform */ (m->mVertices[i]);
 		const aiVector3D* uv = m->HasTextureCoords(0)? &(m->mTextureCoords[0][i]) : &zero;
 		aiVector3D normal = /*normalMatrix */ (m->mNormals[i]);
@@ -181,7 +191,7 @@ void Scene::createSkinnedMesh(const aiMesh* m, std::string &name, const aiScene 
 	skinnedMeshes[index].rotation.y = 0.0;//rot.y;
 	skinnedMeshes[index].rotation.z = 0.0;//rot.z;
 	skinnedMeshes[index].rotation.w = 0.0;//rot.w;
-	skinnedMeshes[index].scale = (scale.x + scale.y + scale.z) / 3;
+	skinnedMeshes[index].scale = 1.0;//(scale.x + scale.y + scale.z) / 3;
 
 
 
@@ -504,22 +514,22 @@ void Scene::print()
 	}
 }
 
-//this will be deleted. this is only for testing purposes
-void Scene::render()
-{
-	for(int i = 0; i < meshes.size(); i++)
-	{
-		glBindBuffer( GL_ARRAY_BUFFER, meshes[i].VBO );
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, meshes[i].IBO );
-		glVertexAttribPointer( vertexAttrib1, 4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0) );
-		glVertexAttribPointer( rgbaAttrib1,   4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0 *sizeof(GLfloat)) );
-		glVertexAttribPointer( normAttrib1,   3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(6 *sizeof(GLfloat)) );
-		glVertexAttribPointer( tanAttrib1,    3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(9*sizeof(GLfloat)) );
-		glVertexAttribPointer( bitanAttrib1,  3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(12*sizeof(GLfloat)) );
-		glVertexAttribPointer( texAttrib1,    2, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(4*sizeof(GLfloat)) );
-		glDrawElements( GL_TRIANGLES, meshes[i].indexCount, GL_UNSIGNED_INT, 0 );
-	}
-}
+// //this will be deleted. this is only for testing purposes
+// void Scene::render()
+// {
+// 	for(int i = 0; i < meshes.size(); i++)
+// 	{
+// 		glBindBuffer( GL_ARRAY_BUFFER, meshes[i].VBO );
+// 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, meshes[i].IBO );
+// 		glVertexAttribPointer( vertexAttrib1, 4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0) );
+// 		glVertexAttribPointer( rgbaAttrib1,   4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0 *sizeof(GLfloat)) );
+// 		glVertexAttribPointer( normAttrib1,   3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(6 *sizeof(GLfloat)) );
+// 		glVertexAttribPointer( tanAttrib1,    3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(9*sizeof(GLfloat)) );
+// 		glVertexAttribPointer( bitanAttrib1,  3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(12*sizeof(GLfloat)) );
+// 		glVertexAttribPointer( texAttrib1,    2, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(4*sizeof(GLfloat)) );
+// 		glDrawElements( GL_TRIANGLES, meshes[i].indexCount, GL_UNSIGNED_INT, 0 );
+// 	}
+// }
 
 
 int Scene::populateByName(std::string &name, ECSEngine * ecs)

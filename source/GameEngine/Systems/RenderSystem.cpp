@@ -158,6 +158,20 @@ void RenderSystem::update()
 	{
 		std::cout << "COULD NOT FIND PLAYER COMPONENT" << std::endl;
 		//determine new cameraID
+		bool newPlayerFound = false;
+		int i = 0;
+		int count = player->getSize();
+		while(!newPlayerFound && i < count) {
+			Player * current = player->getComponent(i);
+
+			if(current) {
+				pLoc = transforms->getComponent(i);
+				cameraID = i;
+				p = current;
+				newPlayerFound = true;
+			}
+			i++;
+		}
 	}
 
 	//calculate where to place the camera in order to make the view matrix
@@ -289,7 +303,7 @@ void RenderSystem::update()
 		
 			shaders->bindShader(ShaderManager::volumetricLightScattering);
 			bloomTarget.bindFrameBuffer();
-			deferredShadingData.bindTexture(occlusionTexture, GL_TEXTURE0);
+			deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE0); // use occlusionTexture for actual volumetric light scattering
 			
 			//load uniforms
 			glUniform2f(sunScreenCoordLoc, lightScreenLoc.x, lightScreenLoc.y);

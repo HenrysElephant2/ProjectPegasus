@@ -5,18 +5,18 @@ all: $(EXE)
 #  MinGW
 ifeq "$(OS)" "Windows_NT"
 CFLG=-O3 -Wall
-LIBS=-lglu32 -lopengl32 -lSDL2 -lassimp
+LIBS=-lglu32 -lopengl32 -lSDL2 -lassimp -ltinyxml2
 CLEAN=del *.exe *.o *.a
 else
 #  OSX
 ifeq "$(shell uname)" "Darwin"
 CFLG=-O3 -Wall -Wno-deprecated-declarations
 
-LIBS=-framework OpenGL -F /Library/Frameworks -framework SDL2 -lassimp
+LIBS=-framework OpenGL -F /Library/Frameworks -framework SDL2 -lassimp -ltinyxml2
 #  Linux/Unix/Solaris
 else
 CFLG=-O3 -Wall -Wno-sign-compare -fpermissive
-LIBS=-lglut -lGLU -lGL -lm -lSDL2 -lassimp
+LIBS=-lglut -lGLU -lGL -lm -lSDL2 -lassimp -ltinyxml2
 endif
 #  OSX/Linux/Unix/Solaris
 CLEAN=rm -f $(EXE) *.o *.a $(OBJDIR)*.o $(OBJDIR)*.a
@@ -61,6 +61,10 @@ $(OBJDIR)Animation.o: $(SRC)/GameEngine/Systems/Animation.cpp $(INC)/Animation.h
 	$(CC)
 $(OBJDIR)AnimationSystem.o: $(SRC)/GameEngine/Systems/AnimationSystem.cpp $(INC)/AnimationSystem.h
 	$(CC)
+$(OBJDIR)XMLAdapterFactory.o: $(SRC)/LevelLoader/XMLAdapterFactory.cpp $(INC)/XMLParserAdapter.h $(INC)/XMLAdapterFactory.h
+	$(CC)
+$(OBJDIR)TinyXMLAdapter.o: $(SRC)/LevelLoader/TinyXMLAdapter.cpp $(INC)/TinyXMLAdapter.h
+	$(CC)
 
 
 
@@ -72,7 +76,7 @@ $(OBJDIR)AnimationSystem.o: $(SRC)/GameEngine/Systems/AnimationSystem.cpp $(INC)
 # 	g++ -g -std=c++11 -c $(CFLG) -I$(INC) $^
 
 
-Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o $(OBJDIR)FrameBuffer.o $(OBJDIR)PlayerMovementSystem.o $(OBJDIR)Animation.o $(OBJDIR)AnimationSystem.o
+Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o $(OBJDIR)FrameBuffer.o $(OBJDIR)PlayerMovementSystem.o $(OBJDIR)Animation.o $(OBJDIR)AnimationSystem.o $(OBJDIR)XMLAdapterFactory.o $(OBJDIR)TinyXMLAdapter.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:

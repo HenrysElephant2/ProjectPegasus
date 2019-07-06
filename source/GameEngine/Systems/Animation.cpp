@@ -25,7 +25,7 @@ glm::mat4 Animation::getBoneTransform(float time, int bone)
 	// create matrix
 	//std::cout << "returning matrix" << std::endl;
 	//return transform*r;
-	return t*r;// * s;
+	return t*r * s;
 	//return transform;
 }
 
@@ -280,6 +280,7 @@ void BoneHierarchy::addScaleKey(std::string &animationName, VecKeyframe &key, st
 void BoneHierarchy::updateAnimation(double dt)
 {
 	//std::cout << "Animations: " << animations.size()  << " " << dt << std::endl;
+	//currentAnimation = animations.size() - 1;
 	currentTime += dt;
 	if(currentAnimation < animations.size() && currentAnimation >= 0)
 	{
@@ -296,7 +297,7 @@ void BoneHierarchy::updateAnimation(double dt)
 void BoneHierarchy::setCurrentTransform(int bone, glm::mat4 parentTransform)
 {
 	//std::cout << animations.size() << " - " << currentAnimation << std::endl;
-	glm::mat4 boneTransform = parentTransform /* bones[bone].transform */* animations[currentAnimation].getBoneTransform((float)currentTime, bone) ;//* bones[bone].offsetMatrix;
+	glm::mat4 boneTransform = parentTransform /* bones[bone].transform */* animations[currentAnimation].getBoneTransform((float)currentTime, bone);//* bones[bone].offsetMatrix;
 	bones[bone].currentTransformation = globalInverse * boneTransform * (bones[bone].offsetMatrix);
 	//std::cout << bones.size() << " " << bones[bone].children.size() << " " << animations.size() << std::endl;
 	for(int i = 0; i < bones[bone].children.size(); i++)

@@ -68,4 +68,18 @@ void PlayerMovementSystem::receiveMessage(BasicMessage * message)
 			}
 		}
 	}
+	else {
+		bool newPlayerFound = false;
+		int i = 0;
+		int count = playerManager->getSize();
+		while(!newPlayerFound && i < count) {
+			player = playerManager->getComponent(i);
+			
+			if(player) {
+				trackedPlayer = i;
+				newPlayerFound = true;
+			}
+			i++;
+		}
+	}
 }

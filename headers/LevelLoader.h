@@ -15,6 +15,8 @@
 #include "Component.h"
 #include "ECSEngine.h"
 #include "Animation.h"
+#include "XMLParserAdapter.h"
+#include "XMLAdapterFactory.h"
 #include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
@@ -33,8 +35,14 @@ class Scene;
 
 class LevelLoader{
 private:
-	void loadShaders();
-	void addUnused(ECSEngine * engine, Scene * sc);
+	struct LevelFileVerification {
+		bool hasPlayer = false;
+		bool hasValidScene = false;
+
+		bool isValid();
+	};
+	void loadEntity(XmlElement * entity, Scene * scene, ECSEngine * engine, LevelFileVerification & verification);
+
 public:
 	LevelLoader();
 	void openLevel(std::string & directory, ECSEngine * engine); 
