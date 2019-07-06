@@ -6,7 +6,9 @@
 #include <SDL2/SDL_opengl.h>
 #include <vector>
 #include <iostream>
-#include "Component.h"
+#include "Components/Light.h"
+#include "Components/Transform.h"
+
 #include "Material.h"
 #include "Animation.h"
 #include <glm/mat4x4.hpp> 

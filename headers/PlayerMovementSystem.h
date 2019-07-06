@@ -2,7 +2,8 @@
 #define PLAYERMOVEMENT_H
 
 #include <SDL2/SDL.h>
-#include "Component.h"
+#include "Components/Transform.h"
+#include "Components/Player.h"
 #include "ComponentManager.h"
 #include "System.h"
 

@@ -6,7 +6,14 @@
 #include "System.h"
 #include "ComponentManager.h"
 #include "EntityManager.h"
-#include "Component.h"
+
+#include "Components/Transform.h"
+#include "Components/Renderable.h"
+#include "Components/Player.h"
+#include "Components/Light.h"
+#include "Components/SkinnedRenderable.h"
+#include "Components/ParticleSystem.h"
+
 #include "ShaderManager.h"
 #include "RenderSystem.h"
 #include "PlayerMovementSystem.h"

@@ -3,7 +3,7 @@
 
 #include "MessageManager.h"
 #include "ComponentManager.h"
-#include "Component.h"
+#include "Components/SkinnedRenderable.h"
 
 class AnimationSystem : System {
 private:

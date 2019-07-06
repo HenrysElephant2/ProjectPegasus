@@ -31,8 +31,21 @@ CC = g++ -g -std=c++11 -c $(CFLG) -I$(INC) -o $@ $<
 
 $(OBJDIR)Main.o: $(SRC)/Main.cpp
 	$(CC)
-$(OBJDIR)ComponentManager.o: $(SRC)/GameEngine/ComponentManager.cpp $(INC)/ComponentManager.h $(INC)/Component.h
+$(OBJDIR)ComponentManager.o: $(SRC)/GameEngine/ComponentManager.cpp $(INC)/ComponentManager.h $(INC)/Components/Component.h
 	$(CC)
+$(OBJDIR)Renderable.o: $(SRC)/GameEngine/Components/Renderable.cpp $(INC)/Components/Renderable.h $(INC)/Components/Component.h
+	$(CC)
+$(OBJDIR)Transform.o: $(SRC)/GameEngine/Components/Transform.cpp $(INC)/Components/Transform.h $(INC)/Components/Component.h
+	$(CC)
+$(OBJDIR)Player.o: $(SRC)/GameEngine/Components/Player.cpp $(INC)/Components/Player.h $(INC)/Components/Component.h
+	$(CC)
+$(OBJDIR)SkinnedRenderable.o: $(SRC)/GameEngine/Components/SkinnedRenderable.cpp $(INC)/Components/SkinnedRenderable.h $(INC)/Components/Component.h
+	$(CC)
+$(OBJDIR)Light.o: $(SRC)/GameEngine/Components/Light.cpp $(INC)/Components/Light.h $(INC)/Components/Component.h
+	$(CC)
+$(OBJDIR)ParticleSystem.o: $(SRC)/GameEngine/Components/ParticleSystem.cpp $(INC)/Components/ParticleSystem.h $(INC)/Components/Component.h
+	$(CC)
+
 $(OBJDIR)EntityManager.o: $(SRC)/GameEngine/EntityManager.cpp $(INC)/EntityManager.h
 	$(CC)
 $(OBJDIR)MessageManager.o: $(SRC)/GameEngine/MessageManager.cpp $(INC)/MessageManager.h
@@ -76,7 +89,7 @@ $(OBJDIR)TinyXMLAdapter.o: $(SRC)/LevelLoader/TinyXMLAdapter.cpp $(INC)/TinyXMLA
 # 	g++ -g -std=c++11 -c $(CFLG) -I$(INC) $^
 
 
-Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o $(OBJDIR)FrameBuffer.o $(OBJDIR)PlayerMovementSystem.o $(OBJDIR)Animation.o $(OBJDIR)AnimationSystem.o $(OBJDIR)XMLAdapterFactory.o $(OBJDIR)TinyXMLAdapter.o
+Pegasus: $(OBJDIR)Main.o $(OBJDIR)ComponentManager.o $(OBJDIR)EntityManager.o $(OBJDIR)MessageManager.o $(OBJDIR)System.o  $(OBJDIR)ECSEngine.o $(OBJDIR)LevelLoader.o $(OBJDIR)SceneLoader.o $(OBJDIR)TextureLoader.o $(OBJDIR)ShaderManager.o $(OBJDIR)Gameplay.o $(OBJDIR)RenderSystem.o $(OBJDIR)FrameBuffer.o $(OBJDIR)PlayerMovementSystem.o $(OBJDIR)Animation.o $(OBJDIR)AnimationSystem.o $(OBJDIR)XMLAdapterFactory.o $(OBJDIR)TinyXMLAdapter.o $(OBJDIR)Renderable.o $(OBJDIR)Transform.o $(OBJDIR)Player.o $(OBJDIR)SkinnedRenderable.o $(OBJDIR)Light.o $(OBJDIR)ParticleSystem.o
 	g++ -O3 -o $@ $^ $(LIBS)
 
 clean:
