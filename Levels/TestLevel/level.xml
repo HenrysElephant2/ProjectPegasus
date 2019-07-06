@@ -14,6 +14,7 @@
 		<entity>
 			<player/>
 			<renderable meshName="Body"/>
+			<transform positionX="0.0" positionY="12.0" positionZ="0" orientationX="3.14"/>
 		</entity>
 	</scene>
 	<!-- <scene file="player.fbx">

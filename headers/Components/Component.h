@@ -18,6 +18,7 @@ struct Component {
 	int ownerID; // entityID for the entity that owns this component
 	Component(int owner){ownerID = owner;}
 	Component(){}
+	virtual ~Component(){}
 	virtual void readFromXML(XmlElement * element) = 0;
 };
 

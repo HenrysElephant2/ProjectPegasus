@@ -54,6 +54,13 @@ public:
 	void addParticleSystem(int entityID, ParticleSystem &comp);
 	RenderSystem* getRenderSystem();
 
+	ComponentManager<Transform> * getTransformManager();
+	ComponentManager<Renderable> * getRenderableManager();
+	ComponentManager<Player> * getPlayerManager();
+	ComponentManager<Light> * getLightManager();
+	ComponentManager<SkinnedRenderable> * getSkinnedRenderableManager();
+	ComponentManager<ParticleSystem> * getParticleSystemManager();
+
 	static ECSEngine * createECS();
 
 

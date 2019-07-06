@@ -4,7 +4,7 @@
 		<entity>
 			<player />
 			<renderable meshName="Cube" program="normalMapped"/>
-			<transform x="13" y="2" z="90" />
+			<transform positionX="13" positionY="2" positionZ="90" />
 		</entity>
 		<!-- <entity>
 			<renderable name="skybox" program="deferredWithLightScattering" />
