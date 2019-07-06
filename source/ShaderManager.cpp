@@ -41,6 +41,9 @@ Shader::Shader(GLuint programID)
 
 			std::string quadraticName = std::string(LIGHT_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]." + std::string(LIGHT_QUADRATIC_VARIABLE_NAME);
 			lightQuadraticAttenuationLoc.push_back(glGetUniformLocation(program, quadraticName.c_str()));
+
+			std::string directionalName = std::string(LIGHT_ARRAY_VARIABLE_NAME) + "[" + std::to_string(i) + "]." + std::string(LIGHT_DIRECTIONAL_VARIABLE_NAME);
+			lightDirectionalLoc.push_back(glGetUniformLocation(program, directionalName.c_str()));
 		}
 	}
 
@@ -111,6 +114,7 @@ void Shader::loadLight(Light * light, Transform * t, int index)
 		glUniform3f(lightSpecularLoc[index], light->specular.x, light->specular.y, light->specular.z);
 		glUniform1f(lightLinearAttenuationLoc[index], light->linearAttenuation);
 		glUniform1f(lightQuadraticAttenuationLoc[index], light->quadraticAttenuation);
+		glUniform1f(lightDirectionalLoc[index], light->directional);
 	}
 }
 

@@ -488,7 +488,7 @@ void Scene::processLights(const aiScene* scene)
 		lights[index].specular = glm::vec3(currentLight->mColorSpecular.r, currentLight->mColorSpecular.g, currentLight->mColorSpecular.b);
 		lights[index].linearAttenuation = isinf(currentLight->mAttenuationLinear)?1.0:currentLight->mAttenuationLinear;
 		lights[index].quadraticAttenuation = isinf(currentLight->mAttenuationQuadratic)?1.0:currentLight->mAttenuationQuadratic;
-
+		if(index == 0) lights[index].directional = true;
 	}
 }
 
@@ -584,7 +584,7 @@ int Scene::populateByName(std::string &name, ECSEngine * ecs)
 			int entityID = ecs->addEntity();
 			glm::vec4 lightPosition = glm::vec4(lights[i].location,1.0);
 			Transform t = Transform(lightPosition, defaultOrientation, 1.0,entityID);
-			Light l = Light(defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
+			Light l = Light(lights[i].directional, defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
 			ecs->addTransform(entityID, t);
 			ecs->addLight(entityID, l);
 			return entityID;
@@ -644,7 +644,7 @@ void Scene::populate(ECSEngine * ecs)
 			int entityID = ecs->addEntity();
 			glm::vec4 lightPosition = glm::vec4(lights[i].location,1.0);
 			Transform t = Transform(lightPosition, defaultOrientation, 1.0,entityID);
-			Light l = Light(defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
+			Light l = Light(lights[i].directional, defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
 			ecs->addTransform(entityID, t);
 			ecs->addLight(entityID, l);
 		}
@@ -670,6 +670,7 @@ void Scene::associateLight(std::string &meshName, Transform &t, int entityID, EC
 			l.specular = lights[i].specular;
 			l.linearAttenuation = lights[i].linearAttenuation;
 			l.quadraticAttenuation = lights[i].quadraticAttenuation;
+			l.directional = lights[i].directional;
 
 			ecs->addLight(entityID, l);
 		}

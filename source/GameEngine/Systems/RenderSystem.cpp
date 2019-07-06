@@ -181,10 +181,9 @@ void RenderSystem::update()
 						  + glm::vec3(pLoc->position);
 	glm::vec3 up = glm::vec3(0.0,1.0,0.0);
 	glm::mat4 view = glm::lookAt(cameraLoc,glm::vec3(pLoc->position),up);
-	// glm::mat4 view = glm::lookAt(cameraLoc,pLoc->position.xyz(),up);
 	drawSkinnedRenderables( &view, &projection );
 	drawAllRenderables( &view, &projection );
-	renderParticleSystems( &view, &projection );
+	drawParticleSystems( &view, &projection );
 
 
 	// Create per-light shadow maps
@@ -211,7 +210,7 @@ void RenderSystem::update()
 	for( int i=0; i<lightList.size(); i++ ) {
 		Light *currentLight = lights->getComponent(lightList[i]);
 		bufferIndex = !bufferIndex;
-		if( /*currentLight->directional*/ i == 1 )
+		if( currentLight->directional )
 			testSingleDirectionalLight(lightList[i], i, bufferIndex, glm::vec3(pLoc->position));
 		else
 			testSingleLight(lightList[i], i, bufferIndex);
@@ -547,7 +546,7 @@ void RenderSystem::renderShadowMaps( glm::vec3 playerLoc ) {
 		glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
 		glm::vec3 lightLoc = currentLight->location + currentTransform;
 
-		if( /*currentLight->directional*/ li == 1 ) {
+		if( currentLight->directional ) {
 			shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[0] );
 			glClear(GL_DEPTH_BUFFER_BIT);
 			glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
@@ -562,6 +561,7 @@ void RenderSystem::renderShadowMaps( glm::vec3 playerLoc ) {
 			for( int smi=0; smi<6; smi++ ) {
 				// Bind buffer and appropriate shadow map
 				shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[smi] );
+
 				glClear(GL_DEPTH_BUFFER_BIT);
 				glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
 				if( smi == 2 || smi == 3 ) curUp = glm::vec3(0.0, 0.0, 1.0);
@@ -635,7 +635,7 @@ void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightInde
 	renderFullScreenQuad();
 }
 
-void RenderSystem::renderParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat ) {
+void RenderSystem::drawParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat ) {
 	glPointSize(3.0);
 	int count = particleSystems->getSize();
 	for( int i=0; i<count; i++ ) {
@@ -645,6 +645,7 @@ void RenderSystem::renderParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat
 			shaders->bindShader(currentPS->program);
 			glUniform1f(pTimeLoc, ptime);
 			glEnable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
 
 			glm::mat4 model = glm::mat4(1.0f);
 			shaders->loadModelMatrix(&model);
@@ -668,6 +669,7 @@ void RenderSystem::renderParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat
 			glDisableVertexAttribArray( NORM_ATTRIB );
 			glEnableVertexAttribArray( UV_ATTRIB );
 
+			glDepthMask(GL_TRUE);
 			glDisable( GL_DEPTH_TEST );
 		}
 	}
