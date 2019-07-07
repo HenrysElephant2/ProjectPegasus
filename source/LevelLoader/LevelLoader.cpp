@@ -82,15 +82,15 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 	else entityID = engine->addEntity();
 	std::cout << "   - entityID: " << entityID << std::endl;
 
-	XmlElement * player = entity->firstChild("player");
-	if(player != NULL) {
+	XmlElement * playerElement = entity->firstChild("player");
+	if(playerElement != NULL) {
 		std::cout << "   - Adding Player" << std::endl;
-		Player p = Player(entityID);
+		Player player = Player(entityID);
 
-		p.cameraOffset = 8;
-		engine->addPlayer(entityID,p);
+		player.readFromXML(playerElement);
+		engine->addPlayer(entityID,player);
 		verification.hasPlayer = true;
-		delete player;
+		delete playerElement;
 	}
 
 	XmlElement * transformElement = entity->firstChild("transform");
@@ -105,6 +105,20 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 
 		t->readFromXML(transformElement);
 		delete transformElement;
+	}
+
+	XmlElement * lightElement = entity->firstChild("light");
+	if(lightElement != NULL) {
+		std::cout << "   - Adding Light" << std::endl;
+		Light * light = engine->getLightManager()->getComponent(entityID);
+		if(light == NULL) {
+			Light temp = Light();
+			engine->addLight(entityID,temp);
+			light = engine->getLightManager()->getComponent(entityID);
+		}
+
+		light->readFromXML(lightElement);
+		delete lightElement;
 	}
 }
 
