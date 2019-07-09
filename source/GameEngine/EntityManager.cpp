@@ -35,8 +35,16 @@ int EntityManager::createEntity() //returns entityID for the created entity
 	}
 
 	return created;
-
 }
+
+int EntityManager::createEntity(char * name) //returns entityID for the created entity
+{
+	int entityID = createEntity();
+	std::string nameString(name);
+	namedEntities.insert(std::pair<std::string,int>(nameString,entityID));
+	return entityID;
+}
+
 void EntityManager::killEntity(int entityID)
 {
 	if(entityID < arraySize)
@@ -46,7 +54,21 @@ void EntityManager::killEntity(int entityID)
 			minAvailable = entityID;
 	}
 
+	for (std::pair<std::string, int> element : namedEntities) {
+		// Accessing KEY from element
+		std::string name = element.first;
+		// Accessing VALUE from element.
+		int elementId = element.second;
+		if(elementId == entityID) {
+			namedEntities.erase(name);
+		}
+	}
 }
+
+int EntityManager::getEntityID(std::string & name) {
+	return namedEntities.find(name)->second;
+}
+
 bool EntityManager::isAlive(int entityID)
 {
 	if(entityID >= arraySize)

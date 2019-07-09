@@ -12,7 +12,12 @@
 #define GL_GLEXT_PROTOTYPES 1
 #include "ShaderManager.h"
 #include "Material.h"
-#include "Component.h"
+
+#include "Components/Light.h"
+#include "Components/Transform.h"
+#include "Components/Renderable.h"
+#include "Components/SkinnedRenderable.h"
+
 #include "ECSEngine.h"
 #include "Animation.h"
 #include "XMLParserAdapter.h"
@@ -46,7 +51,6 @@ private:
 public:
 	LevelLoader();
 	void openLevel(std::string & directory, ECSEngine * engine); 
-	void testLevel(ECSEngine * engine); // hardcoded version of openLevel(). used for testing and allowing development of the game's systems to begin and be tested
 };
 
 

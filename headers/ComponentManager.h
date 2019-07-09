@@ -2,7 +2,6 @@
 #define COMPONENTMANAGER_H
 
 #include <vector>
-#include "Component.h"
 #include <iostream>
 #include <string>
 #include <vector>

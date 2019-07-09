@@ -4,6 +4,7 @@ layout (location = 0) out vec4 position;
 layout (location = 1) out vec4 normal;
 layout (location = 2) out vec4 diffuse;
 layout (location = 3) out vec4 emissive;
+layout (location = 4) out vec4 occlusion;
 
 
 in vec4 fragPos;
@@ -21,4 +22,5 @@ void main() {
 	diffuse.rgb = texture(colorTexture, texCoords).rgb;
 	diffuse.a = shininess;
 	emissive = texture(emissiveTexture, texCoords);
+	occlusion = vec4(vec3(0.0),1.0);
 }

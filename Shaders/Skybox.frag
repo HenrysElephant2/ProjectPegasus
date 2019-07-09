@@ -22,5 +22,5 @@ void main() {
 	diffuse.rgb = texture(colorTexture, texCoords).rgb;
 	diffuse.a = shininess;
 	emissive = texture(emissiveTexture, texCoords);
-	occlusion = vec4(vec3(0.0),1.0);
+	occlusion = texture(emissiveTexture, texCoords);
 }

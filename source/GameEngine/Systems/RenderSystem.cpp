@@ -285,7 +285,10 @@ void RenderSystem::update()
 
 	if(sun && sunLoc)
 	{
-		glm::vec4 lightScreenLoc = projection * view * (glm::vec4(sun->location,0.0) + sunLoc->position / sunLoc->position.w);
+		glm::vec4 lightScreenLoc;
+		if(sun->directional)
+			lightScreenLoc = projection * view * (glm::vec4(cameraLoc + sun->direction * -100.0f,1.0));
+		else lightScreenLoc = projection * view * (glm::vec4(sun->location,0.0) + sunLoc->position / sunLoc->position.w);
 		// only apply volumetric light scattering if looking towards the light emitting it
 		if(lightScreenLoc.w > 0.0f)
 		{
@@ -302,7 +305,7 @@ void RenderSystem::update()
 		
 			shaders->bindShader(ShaderManager::volumetricLightScattering);
 			bloomTarget.bindFrameBuffer();
-			deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE0); // use occlusionTexture for actual volumetric light scattering
+			deferredShadingData.bindTexture(occlusionTexture, GL_TEXTURE0); // use occlusionTexture for actual volumetric light scattering
 			
 			//load uniforms
 			glUniform2f(sunScreenCoordLoc, lightScreenLoc.x, lightScreenLoc.y);
@@ -341,7 +344,7 @@ void RenderSystem::update()
 
 
 
-	// // debugging test render normals to double check correctness
+	// debugging test render normals to double check correctness
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// shaders->bindShader(4);
 	// deferredShadingData.bindTexture(occlusionTexture, GL_TEXTURE0);

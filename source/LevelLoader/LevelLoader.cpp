@@ -66,29 +66,65 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 	int entityID;
 	XmlElement * renderableElement = NULL;
 
+	bool addedFromFile = false;
+
 	renderableElement = entity->firstChild("renderable");
 	if(renderableElement != NULL) {
 		std::cout << "   - Adding Renderable" << std::endl;
 		char * meshName = NULL;
 		renderableElement->queryStringAttribute("meshName",(const char **) &meshName);
 		
-		std::cout << "meshname: " << meshName << std::endl;
 		std::string meshAsString(meshName);
 		entityID = scene->populateByName(meshAsString,engine);
-		std::cout << "entityID: " << entityID << std::endl;
-		//delete renderableElement;
+		addedFromFile = true;
+		Renderable * renderable = engine->getRenderableManager()->getComponent(entityID);
+		if(renderable != NULL) {
+			renderable->readFromXML(renderableElement);
+		}
+
+		
+		delete renderableElement;
 	}
 	else entityID = engine->addEntity();
-	std::cout << "   - Added Renderable" << std::endl;
+	std::cout << "   - entityID: " << entityID << std::endl;
 
-	XmlElement * player = entity->firstChild("player");
-	if(player != NULL) {
+	XmlElement * playerElement = entity->firstChild("player");
+	if(playerElement != NULL) {
 		std::cout << "   - Adding Player" << std::endl;
-		Player p = Player(entityID);
-		p.cameraOffset = 8;
-		engine->addPlayer(entityID,p);
+		Player player = Player(entityID);
+
+		player.readFromXML(playerElement);
+		engine->addPlayer(entityID,player);
 		verification.hasPlayer = true;
-		//delete player;
+		delete playerElement;
+	}
+
+	XmlElement * transformElement = entity->firstChild("transform");
+	if(transformElement != NULL) {
+		std::cout << "   - Adding Transform" << std::endl;
+		Transform * t = engine->getTransformManager()->getComponent(entityID);
+		if(t == NULL) {
+			Transform temp = Transform();
+			engine->addTransform(entityID,temp);
+			t = engine->getTransformManager()->getComponent(entityID);
+		}
+
+		t->readFromXML(transformElement);
+		delete transformElement;
+	}
+
+	XmlElement * lightElement = entity->firstChild("light");
+	if(lightElement != NULL) {
+		std::cout << "   - Adding Light" << std::endl;
+		Light * light = engine->getLightManager()->getComponent(entityID);
+		if(light == NULL) {
+			Light temp = Light();
+			engine->addLight(entityID,temp);
+			light = engine->getLightManager()->getComponent(entityID);
+		}
+
+		light->readFromXML(lightElement);
+		delete lightElement;
 	}
 }
 

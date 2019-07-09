@@ -6,7 +6,13 @@
 #include <SDL2/SDL.h>
 #include <cstdlib>
 #include "ComponentManager.h"
-#include "Component.h"
+#include "Components/Renderable.h"
+#include "Components/Transform.h"
+#include "Components/SkinnedRenderable.h"
+#include "Components/Light.h"
+#include "Components/Player.h"
+#include "Components/ParticleSystem.h"
+
 #include "System.h"
 #include "MessageManager.h"
 #include "ShaderManager.h"

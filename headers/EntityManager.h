@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <map>
 
 
 struct Entity {
@@ -14,6 +15,7 @@ struct Entity {
 class EntityManager {
 private:
 	Entity* entities; // might need to change this later
+	std::map<std::string, int> namedEntities;
 	int arraySize;
 	int minAvailable;
 	void increaseArraySize(int size);
@@ -22,9 +24,11 @@ public:
 	EntityManager();
 	~EntityManager();
 	int createEntity(); //returns entityID for the created entity
+	int createEntity(char * name);
 	void killEntity(int entityID);
 	bool isAlive(int entityID);
 	void print();
+	int getEntityID(std::string & name);
 
 };
 

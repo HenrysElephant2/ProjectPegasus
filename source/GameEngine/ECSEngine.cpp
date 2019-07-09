@@ -68,6 +68,13 @@ void ECSEngine::addParticleSystem(int entityID, ParticleSystem &comp)
 	particleManager.addComponent(entityID, comp);
 }
 
+ComponentManager<Transform> * ECSEngine::getTransformManager(){return &transformManager;}
+ComponentManager<Renderable> * ECSEngine::getRenderableManager(){return &renderableManager;}
+ComponentManager<Player> * ECSEngine::getPlayerManager(){return &playerManager;}
+ComponentManager<Light> * ECSEngine::getLightManager(){return &lightManager;}
+ComponentManager<SkinnedRenderable> * ECSEngine::getSkinnedRenderableManager(){return &skinnedManager;}
+ComponentManager<ParticleSystem> * ECSEngine::getParticleSystemManager(){return &particleManager;}
+
 RenderSystem* ECSEngine::getRenderSystem()
 {
 	return &rendersystemObject;
