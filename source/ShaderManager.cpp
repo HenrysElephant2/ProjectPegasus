@@ -369,6 +369,7 @@ int ShaderManager::testShadowsDirectional = -1;
 int ShaderManager::skinnedShadows = -1;
 int ShaderManager::displayParticles = -1;
 int ShaderManager::volumetricLightScattering = -1;
+int ShaderManager::skybox = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
@@ -435,6 +436,10 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string vlsVert = "Shaders/drawQuad.vert";
 	std::string vlsFrag = "Shaders/VolumetricLightScattering.frag";
 	volumetricLightScattering = sm->createProgram(vlsVert, vlsFrag);
+
+	std::string skyboxVert = "Shaders/deferredBasic.vert";
+	std::string skyboxFrag = "Shaders/Skybox.frag";
+	skybox = sm->createProgram(skyboxVert, skyboxFrag);
 
 	if( glGetError() != GL_NO_ERROR ) std::cout << "Error creating a shader" << std::endl;
 }

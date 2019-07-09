@@ -77,6 +77,12 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 		std::string meshAsString(meshName);
 		entityID = scene->populateByName(meshAsString,engine);
 		addedFromFile = true;
+		Renderable * renderable = engine->getRenderableManager()->getComponent(entityID);
+		if(renderable != NULL) {
+			renderable->readFromXML(renderableElement);
+		}
+
+		
 		delete renderableElement;
 	}
 	else entityID = engine->addEntity();

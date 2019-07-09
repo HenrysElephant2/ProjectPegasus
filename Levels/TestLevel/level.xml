@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level name="TestLevel">
 	<scene file="Warehouse_Full.fbx">
+		<entity>
+			<player cameraOffset="8.0" />
+			<renderable meshName="LightBulb"/>
+			<!-- <transform positionX="0.0" positionY="12.0" positionZ="0" orientationX="0.0"/> -->
+			<!-- <light quadraticAttenuation="1.0"/> -->
+		</entity>
+		<entity name="Sun">
+			<renderable meshName="Skybox" program="Skybox"/>
+		</entity>
 		<!-- <entity>
 			<player />
 			<renderable meshName="Cube" program="normalMapped"/>
@@ -11,11 +20,12 @@
 		</entity> -->
 	</scene>
 	<scene file="falcon.fbx">
-		<entity>
-			<player/>
+		<!-- <entity>
+			<player cameraOffset="8.0" />
 			<renderable meshName="Body"/>
-			<transform positionX="0.0" positionY="12.0" positionZ="0" orientationX="3.14"/>
-		</entity>
+			<transform positionX="0.0" positionY="12.0" positionZ="0" orientationX="0.0"/>
+			<light quadraticAttenuation="1.0"/>
+		</entity> -->
 	</scene>
 	<!-- <scene file="player.fbx">
 		<entity>

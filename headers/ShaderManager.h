@@ -144,6 +144,7 @@ public:
 	static int testShadowsDirectional;
 	static int displayParticles;
 	static int volumetricLightScattering;
+	static int skybox;
 };
 
 // static int hdrProgram;

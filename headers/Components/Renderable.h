@@ -2,6 +2,7 @@
 #define RENDERABLE_H
 
 #include "Component.h"
+#include "ShaderManager.h"
 
 struct Renderable:Component {
 	GLuint VBO;

@@ -1,4 +1,4 @@
-#ifndef LIGHT_H
+ #ifndef LIGHT_H
 #define LIGHT_H
 
 
@@ -9,6 +9,7 @@ struct Light:Component {
 	glm::vec3 location = glm::vec3(0.0,0.0,0.0);
 	glm::vec3 diffuse = glm::vec3(1.0,0.0,1.0);
 	glm::vec3 specular = glm::vec3(1.0,0.0,1.0);
+	glm::vec3 direction = glm::vec3(-1.0,-1.0,-1.0);
 	float linearAttenuation = 0.0;
 	float quadraticAttenuation = 0.0;
 

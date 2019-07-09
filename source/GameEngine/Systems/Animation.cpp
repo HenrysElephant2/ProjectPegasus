@@ -288,7 +288,7 @@ void BoneHierarchy::updateAnimation(double dt)
 		while(currentTime > animations[currentAnimation].animationLength)
 			currentTime -= animations[currentAnimation].animationLength;
 		glm::mat4 temp = glm::mat4(1.0);
-		setCurrentTransform(root, glm::rotate(glm::mat4(1.0), -3.14f, glm::vec3(1.0,0.0,0.0)) * baseOffset);//glm::mat4(1.0));
+		setCurrentTransform(root, glm::rotate(glm::mat4(1.0), -3.14f, glm::vec3(1.0,0.0,0.0)) /* baseOffset*/);//glm::mat4(1.0));
 	}
 	//std::cout << root << std::endl;
 	
