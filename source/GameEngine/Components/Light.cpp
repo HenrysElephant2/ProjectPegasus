@@ -16,4 +16,8 @@ void Light::readFromXML(XmlElement * element) {
 	element->queryFloatAttribute("specularGreen",&specular.y);
 	element->queryFloatAttribute("specularBlue",&specular.z);
 
+	element->queryFloatAttribute("directionX",&direction.x);
+	element->queryFloatAttribute("directionY",&direction.y);
+	element->queryFloatAttribute("directionZ",&direction.z);
+
 }
