@@ -2,7 +2,7 @@
 <level name="AnimationExample">
 	<scene file="Anim.dae">
 		<entity>
-			<player />
+			<player cameraOffset="20.0"/>
 			<renderable meshName="Cube" program="normalMapped"/>
 			<transform positionX="13" positionY="2" positionZ="90" />
 		</entity>
