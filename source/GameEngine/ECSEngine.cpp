@@ -2,10 +2,11 @@
 
 ECSEngine::ECSEngine()
 {
+	entities = EntityManager::getEntityManager();
 	shaders = ShaderManager::createShaderManager();
+
 	std::cout << "Creating Component Managers" << std::endl;
 	std::cout << "Creating Systems" << std::endl;
-	// rendersystemObject = RenderSystem(&messenger, shaders, &transformManager, &renderableManager, &playerManager, &lightManager);
 	playerMovementSystemObject = PlayerMovementSystem(&messenger);
 	messenger.subscribe((System*)(&playerMovementSystemObject),KEY_EVENT); // move this into playerMovementSystemObject
 	messenger.subscribe((System*)(&playerMovementSystemObject),MOUSE_EVENT);

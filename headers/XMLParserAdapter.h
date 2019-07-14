@@ -16,6 +16,8 @@ public:
 	virtual void queryStringAttribute(const char* name, const char ** string) = 0;
 	virtual XmlElement * firstChild(const char* name) = 0;
 	virtual XmlElement * nextSiblingElement(const char* name) = 0;
+
+	virtual ~XmlElement() {}
 };
 
 
@@ -23,6 +25,8 @@ class XmlAdapter {
 public:
 	virtual bool loadFile(const char*  filename) = 0;
 	virtual XmlElement * getRoot() = 0;
+
+	virtual ~XmlAdapter() {}
 };
 
 

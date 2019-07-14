@@ -17,19 +17,19 @@ void main()
 {
 	vec2 deltaTexCoords = (texCoords - sunScreenCoords) * 1.0f / NUM_SAMPLES * Density;
 
-	vec3 color = texture(frame, texCoords).xyz;
+	vec4 color = vec4(0.0);//texture(frame, texCoords).xyz;
 	float illuminationDecay = 1.0f;
 	vec2 currentTexCoords = texCoords;
 
 	for(int i = 0; i < NUM_SAMPLES; i++)
 	{
 		currentTexCoords -= deltaTexCoords;
-		color += texture(frame, currentTexCoords).xyz * illuminationDecay * Weight;
+		color += texture(frame, currentTexCoords) * illuminationDecay * Weight;
 		illuminationDecay *= Decay;
 	}
 
 	// multiply color by exposure?
-	FragColor = vec4(color, 1.0);
+	FragColor = color;//vec4(color.xyz, 1.0);
 
 
 }

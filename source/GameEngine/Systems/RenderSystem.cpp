@@ -359,7 +359,7 @@ void RenderSystem::update()
 
 
 
-	// debugging test render normals to double check correctness
+	// // debugging test render normals to double check correctness
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// shaders->bindShader(4);
 	// deferredShadingData.bindTexture(occlusionTexture, GL_TEXTURE0);

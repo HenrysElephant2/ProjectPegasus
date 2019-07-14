@@ -62,9 +62,7 @@ void EntityManager::killEntity(int entityID)
 	}
 
 	for (std::pair<std::string, int> element : namedEntities) {
-		// Accessing KEY from element
 		std::string name = element.first;
-		// Accessing VALUE from element.
 		int elementId = element.second;
 		if(elementId == entityID) {
 			namedEntities.erase(name);
