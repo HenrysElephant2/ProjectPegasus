@@ -2,6 +2,8 @@
 #define GAMEPLAY_H
 
 #include <SDL2/SDL.h>
+#include <typeinfo>
+#include "EntityManager.h"
 #include "LevelLoader.h"
 #include "ECSEngine.h"
 #include "State.h"

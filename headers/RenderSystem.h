@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL2/SDL.h>
 #include <cstdlib>
+#include "EntityManager.h"
 #include "ComponentManager.h"
 #include "Components/Renderable.h"
 #include "Components/Transform.h"
@@ -47,7 +48,7 @@ private:
 	ComponentManager<Transform> * transforms;
 	ComponentManager<Renderable> * renderables;
 	ComponentManager<SkinnedRenderable> * skinnedRenderables;
-	ComponentManager<Player> * player;
+	ComponentManager<Player> * playerManager;
 	ComponentManager<Light> * lights;
 	ComponentManager<ParticleSystem> * particleSystems;
 	ShaderManager * shaders;
@@ -141,8 +142,7 @@ private:
 	static glm::vec3 lightViews[6];
 
 public:
-	RenderSystem(MessageManager * m, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in, ComponentManager<ParticleSystem> * ps_in );
+	RenderSystem(MessageManager * m);
 	RenderSystem():System(NULL){}
 	void update();
 	void receiveMessage(BasicMessage * message);

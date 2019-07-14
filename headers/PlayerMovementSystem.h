@@ -2,6 +2,7 @@
 #define PLAYERMOVEMENT_H
 
 #include <SDL2/SDL.h>
+#include "EntityManager.h"
 #include "Components/Transform.h"
 #include "Components/Player.h"
 #include "ComponentManager.h"
@@ -21,7 +22,7 @@ private:
 
 public:
 	PlayerMovementSystem():System(NULL) {}
-	PlayerMovementSystem(MessageManager* messengerObject, ComponentManager<Transform> * transforms_in, ComponentManager<Player> * players_in);
+	PlayerMovementSystem(MessageManager* messengerObject);
 
 	void update();
 	void receiveMessage(BasicMessage * message);

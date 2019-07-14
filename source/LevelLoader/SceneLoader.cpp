@@ -2,6 +2,7 @@
 
 Scene::Scene(){
 	texManager = TextureLoader();
+	entityManager = EntityManager::getEntityManager();
 }
 
 bool Scene::openFile(std::string& filename)
@@ -546,10 +547,10 @@ int Scene::populateByName(std::string &name, ECSEngine * ecs)
 													materials[skinnedMeshes[i].materialIndex].normals == 0? ShaderManager::skinnedBasic:ShaderManager::skinnedNormalMapped,
 													materials[skinnedMeshes[i].materialIndex], entityID, skinnedMeshes[i].bones);
 			//std::cout << "Before: " << skinnedMeshes[i].bones.print() << " After: " << r.bones.print() << std::endl;
-			ecs->addSkinnedRenderable(entityID, r);
+			entityManager->addComponent(entityID, r);
 			glm::vec3 rot = glm::vec3(skinnedMeshes[i].rotation);
 			Transform t = Transform(skinnedMeshes[i].location, rot, skinnedMeshes[i].scale, entityID);
-			ecs->addTransform(entityID, t);
+			entityManager->addComponent(entityID, t);
 
 			associateLight(skinnedMeshes[i].name, t, entityID, ecs);
 			return entityID;
@@ -565,10 +566,10 @@ int Scene::populateByName(std::string &name, ECSEngine * ecs)
 			Renderable r = Renderable(meshes[i].VBO, meshes[i].IBO, meshes[i].indexCount, 
 													materials[meshes[i].materialIndex].normals == 0? ShaderManager::deferredBasic:ShaderManager::deferredNormal,
 													materials[meshes[i].materialIndex], entityID);
-			ecs->addRenderable(entityID, r);
+			entityManager->addComponent(entityID, r);
 
 			Transform t = Transform(meshes[i].location, defaultOrientation, 1.0, entityID);
-			ecs->addTransform(entityID, t);
+			entityManager->addComponent(entityID, t);
 
 			associateLight(meshes[i].name, t, entityID, ecs);
 			return entityID;
@@ -585,8 +586,8 @@ int Scene::populateByName(std::string &name, ECSEngine * ecs)
 			glm::vec4 lightPosition = glm::vec4(lights[i].location,1.0);
 			Transform t = Transform(lightPosition, defaultOrientation, 1.0,entityID);
 			Light l = Light(lights[i].directional, defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
-			ecs->addTransform(entityID, t);
-			ecs->addLight(entityID, l);
+			entityManager->addComponent(entityID, t);
+			entityManager->addComponent(entityID, l);
 			return entityID;
 		}
 	}
@@ -608,10 +609,10 @@ void Scene::populate(ECSEngine * ecs)
 													materials[skinnedMeshes[i].materialIndex].normals == 0? ShaderManager::skinnedBasic:ShaderManager::skinnedNormalMapped,
 													materials[skinnedMeshes[i].materialIndex], entityID, skinnedMeshes[i].bones);
 			std::cout << "Before: " << skinnedMeshes[i].bones.print() << " After: " << r.bones.print() << std::endl;
-			ecs->addSkinnedRenderable(entityID, r);
+			entityManager->addComponent(entityID, r);
 			glm::vec3 rot = glm::vec3(skinnedMeshes[i].rotation);
 			Transform t = Transform(skinnedMeshes[i].location, rot, skinnedMeshes[i].scale, entityID);
-			ecs->addTransform(entityID, t);
+			entityManager->addComponent(entityID, t);
 
 			associateLight(skinnedMeshes[i].name, t, entityID, ecs);
 		}
@@ -626,10 +627,10 @@ void Scene::populate(ECSEngine * ecs)
 			Renderable r = Renderable(meshes[i].VBO, meshes[i].IBO, meshes[i].indexCount, 
 													materials[meshes[i].materialIndex].normals == 0? ShaderManager::deferredBasic:ShaderManager::deferredNormal,
 													materials[meshes[i].materialIndex], entityID);
-			ecs->addRenderable(entityID, r);
+			entityManager->addComponent(entityID, r);
 
 			Transform t = Transform(meshes[i].location, defaultOrientation, 1.0, entityID);
-			ecs->addTransform(entityID, t);
+			entityManager->addComponent(entityID, t);
 
 			associateLight(meshes[i].name, t, entityID, ecs);
 		}
@@ -645,8 +646,8 @@ void Scene::populate(ECSEngine * ecs)
 			glm::vec4 lightPosition = glm::vec4(lights[i].location,1.0);
 			Transform t = Transform(lightPosition, defaultOrientation, 1.0,entityID);
 			Light l = Light(lights[i].directional, defaultOrientation, lights[i].diffuse, lights[i].specular, lights[i].linearAttenuation, lights[i].quadraticAttenuation, entityID);
-			ecs->addTransform(entityID, t);
-			ecs->addLight(entityID, l);
+			entityManager->addComponent(entityID, t);
+			entityManager->addComponent(entityID, l);
 		}
 	}
 
@@ -672,7 +673,7 @@ void Scene::associateLight(std::string &meshName, Transform &t, int entityID, EC
 			l.quadraticAttenuation = lights[i].quadraticAttenuation;
 			l.directional = lights[i].directional;
 
-			ecs->addLight(entityID, l);
+			entityManager->addComponent(entityID, l);
 		}
 	}
 }

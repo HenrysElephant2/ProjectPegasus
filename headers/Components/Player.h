@@ -9,6 +9,7 @@ struct Player:Component {
 	float cameraPitch = 0;
 	//float cameraRoll; // add this later if we want
 	Player(int ownerID):Component(ownerID){}
+	Player():Component(-1){}
 
 	void readFromXML(XmlElement * element);
 };

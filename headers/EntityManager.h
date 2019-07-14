@@ -1,34 +1,80 @@
-#ifndef ENTITYMANAGER_H
-#define ENTITYMANAGER_H
+#ifndef ENTITY_MANAGER_H
+#define ENTITY_MANAGER_H
 
 #include <iostream>
 #include <cstring>
 #include <map>
+#include <unordered_map>
+#include <vector>
+#include <typeinfo>
 
+#include "ComponentManager.h"
+#include "Components/Component.h"
 
-struct Entity {
-	bool exists; // could add type info here
-};
 
 #define BASE_NUMBER_OF_ENTITIES 1
 
 class EntityManager {
 private:
-	Entity* entities; // might need to change this later
+	std::vector<bool> entities;
 	std::map<std::string, int> namedEntities;
-	int arraySize;
+	std::unordered_map<std::string, ComponentManagerWrapper * > componentManagers;
 	int minAvailable;
-	void increaseArraySize(int size);
+
+	EntityManager();
+	static EntityManager * entityManager;
 
 public:
-	EntityManager();
+	
 	~EntityManager();
+	static EntityManager * getEntityManager();
+
+
 	int createEntity(); //returns entityID for the created entity
 	int createEntity(char * name);
 	void killEntity(int entityID);
 	bool isAlive(int entityID);
 	void print();
 	int getEntityID(std::string & name);
+
+	// template <class T>
+	// void addComponentManager(std::type_info & type, ComponentManager<T> * componentManager);
+	// template <class T>
+	// bool addComponent(int entityID, T & component);
+	// template <class T>
+	// ComponentManager<T> * getComponentManager(T & dummy);
+
+	template <class T>
+	ComponentManager<T> * getComponentManager(T & dummy) {
+
+		std::unordered_map<std::string, ComponentManagerWrapper *>::iterator it = componentManagers.find(typeid(dummy).name());
+		if(it != componentManagers.end()) {
+			return (ComponentManager<T>*)(it->second);
+		}
+		return NULL;
+	}
+
+
+	template <class T>
+	void addComponentManager( const std::type_info &type, ComponentManager<T> * componentManager) {
+		// componentManagers.insert(std::pair<std::type_info, ComponentManagerWrapper *>(type,(ComponentManagerWrapper *)componentManager));
+		componentManagers[type.name()] = (ComponentManagerWrapper *)componentManager;
+	}
+
+
+	template <class T>
+	bool addComponent(int entityID, T & component) { // returns whether or not adding the component succeeded
+		if(entityID > entities.size() || entityID < 0 || !entities[entityID]) {
+			return false;
+		}
+		std::unordered_map<std::string, ComponentManagerWrapper *>::iterator it = componentManagers.find(typeid(component).name());
+		if(it != componentManagers.end()) {
+			ComponentManager<T> * manager = (ComponentManager<T>*)(it->second);
+			manager->addComponent(entityID, component);
+			return true;
+		}
+		return false;
+	}
 
 };
 

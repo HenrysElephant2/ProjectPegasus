@@ -9,13 +9,20 @@
 
 #define BASE_NUMBER_OF_COMPONENTS 3
 
+class ComponentManagerWrapper {
+public:
+	virtual void deleteComponent(int entityID) = 0;
+	virtual ~ComponentManagerWrapper(){}
+};
+
 
 template <class T>
-class ComponentManager {
+class ComponentManager : ComponentManagerWrapper{
 private:
 	//T* componentList;
 	std::vector<T> componentList;
 	std::map<int, int> valid;
+	std::vector<int> empty; // tracks empty spots in componentList
 	// std::iterator iter; 
 	//bool* valid; // use valid list to keep track of which slots in the array have been filled
 	//int componentListSize;
@@ -62,6 +69,7 @@ public:
 	//T* getNext(int entityID); // maybe add this later. could be confusing since an entity might not need
 	void addComponent(int entityID, T &component) // add a component, must provide entity id, and a reference to the component
 	{
+		//std::cout << "Added Component: " + 
 		// if(entityID >= componentListSize)
 		// 	reallocateComponents(entityID + 1);
 		// //memcpy((void*)(componentList + entityID), (void*)&component, sizeof(T));
@@ -69,9 +77,15 @@ public:
 		// valid[entityID] = true;
 		if(valid.find(entityID) == valid.end())
 		{
-			int i = componentList.size();
-			componentList.push_back(component);
-			valid.insert(std::pair<int,int>(entityID,i));
+			if(empty.size() == 0) {
+				int i = componentList.size();
+				componentList.push_back(component);
+				valid.insert(std::pair<int,int>(entityID,i));
+			}
+			else {
+				componentList[empty[0]] = component;
+				empty.erase(empty.begin());
+			}
 		}
 		else componentList[valid.at(entityID)] = component;
 	}
@@ -79,6 +93,13 @@ public:
 	// by another component for a different, new entity that uses the same entityID
 	{
 		// valid[entityID] = false;
+		int location = valid.at(entityID);
+		//if(location != valid.end() ) {
+		if(valid.count(entityID) > 0) {
+			valid.erase(entityID);
+			empty.push_back(location);
+		}
+
 	}
 	void print(void (*f)(T*)) // print components, must provide a function that does the printing given a pointer to the component.
 	{

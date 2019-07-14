@@ -2,6 +2,33 @@
 
 Gameplay::Gameplay(int width, int height,std::string &level_directory):State()
 {
+	// load all ComponentManagers into the EntityManager here, or call a different class to do it.
+	EntityManager * entityManager = EntityManager::getEntityManager();
+
+	Transform t = Transform();
+	const std::type_info & type = typeid(t);
+	entityManager->addComponentManager(type,new ComponentManager<Transform>());
+
+	Renderable r = Renderable();
+	const std::type_info & type1 = typeid(r);
+	entityManager->addComponentManager(type1,new ComponentManager<Renderable>());
+
+	Player p = Player();
+	const std::type_info & type2 = typeid(p);
+	entityManager->addComponentManager(type2,new ComponentManager<Player>());
+
+	Light l = Light();
+	const std::type_info & type3 = typeid(l);
+	entityManager->addComponentManager(type3,new ComponentManager<Light>());
+
+	SkinnedRenderable sr = SkinnedRenderable();
+	const std::type_info & type4 = typeid(sr);
+	entityManager->addComponentManager(type4,new ComponentManager<SkinnedRenderable>());
+
+	ParticleSystem ps = ParticleSystem();
+	const std::type_info & type5 = typeid(ps);
+	entityManager->addComponentManager(type5,new ComponentManager<ParticleSystem>());
+
 	std::cout << "Creating ECS" << std::endl;
 	engine = new ECSEngine();
 	std::cout << "Created ECS" << std::endl;

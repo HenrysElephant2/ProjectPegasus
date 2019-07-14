@@ -9,16 +9,31 @@ glm::vec3 RenderSystem::lightViews[6] = {
 	glm::vec3( 0.0, 0.0,-1.0)
 };
 
-RenderSystem::RenderSystem(MessageManager * m, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in, ComponentManager<ParticleSystem> * ps_in ):System(m)
+RenderSystem::RenderSystem(MessageManager * m):System(m)
 {
 	shaders = ShaderManager::createShaderManager();
-	transforms = transforms_in;
-	renderables = renderables_in;
-	skinnedRenderables = skinnedRenderables_in;
-	player = player_in;
-	lights = lights_in;
-	particleSystems = ps_in;
+
+	EntityManager * em = EntityManager::getEntityManager();
+
+	Transform t = Transform();
+	transforms = em->getComponentManager(t);
+
+	Renderable r = Renderable();
+	renderables = em->getComponentManager(r);
+
+	Player p = Player();
+	playerManager = em->getComponentManager(p);
+
+	SkinnedRenderable sr = SkinnedRenderable();
+	skinnedRenderables = em->getComponentManager(sr);
+
+	Light l = Light();
+	lights = em->getComponentManager(l);
+
+	ParticleSystem ps = ParticleSystem();
+	particleSystems = em->getComponentManager(ps);
+
+
 	glGenVertexArrays( 1, &BASE_VAO );
 	glBindVertexArray( BASE_VAO );
 
@@ -152,7 +167,7 @@ void RenderSystem::update()
 	deferredShadingData.bindFrameBuffer();
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	Player * p = player->getComponent(cameraID);
+	Player * p = playerManager->getComponent(cameraID);
 	Transform * pLoc = transforms->getComponent(cameraID);
 	if(p == NULL)
 	{
@@ -160,9 +175,9 @@ void RenderSystem::update()
 		//determine new cameraID
 		bool newPlayerFound = false;
 		int i = 0;
-		int count = player->getSize();
+		int count = playerManager->getSize();
 		while(!newPlayerFound && i < count) {
-			Player * current = player->getComponent(i);
+			Player * current = playerManager->getComponent(i);
 
 			if(current) {
 				pLoc = transforms->getComponent(i);

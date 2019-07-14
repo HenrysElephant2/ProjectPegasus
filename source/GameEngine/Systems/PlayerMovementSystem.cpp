@@ -1,9 +1,15 @@
 #include "PlayerMovementSystem.h"
 
-PlayerMovementSystem::PlayerMovementSystem(MessageManager* messengerObject, ComponentManager<Transform> * transforms_in, ComponentManager<Player> * players_in): System(messengerObject)
+PlayerMovementSystem::PlayerMovementSystem(MessageManager* messengerObject): System(messengerObject)
 {
-	playerManager = players_in;
-	transforms = transforms_in;
+	EntityManager * em = EntityManager::getEntityManager();
+
+	Transform t = Transform();
+	transforms = em->getComponentManager(t);
+
+	Player p = Player();
+	playerManager = em->getComponentManager(p);
+	
 	frequency = SDL_GetPerformanceFrequency();
 	// std::cout << this << std::endl;
 }

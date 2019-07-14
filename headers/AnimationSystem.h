@@ -1,6 +1,7 @@
 #ifndef ANIMATION_SYSTEM_H
 #define ANIMATION_SYSTEM_H
 
+#include "EntityManager.h"
 #include "MessageManager.h"
 #include "ComponentManager.h"
 #include "Components/SkinnedRenderable.h"
@@ -13,10 +14,11 @@ private:
 
 
 public:
-	AnimationSystem(MessageManager * m, ComponentManager<SkinnedRenderable>* rigs_in):System(m)
+	AnimationSystem(MessageManager * m):System(m)
 	{
 		m->subscribe(this, ANIMATION_MESSAGE);
-		rigs = rigs_in;
+		SkinnedRenderable r = SkinnedRenderable();
+		rigs = EntityManager::getEntityManager()->getComponentManager(r);
 		frequency = SDL_GetPerformanceFrequency();
 		previousTime = SDL_GetPerformanceCounter();
 	}
