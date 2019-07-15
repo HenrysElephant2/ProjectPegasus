@@ -45,6 +45,7 @@ static glm::mat4 lightOrthoProjection = glm::ortho( -40.0, 40.0, -40.0, 40.0, -1
 
 class RenderSystem:System {
 private:
+	EntityManager * entities;
 	ComponentManager<Transform> * transforms;
 	ComponentManager<Renderable> * renderables;
 	ComponentManager<SkinnedRenderable> * skinnedRenderables;

@@ -65,6 +65,9 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 
 	EntityManager * entityManager = EntityManager::getEntityManager();
 
+	char * entityName = NULL;
+	entity->queryStringAttribute("name",(const char **) &entityName);
+
 	std::cout << "Initializing Entity" << std::endl;
 	int entityID;
 	XmlElement * renderableElement = NULL;
@@ -90,6 +93,11 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 		delete renderableElement;
 	}
 	else entityID = engine->addEntity();
+
+	if(entityName != NULL) {
+		entityManager->addName(entityName,entityID);
+	}
+	
 	std::cout << "   - entityID: " << entityID << std::endl;
 
 	XmlElement * playerElement = entity->firstChild("player");

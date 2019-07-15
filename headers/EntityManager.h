@@ -32,6 +32,7 @@ public:
 
 	int createEntity(); //returns entityID for the created entity
 	int createEntity(char * name);
+	bool addName(char * name, int entityID);
 	void killEntity(int entityID);
 	bool isAlive(int entityID);
 	void print();

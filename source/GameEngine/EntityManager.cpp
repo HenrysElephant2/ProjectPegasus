@@ -52,6 +52,15 @@ int EntityManager::createEntity(char * name) //returns entityID for the created 
 	return entityID;
 }
 
+bool EntityManager::addName(char * name, int entityID) {
+	if(isAlive(entityID)) {
+		std::string nameString(name);
+		namedEntities.insert(std::pair<std::string,int>(nameString,entityID));
+		return true;
+	}
+	return false;
+}
+
 void EntityManager::killEntity(int entityID)
 {
 	if(entityID < entities.size() && entityID >= 0)

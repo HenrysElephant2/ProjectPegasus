@@ -13,25 +13,25 @@ RenderSystem::RenderSystem(MessageManager * m):System(m)
 {
 	shaders = ShaderManager::createShaderManager();
 
-	EntityManager * em = EntityManager::getEntityManager();
+	entities = EntityManager::getEntityManager();
 
 	Transform t = Transform();
-	transforms = em->getComponentManager(t);
+	transforms = entities->getComponentManager(t);
 
 	Renderable r = Renderable();
-	renderables = em->getComponentManager(r);
+	renderables = entities->getComponentManager(r);
 
 	Player p = Player();
-	playerManager = em->getComponentManager(p);
+	playerManager = entities->getComponentManager(p);
 
 	SkinnedRenderable sr = SkinnedRenderable();
-	skinnedRenderables = em->getComponentManager(sr);
+	skinnedRenderables = entities->getComponentManager(sr);
 
 	Light l = Light();
-	lights = em->getComponentManager(l);
+	lights = entities->getComponentManager(l);
 
 	ParticleSystem ps = ParticleSystem();
-	particleSystems = em->getComponentManager(ps);
+	particleSystems = entities->getComponentManager(ps);
 
 
 	glGenVertexArrays( 1, &BASE_VAO );
@@ -292,8 +292,8 @@ void RenderSystem::update()
 	// apply volumetric light scattering post process
 	
 	// hardcoded sunID - NEEDS TO BE CHANGED
-	if(lightList.size() > 1)
-		sunID = lightList[1];
+	// if(lightList.size() > 1)
+	// 	sunID = lightList[1];
 
 	Light * sun = lights->getComponent(sunID);
 	Transform * sunLoc = transforms->getComponent(sunID);
@@ -337,6 +337,10 @@ void RenderSystem::update()
 			renderFullScreenQuad();
 			glDisable(GL_BLEND);
 		}
+	}
+	else {
+		std::string sunName = "Sun";
+		sunID = entities->getEntityID(sunName);
 	}
 
 
