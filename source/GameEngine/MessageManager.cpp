@@ -23,4 +23,13 @@ void MessageManager::sendMessage(BasicMessage *message)
 			subscribers[type][i]->receiveMessage(message);
 		}
 	}
+	delete message;
+}
+
+MessageManager * MessageManager::object = NULL;
+
+MessageManager * MessageManager::getMessageManager() {
+	if(object == NULL)
+		object = new MessageManager();
+	return object;
 }

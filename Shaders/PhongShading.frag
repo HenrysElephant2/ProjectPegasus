@@ -82,6 +82,6 @@ void main()
 
 	finalColor += texture(emissiveTexture, texCoords).xyz;
 	FragColor = vec4(finalColor, 1.0);
-	brightColor += texture(emissiveTexture, texCoords);
+	brightColor += texture(emissiveTexture, texCoords) * texture(emissiveTexture,texCoords).a;
 	
 }

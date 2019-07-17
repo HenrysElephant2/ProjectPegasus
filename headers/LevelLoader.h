@@ -20,6 +20,7 @@
 
 #include "ECSEngine.h"
 #include "Animation.h"
+#include "EntityManager.h"
 #include "XMLParserAdapter.h"
 #include "XMLAdapterFactory.h"
 #include <iostream>
@@ -158,6 +159,7 @@ private:
 	std::vector<Material> materials;
 	std::vector<LightData> lights;
 	TextureLoader texManager;
+	EntityManager * entityManager;
 
 	void processScene(const aiScene* scene, std::string & filename);
 	void createMesh(const aiMesh* m, std::string &name, const aiScene * scene);

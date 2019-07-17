@@ -22,46 +22,26 @@
 class ECSEngine {
 private:
 
-	static ECSEngine * object;
+	//static ECSEngine * object;
 
 	
 
-	MessageManager messenger;
-	EntityManager entities;
+	MessageManager * messenger;
+	EntityManager * entities;
 	ShaderManager * shaders;
-	RenderSystem rendersystemObject;
-	PlayerMovementSystem playerMovementSystemObject;
-	AnimationSystem animationHandler;
-	ComponentManager<Transform> transformManager;
-	ComponentManager<Renderable> renderableManager;
-	ComponentManager<Player> playerManager;
-	ComponentManager<Light> lightManager;
-	ComponentManager<SkinnedRenderable> skinnedManager;
-	ComponentManager<ParticleSystem> particleManager;
+
+	std::vector<System *> systems;
 
 public:
 	
 	ECSEngine();
-	//~ECSEngine(){}
+	~ECSEngine();
 	void update();
-	void spawnMessage(BasicMessage* message);
+	//void spawnMessage(BasicMessage* message);
 	int addEntity();
-	void addTransform(int entityID, Transform &comp);
-	void addRenderable(int entityID, Renderable &comp);
-	void addPlayer(int entityID, Player &comp);
-	void addLight(int entityID, Light &comp);
-	void addSkinnedRenderable(int entityID, SkinnedRenderable & comp);
-	void addParticleSystem(int entityID, ParticleSystem &comp);
-	RenderSystem* getRenderSystem();
+	void addSystem(System * newSystem);
 
-	ComponentManager<Transform> * getTransformManager();
-	ComponentManager<Renderable> * getRenderableManager();
-	ComponentManager<Player> * getPlayerManager();
-	ComponentManager<Light> * getLightManager();
-	ComponentManager<SkinnedRenderable> * getSkinnedRenderableManager();
-	ComponentManager<ParticleSystem> * getParticleSystemManager();
-
-	static ECSEngine * createECS();
+	//static ECSEngine * createECS();
 
 
 };

@@ -2,6 +2,7 @@
 #define PLAYERMOVEMENT_H
 
 #include <SDL2/SDL.h>
+#include "EntityManager.h"
 #include "Components/Transform.h"
 #include "Components/Player.h"
 #include "ComponentManager.h"
@@ -20,8 +21,7 @@ private:
 	bool w_Key, a_Key, s_Key, d_Key, spacebar_Key, shift_Key;
 
 public:
-	PlayerMovementSystem():System(NULL) {}
-	PlayerMovementSystem(MessageManager* messengerObject, ComponentManager<Transform> * transforms_in, ComponentManager<Player> * players_in);
+	PlayerMovementSystem();
 
 	void update();
 	void receiveMessage(BasicMessage * message);

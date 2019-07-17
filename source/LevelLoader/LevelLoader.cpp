@@ -62,7 +62,13 @@ void LevelLoader::openLevel(std::string & directory, ECSEngine * engine)
 }
 
 void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * engine, LevelFileVerification & verification) {
-	std::cout << "initializing Entity" << std::endl;
+
+	EntityManager * entityManager = EntityManager::getEntityManager();
+
+	char * entityName = NULL;
+	entity->queryStringAttribute("name",(const char **) &entityName);
+
+	std::cout << "Initializing Entity" << std::endl;
 	int entityID;
 	XmlElement * renderableElement = NULL;
 
@@ -77,7 +83,8 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 		std::string meshAsString(meshName);
 		entityID = scene->populateByName(meshAsString,engine);
 		addedFromFile = true;
-		Renderable * renderable = engine->getRenderableManager()->getComponent(entityID);
+		Renderable dummy = Renderable();
+		Renderable * renderable = entityManager->getComponentManager(dummy)->getComponent(entityID);//engine->getRenderableManager()->getComponent(entityID);
 		if(renderable != NULL) {
 			renderable->readFromXML(renderableElement);
 		}
@@ -86,15 +93,21 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 		delete renderableElement;
 	}
 	else entityID = engine->addEntity();
+
+	if(entityName != NULL) {
+		entityManager->addName(entityName,entityID);
+	}
+	
 	std::cout << "   - entityID: " << entityID << std::endl;
 
 	XmlElement * playerElement = entity->firstChild("player");
 	if(playerElement != NULL) {
 		std::cout << "   - Adding Player" << std::endl;
+
 		Player player = Player(entityID);
 
 		player.readFromXML(playerElement);
-		engine->addPlayer(entityID,player);
+		entityManager->addComponent(entityID,player);
 		verification.hasPlayer = true;
 		delete playerElement;
 	}
@@ -102,11 +115,12 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 	XmlElement * transformElement = entity->firstChild("transform");
 	if(transformElement != NULL) {
 		std::cout << "   - Adding Transform" << std::endl;
-		Transform * t = engine->getTransformManager()->getComponent(entityID);
+		Transform dummy = Transform();
+		Transform * t = entityManager->getComponentManager(dummy)->getComponent(entityID);
 		if(t == NULL) {
 			Transform temp = Transform();
-			engine->addTransform(entityID,temp);
-			t = engine->getTransformManager()->getComponent(entityID);
+			entityManager->addComponent(entityID,temp);
+			t = entityManager->getComponentManager(dummy)->getComponent(entityID);
 		}
 
 		t->readFromXML(transformElement);
@@ -116,11 +130,14 @@ void LevelLoader::loadEntity(XmlElement * entity, Scene * scene, ECSEngine * eng
 	XmlElement * lightElement = entity->firstChild("light");
 	if(lightElement != NULL) {
 		std::cout << "   - Adding Light" << std::endl;
-		Light * light = engine->getLightManager()->getComponent(entityID);
+
+		Light dummy = Light();
+		Light * light = entityManager->getComponentManager(dummy)->getComponent(entityID);//engine->getLightManager()->getComponent(entityID);
+
 		if(light == NULL) {
 			Light temp = Light();
-			engine->addLight(entityID,temp);
-			light = engine->getLightManager()->getComponent(entityID);
+			entityManager->addComponent(entityID,temp);
+			light = entityManager->getComponentManager(dummy)->getComponent(entityID);;
 		}
 
 		light->readFromXML(lightElement);

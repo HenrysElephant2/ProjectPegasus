@@ -9,16 +9,31 @@ glm::vec3 RenderSystem::lightViews[6] = {
 	glm::vec3( 0.0, 0.0,-1.0)
 };
 
-RenderSystem::RenderSystem(MessageManager * m, ComponentManager<Transform> * transforms_in, ComponentManager<Renderable> * renderables_in, 
-				 ComponentManager<SkinnedRenderable> * skinnedRenderables_in, ComponentManager<Player> * player_in, ComponentManager<Light> * lights_in, ComponentManager<ParticleSystem> * ps_in ):System(m)
+RenderSystem::RenderSystem():System()
 {
 	shaders = ShaderManager::createShaderManager();
-	transforms = transforms_in;
-	renderables = renderables_in;
-	skinnedRenderables = skinnedRenderables_in;
-	player = player_in;
-	lights = lights_in;
-	particleSystems = ps_in;
+
+	entities = EntityManager::getEntityManager();
+
+	Transform t = Transform();
+	transforms = entities->getComponentManager(t);
+
+	Renderable r = Renderable();
+	renderables = entities->getComponentManager(r);
+
+	Player p = Player();
+	playerManager = entities->getComponentManager(p);
+
+	SkinnedRenderable sr = SkinnedRenderable();
+	skinnedRenderables = entities->getComponentManager(sr);
+
+	Light l = Light();
+	lights = entities->getComponentManager(l);
+
+	ParticleSystem ps = ParticleSystem();
+	particleSystems = entities->getComponentManager(ps);
+
+
 	glGenVertexArrays( 1, &BASE_VAO );
 	glBindVertexArray( BASE_VAO );
 
@@ -46,10 +61,6 @@ RenderSystem::RenderSystem(MessageManager * m, ComponentManager<Transform> * tra
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "diffuseTexture"), 2);
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "emissiveTexture"), 3);
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "shadowTexture"), 4);
-
-	// shaders->bindShader(ShaderManager::occlusionMapSetup);
-	// depthLoc = glGetUniformLocation(shaders->getProgramID(), "depth");
-	// lightScreenPositionLoc = glGetUniformLocation(shaders->getProgramID(), "lightScreenPosition");
 
 	shaders->bindShader(ShaderManager::HDR);
 	exposureLoc = glGetUniformLocation(shaders->getProgramID(), "exposure");
@@ -110,6 +121,8 @@ RenderSystem::RenderSystem(MessageManager * m, ComponentManager<Transform> * tra
 	pTimeLoc = glGetUniformLocation(shaders->getProgramID(), "time");
 
 	std::cout << "Created RenderSystem" << std::endl;
+
+	//sleep(3);
 }
 
 
@@ -152,7 +165,7 @@ void RenderSystem::update()
 	deferredShadingData.bindFrameBuffer();
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	Player * p = player->getComponent(cameraID);
+	Player * p = playerManager->getComponent(cameraID);
 	Transform * pLoc = transforms->getComponent(cameraID);
 	if(p == NULL)
 	{
@@ -160,9 +173,9 @@ void RenderSystem::update()
 		//determine new cameraID
 		bool newPlayerFound = false;
 		int i = 0;
-		int count = player->getSize();
+		int count = playerManager->getSize();
 		while(!newPlayerFound && i < count) {
-			Player * current = player->getComponent(i);
+			Player * current = playerManager->getComponent(i);
 
 			if(current) {
 				pLoc = transforms->getComponent(i);
@@ -277,8 +290,8 @@ void RenderSystem::update()
 	// apply volumetric light scattering post process
 	
 	// hardcoded sunID - NEEDS TO BE CHANGED
-	if(lightList.size() > 1)
-		sunID = lightList[1];
+	// if(lightList.size() > 1)
+	// 	sunID = lightList[1];
 
 	Light * sun = lights->getComponent(sunID);
 	Transform * sunLoc = transforms->getComponent(sunID);
@@ -323,6 +336,10 @@ void RenderSystem::update()
 			glDisable(GL_BLEND);
 		}
 	}
+	else {
+		std::string sunName = "Sun";
+		sunID = entities->getEntityID(sunName);
+	}
 
 
 	//apply HDR and render to the screen
@@ -344,7 +361,7 @@ void RenderSystem::update()
 
 
 
-	// debugging test render normals to double check correctness
+	// // debugging test render normals to double check correctness
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// shaders->bindShader(4);
 	// deferredShadingData.bindTexture(occlusionTexture, GL_TEXTURE0);

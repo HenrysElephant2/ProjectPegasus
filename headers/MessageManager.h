@@ -23,6 +23,7 @@ struct BasicMessage {
 		messageType = type;
 	}
 	virtual void dummy(){}
+	virtual ~BasicMessage(){};
 };
 
 struct KeyEvent : BasicMessage{
@@ -47,10 +48,12 @@ struct MouseEvent : BasicMessage {
 class MessageManager {
 private:
 	std::vector<System*> subscribers[MESSAGE_TYPE_COUNT];
+	static MessageManager * object;
 public:
 	MessageManager();
 	void subscribe(System *s, int MessageType);
 	void sendMessage(BasicMessage *message);
+	static MessageManager * getMessageManager();
 };
 
 #endif
