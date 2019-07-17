@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL2/SDL.h>
 #include <cstdlib>
+#include <unistd.h>
 #include "EntityManager.h"
 #include "ComponentManager.h"
 #include "Components/Renderable.h"
@@ -18,6 +19,7 @@
 #include "MessageManager.h"
 #include "ShaderManager.h"
 #include "FrameBuffer.h"
+
 
 #define BLUR_PASSES 8
 
@@ -143,8 +145,7 @@ private:
 	static glm::vec3 lightViews[6];
 
 public:
-	RenderSystem(MessageManager * m);
-	RenderSystem():System(NULL){}
+	RenderSystem();
 	void update();
 	void receiveMessage(BasicMessage * message);
 	void reshape(int width, int height);

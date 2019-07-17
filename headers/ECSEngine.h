@@ -22,26 +22,26 @@
 class ECSEngine {
 private:
 
-	static ECSEngine * object;
+	//static ECSEngine * object;
 
 	
 
-	MessageManager messenger;
+	MessageManager * messenger;
 	EntityManager * entities;
 	ShaderManager * shaders;
-	RenderSystem rendersystemObject;
-	PlayerMovementSystem playerMovementSystemObject;
-	AnimationSystem animationHandler;
+
+	std::vector<System *> systems;
 
 public:
 	
 	ECSEngine();
+	~ECSEngine();
 	void update();
-	void spawnMessage(BasicMessage* message);
+	//void spawnMessage(BasicMessage* message);
 	int addEntity();
-	RenderSystem* getRenderSystem();
+	void addSystem(System * newSystem);
 
-	static ECSEngine * createECS();
+	//static ECSEngine * createECS();
 
 
 };

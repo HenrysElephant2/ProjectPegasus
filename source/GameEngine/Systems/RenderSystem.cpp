@@ -9,7 +9,7 @@ glm::vec3 RenderSystem::lightViews[6] = {
 	glm::vec3( 0.0, 0.0,-1.0)
 };
 
-RenderSystem::RenderSystem(MessageManager * m):System(m)
+RenderSystem::RenderSystem():System()
 {
 	shaders = ShaderManager::createShaderManager();
 
@@ -61,10 +61,6 @@ RenderSystem::RenderSystem(MessageManager * m):System(m)
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "diffuseTexture"), 2);
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "emissiveTexture"), 3);
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "shadowTexture"), 4);
-
-	// shaders->bindShader(ShaderManager::occlusionMapSetup);
-	// depthLoc = glGetUniformLocation(shaders->getProgramID(), "depth");
-	// lightScreenPositionLoc = glGetUniformLocation(shaders->getProgramID(), "lightScreenPosition");
 
 	shaders->bindShader(ShaderManager::HDR);
 	exposureLoc = glGetUniformLocation(shaders->getProgramID(), "exposure");
@@ -125,6 +121,8 @@ RenderSystem::RenderSystem(MessageManager * m):System(m)
 	pTimeLoc = glGetUniformLocation(shaders->getProgramID(), "time");
 
 	std::cout << "Created RenderSystem" << std::endl;
+
+	//sleep(3);
 }
 
 

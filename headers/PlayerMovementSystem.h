@@ -21,8 +21,7 @@ private:
 	bool w_Key, a_Key, s_Key, d_Key, spacebar_Key, shift_Key;
 
 public:
-	PlayerMovementSystem():System(NULL) {}
-	PlayerMovementSystem(MessageManager* messengerObject);
+	PlayerMovementSystem();
 
 	void update();
 	void receiveMessage(BasicMessage * message);

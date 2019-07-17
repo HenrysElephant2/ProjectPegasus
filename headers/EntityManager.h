@@ -38,12 +38,6 @@ public:
 	void print();
 	int getEntityID(std::string & name);
 
-	// template <class T>
-	// void addComponentManager(std::type_info & type, ComponentManager<T> * componentManager);
-	// template <class T>
-	// bool addComponent(int entityID, T & component);
-	// template <class T>
-	// ComponentManager<T> * getComponentManager(T & dummy);
 
 	template <class T>
 	ComponentManager<T> * getComponentManager(T & dummy) {
@@ -58,7 +52,6 @@ public:
 
 	template <class T>
 	void addComponentManager( const std::type_info &type, ComponentManager<T> * componentManager) {
-		// componentManagers.insert(std::pair<std::type_info, ComponentManagerWrapper *>(type,(ComponentManagerWrapper *)componentManager));
 		componentManagers[type.name()] = (ComponentManagerWrapper *)componentManager;
 	}
 

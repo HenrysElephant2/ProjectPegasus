@@ -14,15 +14,14 @@ private:
 
 
 public:
-	AnimationSystem(MessageManager * m):System(m)
+	AnimationSystem():System()
 	{
-		m->subscribe(this, ANIMATION_MESSAGE);
+		messenger->subscribe(this, ANIMATION_MESSAGE);
 		SkinnedRenderable r = SkinnedRenderable();
 		rigs = EntityManager::getEntityManager()->getComponentManager(r);
 		frequency = SDL_GetPerformanceFrequency();
 		previousTime = SDL_GetPerformanceCounter();
 	}
-	AnimationSystem():System(NULL){}
 	void update();
 	void receiveMessage(BasicMessage * message);
 };

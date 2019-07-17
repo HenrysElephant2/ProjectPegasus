@@ -1,8 +1,11 @@
 #include "PlayerMovementSystem.h"
 
-PlayerMovementSystem::PlayerMovementSystem(MessageManager* messengerObject): System(messengerObject)
+PlayerMovementSystem::PlayerMovementSystem(): System()
 {
 	EntityManager * em = EntityManager::getEntityManager();
+
+	messenger->subscribe((System*)this,KEY_EVENT);
+	messenger->subscribe((System*)this,MOUSE_EVENT);
 
 	Transform t = Transform();
 	transforms = em->getComponentManager(t);
@@ -11,7 +14,6 @@ PlayerMovementSystem::PlayerMovementSystem(MessageManager* messengerObject): Sys
 	playerManager = em->getComponentManager(p);
 	
 	frequency = SDL_GetPerformanceFrequency();
-	// std::cout << this << std::endl;
 }
 
 void PlayerMovementSystem::update()

@@ -10,10 +10,7 @@ EntityManager * EntityManager::getEntityManager() {
 
 EntityManager::EntityManager()
 {
-	// entities = std::vector<bool>();
 	minAvailable = 0;
-	// componentManagers = std::map<std::type_info,ComponentManager<Component> *>();
-	// namedEntities = std::map<std::string,int>();
 }
 
 EntityManager::~EntityManager()
