@@ -106,7 +106,7 @@ RenderSystem::RenderSystem():System()
 	glUniformMatrix4fv( glGetUniformLocation(shaders->getProgramID(), "LightProjection"), 1, GL_FALSE, glm::value_ptr(lightOrthoProjection));
 	directionalShadowTestLightIndexLoc = glGetUniformLocation(shaders->getProgramID(), "LightIndex");
 	directionalShadowTestLightViewLoc = glGetUniformLocation(shaders->getProgramID(), "LightView");
-	directionalShadowTestLightLocLoc = glGetUniformLocation(shaders->getProgramID(), "LightLoc");
+	directionalShadowTestLightDirLoc = glGetUniformLocation(shaders->getProgramID(), "LightDirection");
 	// Uniform texture locations
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "positionTexture"), 0);
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "normalTexture"), 1);
@@ -562,15 +562,13 @@ void RenderSystem::renderShadowMaps( glm::vec3 playerLoc ) {
 	// Render all solid objects from the perspective of all lights to various shadow maps
 	for( int li=0; li<lightList.size(); li++ ) {
 		Light *currentLight = lights->getComponent(lightList[li]);
-		glm::vec4 currentTransform4 = transforms->getComponent(lightList[li])->position;
-		glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
-		glm::vec3 lightLoc = currentLight->location + currentTransform;
 
 		if( currentLight->directional ) {
+			glm::vec3 lightDir = currentLight->direction;
 			shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[0] );
 			glClear(GL_DEPTH_BUFFER_BIT);
 			glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-			glm::mat4 view = glm::lookAt( playerLoc + glm::normalize(lightLoc), playerLoc, curUp);
+			glm::mat4 view = glm::lookAt( playerLoc - glm::normalize(lightDir), playerLoc, curUp);
 
 			shaders->bindShader(ShaderManager::skinnedShadows);
 			drawSkinnedRenderables( &view, &lightOrthoProjection, true );
@@ -578,6 +576,10 @@ void RenderSystem::renderShadowMaps( glm::vec3 playerLoc ) {
 			drawAllRenderables( &view, &lightOrthoProjection, true );
 		}
 		else {
+			glm::vec4 currentTransform4 = transforms->getComponent(lightList[li])->position;
+			glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
+			glm::vec3 lightLoc = currentLight->location + currentTransform;
+
 			for( int smi=0; smi<6; smi++ ) {
 				// Bind buffer and appropriate shadow map
 				shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[smi] );
@@ -640,12 +642,13 @@ void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightInde
 	Light *l = lights->getComponent(componentIndex);
 	glm::vec4 currentTransform4 = transforms->getComponent(componentIndex)->position;
 	glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
-	glm::vec3 lightLoc = l->location + currentTransform;
+	glm::vec3 lightDir = l->direction;
 	glUniform1i(directionalShadowTestLightIndexLoc, lightIndex);
-	glUniform3f(directionalShadowTestLightLocLoc, lightLoc.x, lightLoc.y, lightLoc.z);
+	glUniform3f(directionalShadowTestLightDirLoc, lightDir.x, lightDir.y, lightDir.z);
 
+	// Look in direction light is going
 	glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-	glm::mat4 curView = glm::lookAt(playerLoc + glm::normalize(lightLoc), playerLoc, curUp);
+	glm::mat4 curView = glm::lookAt(playerLoc, playerLoc + lightDir, curUp);
 	glUniformMatrix4fv(directionalShadowTestLightViewLoc, 1, GL_FALSE, glm::value_ptr(curView));
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[0]);

@@ -7,7 +7,7 @@ in vec2 texCoords;
 uniform mat4 LightView;
 uniform mat4 LightProjection;
 
-uniform vec3 LightLoc;
+uniform vec3 LightDirection;
 uniform int LightIndex;
 
 uniform usampler2D currentTex;
@@ -20,10 +20,9 @@ void main() {
 	vec3 loc = texture(positionTexture, texCoords).rgb;
 	vec3 norm = normalize(texture(normalTexture, texCoords).rgb);
 
-	vec3 lightDir = -normalize(LightLoc);
 	uint lit = 0u;
 
-	if( dot(norm, lightDir) < 0.0 ) {
+	if( dot(norm, LightDirection) < 0.0 ) {
 		vec4 lightSpaceLoc = LightProjection * LightView * vec4(loc,1.0);
 		vec3 projloc = lightSpaceLoc.xyz * 0.5 + 0.5;
 		if( projloc.x >= 0 && projloc.x <= 1.0 && projloc.y >= 0 && projloc.y <= 1.0 ) {

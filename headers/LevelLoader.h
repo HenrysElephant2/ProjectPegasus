@@ -91,6 +91,7 @@ struct LightData {
 	int count = 0;
 
 	bool directional;
+	glm::vec3 direction;
 	glm::vec3 location;
 	glm::vec3 diffuse;
 	glm::vec3 specular;

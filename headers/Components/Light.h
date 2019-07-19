@@ -37,7 +37,7 @@ struct Light:Component {
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	Light(bool directional_in, glm::vec3 &location_in, glm::vec3 &diffuse_in, glm::vec3 &specular_in, float linearAtt_in, float quadraticAtt_in, int ownerID):Component(ownerID) {
+	Light(bool directional_in, glm::vec3 &direction_in, glm::vec3 &location_in, glm::vec3 &diffuse_in, glm::vec3 &specular_in, float linearAtt_in, float quadraticAtt_in, int ownerID):Component(ownerID) {
 		directional = directional_in;
 		location = location_in;
 		diffuse = diffuse_in;

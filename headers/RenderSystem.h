@@ -80,7 +80,7 @@ private:
 	GLuint shadowTestLightIndexLoc;
 
 	GLuint directionalShadowTestLightViewLoc;
-	GLuint directionalShadowTestLightLocLoc;
+	GLuint directionalShadowTestLightDirLoc;
 	GLuint directionalShadowTestLightIndexLoc;
 
 	// frame buffer for storing data for deferred shading
