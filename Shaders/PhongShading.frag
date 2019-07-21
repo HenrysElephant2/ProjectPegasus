@@ -20,6 +20,7 @@ struct Light {
 	float linearAttenuation;
 	float quadraticAttenuation;
 	bool directional;
+	vec3 direction;
 };
 
 const int MAX_LIGHTS = 32;
@@ -28,7 +29,7 @@ uniform int numLights;
 
 float tempGamma = 2.2;
 
-
+const vec3 temp = vec3(0.0,-1.0,0.0);
 
 void main()
 {
@@ -54,7 +55,7 @@ void main()
 		float shadowVal = float(shadow & (1u << i));
 		
 
-		vec3 lightDirection = lights[i].directional ? normalize(lights[i].location) : normalize(lights[i].location - fragPos);
+		vec3 lightDirection = lights[i].directional ? -normalize(lights[i].direction) : normalize(lights[i].location - fragPos);
 		float diffuseAmount = max(dot(normal, lightDirection),0.0);
 		
 		vec3 diffuse = diffuseColor * diffuseAmount * lights[i].diffuse;
@@ -72,7 +73,7 @@ void main()
 
 
 		float d = length(lights[i].location - fragPos);
-		float attenuation = 1.0 / (1.0 + lights[i].linearAttenuation * d + lights[i].quadraticAttenuation * d * d);
+		float attenuation = lights[i].directional ? 1.0 : 1.0 / (1.0 + lights[i].linearAttenuation * d + lights[i].quadraticAttenuation * d * d);
 
 		finalColor += shadowVal * (diffuse * attenuation + specular * attenuation);
 
@@ -83,5 +84,7 @@ void main()
 	finalColor += texture(emissiveTexture, texCoords).xyz;
 	FragColor = vec4(finalColor, 1.0);
 	brightColor += texture(emissiveTexture, texCoords) * texture(emissiveTexture,texCoords).a;
-	
+
+	// FragColor = vec4((normal + vec3(1.0))/2.0,1.0);
+	// brightColor = vec4(0.0);
 }
