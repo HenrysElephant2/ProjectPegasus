@@ -45,6 +45,7 @@
 #define LIGHT_LINEAR_VARIABLE_NAME "linearAttenuation"
 #define LIGHT_QUADRATIC_VARIABLE_NAME "quadraticAttenuation"
 #define LIGHT_DIRECTIONAL_VARIABLE_NAME "directional"
+#define LIGHT_DIRECTION_VARIABLE_NAME "direction"
 
 #define LIGHT_COUNT_VARIABLE_NAME "numLights"
 
@@ -76,6 +77,7 @@ private:
 	std::vector<GLint> lightLinearAttenuationLoc;
 	std::vector<GLint> lightQuadraticAttenuationLoc;
 	std::vector<GLint> lightDirectionalLoc;
+	std::vector<GLint> lightDirectionLoc;
 
 	//GLint lightArrayLoc;
 
