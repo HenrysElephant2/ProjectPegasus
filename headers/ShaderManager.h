@@ -136,12 +136,6 @@ public:
 	static int blur;
 	static int skinnedBasic;
 	static int skinnedNormalMapped;
-	static int shadows;
-	static int skinnedShadows;
-	static int tempShadows;
-	static int tempShadows2;
-	static int testShadows;
-	static int testShadowsDirectional;
 	static int displayParticles;
 	static int volumetricLightScattering;
 	static int skybox;

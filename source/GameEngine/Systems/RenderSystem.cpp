@@ -60,7 +60,6 @@ RenderSystem::RenderSystem():System()
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "normalTexture"), 1);
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "diffuseTexture"), 2);
 	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "emissiveTexture"), 3);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "shadowTexture"), 4);
 
 	shaders->bindShader(ShaderManager::HDR);
 	exposureLoc = glGetUniformLocation(shaders->getProgramID(), "exposure");
@@ -78,44 +77,6 @@ RenderSystem::RenderSystem():System()
 	densityLoc = glGetUniformLocation(shaders->getProgramID(), "Density");
 	weightLoc = glGetUniformLocation(shaders->getProgramID(), "Weight");
 	decayLoc = glGetUniformLocation(shaders->getProgramID(), "Decay");
-
-
-	shaders->bindShader(ShaderManager::testShadows);
-	glUniformMatrix4fv( glGetUniformLocation(shaders->getProgramID(), "LightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
-	shadowTestLightIndexLoc = glGetUniformLocation(shaders->getProgramID(), "LightIndex");
-	shadowTestLightViewLocs[0] = glGetUniformLocation(shaders->getProgramID(), "LightViews[0]");
-	shadowTestLightViewLocs[1] = glGetUniformLocation(shaders->getProgramID(), "LightViews[1]");
-	shadowTestLightViewLocs[2] = glGetUniformLocation(shaders->getProgramID(), "LightViews[2]");
-	shadowTestLightViewLocs[3] = glGetUniformLocation(shaders->getProgramID(), "LightViews[3]");
-	shadowTestLightViewLocs[4] = glGetUniformLocation(shaders->getProgramID(), "LightViews[4]");
-	shadowTestLightViewLocs[5] = glGetUniformLocation(shaders->getProgramID(), "LightViews[5]");
-	shadowTestLightLocLoc = glGetUniformLocation(shaders->getProgramID(), "LightLoc");
-
-	// Uniform texture locations
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "positionTexture"), 0);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "normalTexture"), 1);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "currentTex"), 2);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap0"), 3);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap1"), 4);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap2"), 5);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap3"), 6);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap4"), 7);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap5"), 8);
-
-	shaders->bindShader(ShaderManager::testShadowsDirectional);
-	glUniformMatrix4fv( glGetUniformLocation(shaders->getProgramID(), "LightProjection"), 1, GL_FALSE, glm::value_ptr(lightOrthoProjection));
-	directionalShadowTestLightIndexLoc = glGetUniformLocation(shaders->getProgramID(), "LightIndex");
-	directionalShadowTestLightViewLoc = glGetUniformLocation(shaders->getProgramID(), "LightView");
-	directionalShadowTestLightDirLoc = glGetUniformLocation(shaders->getProgramID(), "LightDirection");
-	// Uniform texture locations
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "positionTexture"), 0);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "normalTexture"), 1);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "currentTex"), 2);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "ShadowMap"), 3);
-
-	shaders->bindShader(ShaderManager::tempShadows2);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "intTex"), 0);
-	glUniform1i(glGetUniformLocation(shaders->getProgramID(), "tex"), 1);
 
 	shaders->bindShader(ShaderManager::displayParticles);
 	pTimeLoc = glGetUniformLocation(shaders->getProgramID(), "time");
@@ -199,46 +160,6 @@ void RenderSystem::update()
 	drawParticleSystems( &view, &projection );
 
 
-	// Create per-light shadow maps
-	renderShadowMaps( glm::vec3(pLoc->position) );
-
-	// // Test shadow map display
-	// shaders->bindShader(ShaderManager::tempShadows);
-	// Light *testLight = lights->getComponent( lightList[1] );
-	// glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_2D, testLight->shadowMapTextures[0]);
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// glViewport(0,0,windowWidth, windowHeight);
-	// renderFullScreenQuad();
-	// return;
-
-	glViewport(0,0,textureWidth, textureHeight);
-
-	// Pingpong between lights, filling in integer shadow texture
-	shadowTestBuffer[0].bindFrameBuffer();
-	glClear(GL_COLOR_BUFFER_BIT);
-	shadowTestBuffer[1].bindFrameBuffer();
-	glClear(GL_COLOR_BUFFER_BIT);
-	bool bufferIndex = 0;
-	for( int i=0; i<lightList.size(); i++ ) {
-		Light *currentLight = lights->getComponent(lightList[i]);
-		bufferIndex = !bufferIndex;
-		if( currentLight->directional )
-			testSingleDirectionalLight(lightList[i], i, bufferIndex, glm::vec3(pLoc->position));
-		else
-			testSingleLight(lightList[i], i, bufferIndex);
-	}
-
-	// // Test combined shadow texture	
-	// shaders->bindShader(ShaderManager::tempShadows2);
-	// shadowTestBuffer[bufferIndex].bindTexture(shadowTestTexture[bufferIndex], GL_TEXTURE0);
-	// shadowTestBuffer[bufferIndex].bindTexture(shadowTempTexture[bufferIndex], GL_TEXTURE1);
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// glViewport(0,0,windowWidth,windowHeight);
-	// renderFullScreenQuad();
-	// return;
-
-
 	// perform shading pass
 	shaders->bindShader(ShaderManager::shadingPass);
 	glUniform3f(cameraPositionUniformLoc, cameraLoc.x, cameraLoc.y, cameraLoc.z);
@@ -249,7 +170,6 @@ void RenderSystem::update()
 	deferredShadingData.bindTexture(normalTexture, GL_TEXTURE1);
 	deferredShadingData.bindTexture(diffuseTexture, GL_TEXTURE2);
 	deferredShadingData.bindTexture(emissiveTexture, GL_TEXTURE3);
-	shadowTestBuffer[bufferIndex].bindTexture(shadowTestTexture[bufferIndex], GL_TEXTURE4);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_DEPTH_TEST);
 	renderFullScreenQuad();
@@ -548,116 +468,6 @@ void RenderSystem::renderFullScreenQuad()
 	glDisableVertexAttribArray( UV_ATTRIB_2D );
 }
 
-void RenderSystem::renderShadowMaps( glm::vec3 playerLoc ) {
-	//make list of all lights in the scene
-	std::vector<int> lightList;
-	for( int i=0; i<lights->getSize(); i++ ) {
-		Light * l = lights->getComponent(i);
-		if(l) lightList.push_back(i);
-	}
-
-	glViewport(0,0,SHADOW_MAP_DIMENSION,SHADOW_MAP_DIMENSION);
-	
-
-	// Render all solid objects from the perspective of all lights to various shadow maps
-	for( int li=0; li<lightList.size(); li++ ) {
-		Light *currentLight = lights->getComponent(lightList[li]);
-
-		if( currentLight->directional ) {
-			glm::vec3 lightDir = currentLight->direction;
-			shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[0] );
-			glClear(GL_DEPTH_BUFFER_BIT);
-			glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-			glm::mat4 view = glm::lookAt( playerLoc - glm::normalize(lightDir), playerLoc, curUp);
-
-			shaders->bindShader(ShaderManager::skinnedShadows);
-			drawSkinnedRenderables( &view, &lightOrthoProjection, true );
-			shaders->bindShader(ShaderManager::shadows);
-			drawAllRenderables( &view, &lightOrthoProjection, true );
-		}
-		else {
-			glm::vec4 currentTransform4 = transforms->getComponent(lightList[li])->position;
-			glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
-			glm::vec3 lightLoc = currentLight->location + currentTransform;
-
-			for( int smi=0; smi<6; smi++ ) {
-				// Bind buffer and appropriate shadow map
-				shadowMapBuffer.setDepthOnlyTexture( currentLight->shadowMapTextures[smi] );
-
-				glClear(GL_DEPTH_BUFFER_BIT);
-				glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-				if( smi == 2 || smi == 3 ) curUp = glm::vec3(0.0, 0.0, 1.0);
-				glm::mat4 view = glm::lookAt(lightLoc, lightLoc + lightViews[smi], curUp);
-
-				shaders->bindShader(ShaderManager::skinnedShadows);
-				drawSkinnedRenderables( &view, &lightProjection, true );
-				shaders->bindShader(ShaderManager::shadows);
-				drawAllRenderables( &view, &lightProjection, true );
-			}
-		}
-	}
-}
-
-void RenderSystem::testSingleLight( int componentIndex, int lightIndex, bool bufferIndex ) {
-	shaders->bindShader(ShaderManager::testShadows);
-	// Bind current framebuffer and shadow texture
-	shadowTestBuffer[bufferIndex].bindFrameBuffer();
-	deferredShadingData.bindTexture(positionTexture, GL_TEXTURE0);
-	deferredShadingData.bindTexture(normalTexture, GL_TEXTURE1);
-	shadowTestBuffer[!bufferIndex].bindTexture(shadowTestTexture[!bufferIndex], GL_TEXTURE2);
-
-	// Bind uniforms for current light
-	Light *l = lights->getComponent(componentIndex);
-	glm::vec4 currentTransform4 = transforms->getComponent(componentIndex)->position;
-	glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
-	glm::vec3 lightLoc = l->location + currentTransform;
-	glUniform1i(shadowTestLightIndexLoc, lightIndex);
-	glUniform3f(shadowTestLightLocLoc, lightLoc.x, lightLoc.y, lightLoc.z);
-
-	// Bind view matrices and depth maps for all six views
-	for( int i=0; i<6; i++ ) {
-		glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-		if( i == 2 || i == 3 ) curUp = glm::vec3(0.0, 0.0, 1.0);
-		glm::mat4 curView = glm::lookAt(lightLoc, lightLoc + lightViews[i], curUp);
-		glUniformMatrix4fv(shadowTestLightViewLocs[i], 1, GL_FALSE, glm::value_ptr(curView));
-		glActiveTexture(GL_TEXTURE3 + i);
-		glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[i]);
-	}
-
-	// Test
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	renderFullScreenQuad();
-}
-
-
-void RenderSystem::testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::vec3 playerLoc ) {
-	shaders->bindShader(ShaderManager::testShadowsDirectional);
-	// Bind current framebuffer and shadow texture
-	shadowTestBuffer[bufferIndex].bindFrameBuffer();
-	deferredShadingData.bindTexture(positionTexture, GL_TEXTURE0);
-	deferredShadingData.bindTexture(normalTexture, GL_TEXTURE1);
-	shadowTestBuffer[!bufferIndex].bindTexture(shadowTestTexture[!bufferIndex], GL_TEXTURE2);
-
-	// Bind uniforms for current light
-	Light *l = lights->getComponent(componentIndex);
-	glm::vec4 currentTransform4 = transforms->getComponent(componentIndex)->position;
-	glm::vec3 currentTransform = glm::vec3(currentTransform4) / currentTransform4.w;
-	glm::vec3 lightDir = l->direction;
-	glUniform1i(directionalShadowTestLightIndexLoc, lightIndex);
-	glUniform3f(directionalShadowTestLightDirLoc, lightDir.x, lightDir.y, lightDir.z);
-
-	// Look in direction light is going
-	glm::vec3 curUp = glm::vec3(0.0, 1.0, 0.0);
-	glm::mat4 curView = glm::lookAt(playerLoc, playerLoc + lightDir, curUp);
-	glUniformMatrix4fv(directionalShadowTestLightViewLoc, 1, GL_FALSE, glm::value_ptr(curView));
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, l->shadowMapTextures[0]);
-
-	// Test
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	renderFullScreenQuad();
-}
-
 void RenderSystem::drawParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat ) {
 	glPointSize(3.0);
 	int count = particleSystems->getSize();
@@ -719,14 +529,6 @@ void RenderSystem::setUpFrameBuffers()
 
 	//set up textures for bloomTarget, which is the final framebuffer before rendering to the screen
 	finalColorTexture = bloomTarget.addTexture(textureWidth, textureHeight);
-
-	// Set up shadow test buffers
-	shadowTestTexture[0] = shadowTestBuffer[0].addIntegerTexture(textureWidth,textureHeight);
-	shadowTestTexture[1] = shadowTestBuffer[1].addIntegerTexture(textureWidth,textureHeight);
-	shadowTempTexture[0] = shadowTestBuffer[0].addTexture(textureWidth,textureHeight);
-	shadowTempTexture[1] = shadowTestBuffer[1].addTexture(textureWidth,textureHeight);
-	shadowTestBuffer[0].addDepthBuffer(textureWidth, textureHeight);
-	shadowTestBuffer[1].addDepthBuffer(textureWidth, textureHeight);
 }
 
 void RenderSystem::loadLights(std::vector<int> *lightList)

@@ -68,21 +68,6 @@ private:
 	GLuint fullScreenVBO;
 
 	// frame buffers
-	// Frame Buffer for shadow mapping
-	FrameBuffer shadowMapBuffer;
-
-	// Frame Buffer for testing shadows
-	FrameBuffer shadowTestBuffer[2];
-	int shadowTestTexture[2];
-	int shadowTempTexture[2];
-	GLuint shadowTestLightViewLocs[6];
-	GLuint shadowTestLightLocLoc;
-	GLuint shadowTestLightIndexLoc;
-
-	GLuint directionalShadowTestLightViewLoc;
-	GLuint directionalShadowTestLightDirLoc;
-	GLuint directionalShadowTestLightIndexLoc;
-
 	// frame buffer for storing data for deferred shading
 	FrameBuffer deferredShadingData;
 	int positionTexture;
@@ -130,13 +115,6 @@ private:
 
 	// must be used with a shader that is designed to draw a full screen quad. ie the vertex shader shouldn't do any transformations at all to the vertex
 	void renderFullScreenQuad();
-
-	// Create per-light shadow maps
-	void renderShadowMaps( glm::vec3 playerLoc );
-
-	// Perform shadow tests for a single light
-	void testSingleLight( int componentIndex, int lightIndex, bool bufferIndex );
-	void testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::vec3 playerLoc );
 
 	void setUpFrameBuffers();
 

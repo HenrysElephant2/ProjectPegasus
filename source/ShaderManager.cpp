@@ -361,12 +361,6 @@ int ShaderManager::applyBloom = -1;
 int ShaderManager::blur = -1;
 int ShaderManager::skinnedBasic = -1;
 int ShaderManager::skinnedNormalMapped = -1;
-int ShaderManager::shadows = -1;
-int ShaderManager::tempShadows = -1;
-int ShaderManager::tempShadows2 = -1;
-int ShaderManager::testShadows = -1;
-int ShaderManager::testShadowsDirectional = -1;
-int ShaderManager::skinnedShadows = -1;
 int ShaderManager::displayParticles = -1;
 int ShaderManager::volumetricLightScattering = -1;
 int ShaderManager::skybox = -1;
@@ -400,30 +394,6 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string applyBloomVert = "Shaders/applyBloom.vert";
 	std::string applyBloomFrag = "Shaders/applyBloom.frag";
 	applyBloom = sm->createProgram(applyBloomVert,applyBloomFrag);
-
-	std::string shadowsVert = "Shaders/shadowMap.vert";
-	std::string shadowsFrag = "Shaders/shadowMap.frag";
-	shadows = sm->createProgram(shadowsVert,shadowsFrag);
-
-	std::string skinnedShadowsVert = "Shaders/SkinnedShadowMap.vert";
-	std::string skinnedShadowsFrag = "Shaders/shadowMap.frag";
-	skinnedShadows = sm->createProgram(skinnedShadowsVert, skinnedShadowsFrag);
-
-	std::string TempShadowsVert = "Shaders/drawQuad.vert";
-	std::string TempShadowsFrag = "Shaders/TempShadows.frag";
-	tempShadows = sm->createProgram(TempShadowsVert,TempShadowsFrag);
-
-	std::string TempShadows2Vert = "Shaders/drawQuad.vert";
-	std::string TempShadows2Frag = "Shaders/TempShadows2.frag";
-	tempShadows2 = sm->createProgram(TempShadows2Vert,TempShadows2Frag);
-
-	std::string TestShadowsVert = "Shaders/drawQuad.vert";
-	std::string TestShadowsFrag = "Shaders/testShadowVolume.frag";
-	testShadows = sm->createProgram(TestShadowsVert,TestShadowsFrag);
-
-	std::string TestShadowsDirectionalVert = "Shaders/drawQuad.vert";
-	std::string TestShadowsDirectionalFrag = "Shaders/testShadowVolumeDirectional.frag";
-	testShadowsDirectional = sm->createProgram(TestShadowsDirectionalVert,TestShadowsDirectionalFrag);
 
 	std::string skinnedBasicVert = "Shaders/SkinnedBasic.vert";
 	std::string skinnedBasicFrag = "Shaders/deferredBasic.frag";
