@@ -23,5 +23,6 @@ void main() {
 	diffuse.a = shininess;
 	emissive = texture(colorTexture, texCoords);
 	emissive.a = 0.0;
-	occlusion = texture(emissiveTexture, texCoords);
+	vec4 emissiveColor = texture(emissiveTexture,texCoords);
+	occlusion = vec4(emissiveColor.xyz * emissiveColor.w,1.0);
 }

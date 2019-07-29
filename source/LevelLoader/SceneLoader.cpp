@@ -458,6 +458,18 @@ void Scene::processMaterials(const aiScene* scene, std::string & filename)
 			}
 		}
 
+		if(currentMaterial->GetTextureCount(aiTextureType_REFLECTION) > 0)
+		{
+			//std::cout << "Texture Exists" << std::endl;
+			aiString texture_path;
+			if(currentMaterial->GetTexture(aiTextureType_REFLECTION, 0, &texture_path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+			{
+				std::string file_path = directory + "/" + texture_path.data;
+				std::cout << "Reflective Texture: " << file_path << std::endl;
+				materials[materialIndex].reflective = texManager.loadTexture(file_path, false);
+			}
+		}
+
 		//materials[materialIndex].print();
 	}
 }

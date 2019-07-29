@@ -31,6 +31,7 @@
 #define COLOR_TEXTURE_VARIABLE_NAME "colorTexture"
 #define NORMAL_TEXTURE_VARIABLE_NAME "normalTexture"
 #define EMISSIVE_TEXTURE_VARIABLE_NAME "emissiveTexture"
+#define REFLECTIVE_TEXTURE_VARIABLE_NAME "reflectiveTexture"
 
 //light variables
 #define MAX_LIGHTS 32
@@ -66,6 +67,7 @@ private:
 	GLint colorTextureLoc;
 	GLint normalTextureLoc;
 	GLint emissiveTextureLoc;
+	GLint reflectiveTextureLoc;
 	//GLint specularTextureLoc;
 	//GLint opacityTextureLoc;
 
@@ -145,6 +147,7 @@ public:
 	static int displayParticles;
 	static int volumetricLightScattering;
 	static int skybox;
+	static int diffuseOnly;
 };
 
 // static int hdrProgram;

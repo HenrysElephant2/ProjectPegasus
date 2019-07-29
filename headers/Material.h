@@ -27,6 +27,8 @@ struct Material{
 	GLuint texture = 0;
 	GLuint normals = 0;
 	GLuint emissive = 0;
+	GLint reflective = 0;
+	
 	//GLuint specular = 0; // currently not planning on using this, but could be useful for models where glossiness is different on diffferent parts of the model
 	//GLuint opacityMap = 0; // not planning on using this, but could be used for cool effects
 
@@ -41,6 +43,7 @@ struct Material{
 		std::cout << "Diffuse Texture: " << texture << std::endl;
 		std::cout << "Normal Texture: " << normals << std::endl;
 		std::cout << "Emissive Texture: " << emissive << std::endl;
+		std::cout << "Reflective Texture: " << reflective << std::endl;
 	}
 };
 

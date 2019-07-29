@@ -7,6 +7,9 @@ uniform sampler2D normalTexture;
 uniform sampler2D diffuseTexture;
 uniform sampler2D emissiveTexture;
 uniform usampler2D shadowTexture;
+uniform sampler2D reflectivityTexture;
+
+uniform samplerCube environmentMap;
 
 in vec2 texCoords;
 
@@ -37,6 +40,7 @@ void main()
 	vec3 diffuseColor = texture(diffuseTexture, texCoords).rgb;
 	float shininess = texture(diffuseTexture, texCoords).a;
 	uint shadow = texture(shadowTexture, texCoords).r;
+	vec4 reflectivity = texture(reflectivityTexture, texCoords);
 
 	vec3 finalColor = diffuseColor * 0.005; // replace diffuseColor with ambient color
 	//vec3 finalColor = vec3(0.0,0.0,0.0);
@@ -44,6 +48,8 @@ void main()
 	// vec3 lightPos = vec3(0.0,1.0,0.0);
 	// float linear = 1.0;
 	// float quadratic = 0.0;//0001;
+
+	float luminosity = 0.005;
 
 	vec3 viewDirection = normalize(cameraLoc - fragPos);
 
@@ -56,6 +62,7 @@ void main()
 
 		vec3 lightDirection = lights[i].directional ? normalize(lights[i].location) : normalize(lights[i].location - fragPos);
 		float diffuseAmount = max(dot(normal, lightDirection),0.0);
+		
 		
 		vec3 diffuse = diffuseColor * diffuseAmount * lights[i].diffuse;
 
@@ -76,10 +83,19 @@ void main()
 
 		finalColor += shadowVal * (diffuse * attenuation + specular * attenuation);
 
+		luminosity += (diffuseAmount + specularAmount) * attenuation * shadowVal;
+
 		brightColor += vec4(shadowVal * (specular * attenuation),0.0);
 
 	}
 
+	vec3 R = reflect(-viewDirection,normal);
+	//finalColor = texture(environmentMap, normalize(viewDirection)).rgb;
+	//finalColor += texture(environmentMap, R).xyz * (.005 + luminosity) * reflectivity.w;
+	vec4 reflectionColor = texture(environmentMap, R);
+	finalColor = mix(finalColor , reflectionColor.xyz * luminosity * reflectivity.xyz + reflectionColor.xyz * reflectionColor.w * reflectivity.xyz, (1.0 - reflectivity.w));
+	// finalColor = mix(texture(environmentMap, R).xyz * (.005 + luminosity), finalColor , luminosity);
+	//finalColor = mix(texture(environmentMap, R).xyz * (.005 + luminosity), finalColor , reflectivity.w);//finalColor * texture(environmentMap, R).xyz * reflectivity.xyz * reflectivity.w;// * luminosity;
 	finalColor += texture(emissiveTexture, texCoords).xyz;
 	FragColor = vec4(finalColor, 1.0);
 	brightColor += texture(emissiveTexture, texCoords) * texture(emissiveTexture,texCoords).a;

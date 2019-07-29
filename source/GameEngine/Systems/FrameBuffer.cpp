@@ -6,14 +6,17 @@ FrameBuffer::FrameBuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 
 }
+
 FrameBuffer::~FrameBuffer()
 {	
 
 }
+
 void FrameBuffer::bindFrameBuffer()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 }
+
 int FrameBuffer::addTexture(int width, int height)
 {
 	bindFrameBuffer();
@@ -34,6 +37,11 @@ int FrameBuffer::addTexture(int width, int height)
 	glDrawBuffers(colorAttachments.size(), &colorAttachments[0]);
 	return index;
 }
+
+GLuint FrameBuffer::getTextureIdentifier(int index) {
+	return textures[index];
+}
+
 int FrameBuffer::addIntegerTexture(int width, int height)
 {
 	bindFrameBuffer();

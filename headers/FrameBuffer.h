@@ -18,6 +18,7 @@ public:
 	~FrameBuffer();
 	void bindFrameBuffer();
 	int addTexture(int width, int height);
+	GLuint getTextureIdentifier(int index);
 	int addIntegerTexture(int width, int height);
 	void bindTexture(int index, GLenum textureUnit); // bind the texture
 	void addDepthBuffer(int width, int height);

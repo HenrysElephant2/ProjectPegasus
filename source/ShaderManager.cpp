@@ -20,6 +20,7 @@ Shader::Shader(GLuint programID)
 	colorTextureLoc = glGetUniformLocation(program, COLOR_TEXTURE_VARIABLE_NAME);
 	normalTextureLoc = glGetUniformLocation(program, NORMAL_TEXTURE_VARIABLE_NAME);
 	emissiveTextureLoc = glGetUniformLocation(program, EMISSIVE_TEXTURE_VARIABLE_NAME);
+	reflectiveTextureLoc = glGetUniformLocation(program, REFLECTIVE_TEXTURE_VARIABLE_NAME);
 
 	//load light Array locations
 	std::string testName = LIGHT_ARRAY_VARIABLE_NAME + std::string("[0].") + LIGHT_POSITION_VARIABLE_NAME;
@@ -79,6 +80,7 @@ void Shader::bindMaterial(Material * mat)
 	if(colorTextureLoc != -1) {glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, mat->texture); glUniform1i(colorTextureLoc, 0);}
 	if(normalTextureLoc != -1) {glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, mat->normals); glUniform1i(normalTextureLoc, 1);}
 	if(emissiveTextureLoc != -1) {glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, mat->emissive); glUniform1i(emissiveTextureLoc, 2);}
+	if(reflectiveTextureLoc != -1) {glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, mat->reflective); glUniform1i(reflectiveTextureLoc, 3);}
 }
 
 void Shader::loadModelMatrix(glm::mat4 * modelMatrix)
@@ -370,6 +372,7 @@ int ShaderManager::skinnedShadows = -1;
 int ShaderManager::displayParticles = -1;
 int ShaderManager::volumetricLightScattering = -1;
 int ShaderManager::skybox = -1;
+int ShaderManager::diffuseOnly = -1;
 
 void ShaderManager::loadShaders(ShaderManager* sm)
 {
@@ -440,6 +443,11 @@ void ShaderManager::loadShaders(ShaderManager* sm)
 	std::string skyboxVert = "Shaders/deferredBasic.vert";
 	std::string skyboxFrag = "Shaders/Skybox.frag";
 	skybox = sm->createProgram(skyboxVert, skyboxFrag);
+
+	std::string diffuseOnlyVert = "Shaders/diffuseOnly.vert";
+	std::string diffuseOnlyFrag = "Shaders/diffuseOnly.frag";
+	diffuseOnly = sm->createProgram(diffuseOnlyVert, diffuseOnlyFrag);
+
 
 	if( glGetError() != GL_NO_ERROR ) std::cout << "Error creating a shader" << std::endl;
 }

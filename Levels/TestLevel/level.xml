@@ -2,7 +2,7 @@
 <level name="TestLevel">
 	<scene file="Warehouse_Full.fbx">
 		<entity>
-			<player cameraOffset="8.0" />
+			<!-- <player cameraOffset="4.0" /> -->
 			<renderable meshName="LightBulb"/>
 			<!-- <transform positionX="0.0" positionY="12.0" positionZ="0" orientationX="0.0"/> -->
 			<!-- <light quadraticAttenuation="1.0"/> -->
@@ -10,22 +10,38 @@
 		<entity name="Sun">
 			<renderable meshName="Skybox" program="Skybox"/>
 		</entity>
-		<!-- <entity>
-			<player />
-			<renderable meshName="Cube" program="normalMapped"/>
+		<entity>
+			<!-- <player cameraOffset="5.0"/> -->
+			<renderable meshName="pSphere3"/>
 			<transform x="13" y="2" z="90" />
-		</entity> -->
+			<!-- <light quadraticAttenuation="1.0"/> -->
+		</entity>
 		<!-- <entity>
 			<renderable name="skybox" program="deferredWithLightScattering" />
 		</entity> -->
 	</scene>
 	<scene file="falcon.fbx">
-		<!-- <entity>
-			<player cameraOffset="8.0" />
+		<entity>
+			<!-- <player cameraOffset="8.0" /> -->
 			<renderable meshName="Body"/>
-			<transform positionX="0.0" positionY="12.0" positionZ="0" orientationX="0.0"/>
-			<light quadraticAttenuation="1.0"/>
-		</entity> -->
+			<transform positionX="0.0" positionY="12.0" positionZ="12" orientationX="0.0"/>
+			<!-- <light quadraticAttenuation="1.0"/> -->
+		</entity>
+	</scene>
+	<scene file="Cube.fbx">
+		<entity>
+			<renderable meshName="pCube36"/>
+			<transform scale="3.0" orientationX="45"/>
+			<!-- <player cameraoffset="6.0"/> -->
+		</entity>
+	</scene>
+	<!-- <scene file="Nugget3.dae">
+	</scene> -->
+	<scene file="Nugget.fbx">
+		<entity>
+			<renderable meshName="Nugget_Animation_Test_0032_curve4"/>
+			<player cameraOffset="8.0"/>
+		</entity>
 	</scene>
 	<!-- <scene file="player.fbx">
 		<entity>

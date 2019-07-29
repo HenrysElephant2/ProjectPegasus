@@ -41,7 +41,8 @@ static const glm::vec3 xAxis = glm::vec3(1.0,0.0,0.0);
 static const glm::vec3 yAxis = glm::vec3(0.0,1.0,0.0);
 static const glm::vec3 zAxis = glm::vec3(0.0,0.0,1.0);
 
-static glm::mat4 lightProjection = glm::perspective( 90.0, 1.0, .05, 100.0 );
+static glm::mat4 lightProjection = glm::perspective( 3.14159/2/*90.0*/, 1.0, 0.0005, 100.0 );
+
 static glm::mat4 lightOrthoProjection = glm::ortho( -40.0, 40.0, -40.0, 40.0, -100.0, 100.0 );
 
 
@@ -90,6 +91,7 @@ private:
 	int diffuseTexture;
 	int emissiveTexture;
 	int occlusionTexture;
+	int reflectivityTexture;
 
 	// render target for all shading calculations. anything added to brightTexture will have bloom applied to it
 	FrameBuffer shadingTarget;
@@ -123,8 +125,15 @@ private:
 	//additional info
 	GLint cameraPositionUniformLoc;
 
+
+	//Environment mapping variables
+	GLuint environmentMap;
+	GLuint cubemapFBO;
+
 	// Draw everything
 	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
+	void drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool useEntityShader, bool loadMaterial );
+
 	void drawSkinnedRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only = false );
 	void drawParticleSystems( glm::mat4 *viewMat, glm::mat4 *projMat );
 
@@ -139,6 +148,8 @@ private:
 	void testSingleDirectionalLight( int componentIndex, int lightIndex, bool bufferIndex, glm::vec3 playerLoc );
 
 	void setUpFrameBuffers();
+
+	void generateEnvironmentMap(glm::vec3 & playerLoc);
 
 	void loadLights(std::vector<int> *lightList);
 
