@@ -43,11 +43,6 @@ void main()
 	vec4 reflectivity = texture(reflectivityTexture, texCoords);
 
 	vec3 finalColor = diffuseColor * 0.005; // replace diffuseColor with ambient color
-	//vec3 finalColor = vec3(0.0,0.0,0.0);
-
-	// vec3 lightPos = vec3(0.0,1.0,0.0);
-	// float linear = 1.0;
-	// float quadratic = 0.0;//0001;
 
 	float luminosity = 0.005;
 
@@ -90,12 +85,9 @@ void main()
 	}
 
 	vec3 R = reflect(-viewDirection,normal);
-	//finalColor = texture(environmentMap, normalize(viewDirection)).rgb;
-	//finalColor += texture(environmentMap, R).xyz * (.005 + luminosity) * reflectivity.w;
 	vec4 reflectionColor = texture(environmentMap, R);
 	finalColor = mix(finalColor , reflectionColor.xyz * luminosity * reflectivity.xyz + reflectionColor.xyz * reflectionColor.w * reflectivity.xyz, (1.0 - reflectivity.w));
-	// finalColor = mix(texture(environmentMap, R).xyz * (.005 + luminosity), finalColor , luminosity);
-	//finalColor = mix(texture(environmentMap, R).xyz * (.005 + luminosity), finalColor , reflectivity.w);//finalColor * texture(environmentMap, R).xyz * reflectivity.xyz * reflectivity.w;// * luminosity;
+
 	finalColor += texture(emissiveTexture, texCoords).xyz;
 	FragColor = vec4(finalColor, 1.0);
 	brightColor += texture(emissiveTexture, texCoords) * texture(emissiveTexture,texCoords).a;

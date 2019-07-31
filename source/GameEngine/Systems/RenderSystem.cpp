@@ -297,10 +297,6 @@ void RenderSystem::update()
 
 
 	// apply volumetric light scattering post process
-	
-	// hardcoded sunID - NEEDS TO BE CHANGED
-	// if(lightList.size() > 1)
-	// 	sunID = lightList[1];
 
 	Light * sun = lights->getComponent(sunID);
 	Transform * sunLoc = transforms->getComponent(sunID);
@@ -484,73 +480,6 @@ void RenderSystem::drawSkinnedRenderables(glm::mat4 *viewMat, glm::mat4 *projMat
 	glDisable(GL_DEPTH_TEST);
 }
 
-
-// void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only ) {
-// 	glEnable(GL_DEPTH_TEST);
-// 	glEnable(GL_CULL_FACE);
-// 	// render all solid objects
-// 	int count = renderables->getSize();
-// 	for(int i = 0; i < count; i++)
-// 	{
-// 		Renderable * currentR = renderables->getComponent(i);
-// 		Transform * currentT = transforms->getComponent(i);
-		
-// 		if(currentR && currentT)
-// 		{
-// 			//create model matrix
-// 			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(currentT->scale));
-// 			model = glm::rotate(model, currentT->orientation.x, xAxis);
-// 			model = glm::rotate(model, currentT->orientation.y, yAxis);
-// 			model = glm::rotate(model, currentT->orientation.z, zAxis);
-// 			model = glm::translate(model, glm::vec3(currentT->position)/currentT->position.w);
-
-// 			// bind program and uniforms, then draw matrix
-// 			if( !vertex_only ) {
-// 				glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
-
-// 				shaders->bindShader(currentR->program);
-// 				shaders->bindMaterial(&(currentR->material));
-// 				shaders->loadNormalMatrix(&normalMatrix);
-// 			}
-// 			shaders->loadModelMatrix(&model);
-// 			shaders->loadViewMatrix(viewMat);
-// 			shaders->loadProjectionMatrix(projMat);
-
-// 			glEnableVertexAttribArray( VERTEX_ATTRIB );
-// 			glEnableVertexAttribArray( NORM_ATTRIB );
-// 			if( !vertex_only ) {
-// 				glEnableVertexAttribArray( RGBA_ATTRIB );
-// 				glEnableVertexAttribArray( TAN_ATTRIB );
-// 				glEnableVertexAttribArray( BITAN_ATTRIB );
-// 				glEnableVertexAttribArray( UV_ATTRIB );
-// 			}
-
-// 			glBindBuffer( GL_ARRAY_BUFFER, currentR->VBO );
-// 			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, currentR->IBO );
-// 			glVertexAttribPointer( VERTEX_ATTRIB, 4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0) );
-// 			glVertexAttribPointer( NORM_ATTRIB,   3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(6 *sizeof(GLfloat)) );
-// 			if( !vertex_only ) {
-// 				glVertexAttribPointer( RGBA_ATTRIB,   4, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(0 *sizeof(GLfloat)) );
-// 				glVertexAttribPointer( TAN_ATTRIB,    3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(9 *sizeof(GLfloat)) );
-// 				glVertexAttribPointer( BITAN_ATTRIB,  3, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(12*sizeof(GLfloat)) );
-// 				glVertexAttribPointer( UV_ATTRIB,     2, GL_FLOAT, GL_FALSE, 15 * sizeof(GLfloat), (GLvoid*)(4 *sizeof(GLfloat)) );
-// 			}
-// 			glDrawElements( GL_TRIANGLES, currentR->numVertices, GL_UNSIGNED_INT, 0 );
-
-// 			glDisableVertexAttribArray( VERTEX_ATTRIB );
-// 			glDisableVertexAttribArray( NORM_ATTRIB );
-// 			if( !vertex_only ) {
-// 				glDisableVertexAttribArray( RGBA_ATTRIB );
-// 				glDisableVertexAttribArray( TAN_ATTRIB );
-// 				glDisableVertexAttribArray( BITAN_ATTRIB );
-// 				glDisableVertexAttribArray( UV_ATTRIB );
-// 			}
-// 		}
-// 	}
-
-// 	glDisable(GL_CULL_FACE);
-// 	glDisable(GL_DEPTH_TEST);
-// }
 
 void RenderSystem::drawAllRenderables( glm::mat4 *viewMat, glm::mat4 *projMat, bool vertex_only ) {
 	glEnableVertexAttribArray( VERTEX_ATTRIB );
@@ -803,18 +732,6 @@ void RenderSystem::generateEnvironmentMap(glm::vec3 & playerLoc) {
 	glViewport(0, 0, textureHeight/4, textureHeight/4);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, cubemapFBO);
-	// glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, environmentMap);
-
-	glm::vec4 faceColor[6] = {
-		glm::vec4(1.0,0.0,0.0,1.0),
-		glm::vec4(1.0,1.0,0.0,1.0),
-		glm::vec4(1.0,1.0,1.0,1.0),
-		glm::vec4(0.0,1.0,0.0,1.0),
-		glm::vec4(0.0,0.0,1.0,1.0),
-		glm::vec4(1.0,0.0,1.0,1.0),
-	};
 
 	GLenum buffers[1] = {GL_COLOR_ATTACHMENT0};
 	glDrawBuffers(1,&buffers[0]);
@@ -823,9 +740,6 @@ void RenderSystem::generateEnvironmentMap(glm::vec3 & playerLoc) {
 
 	for(int i = 0; i < 6; i++) {
 		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, environmentMap, 0);
-		//cubeMapRenderTargets[i].bindFrameBuffer(); // render to specific side of cube
-		//glClearColor(faceColor[i].x, faceColor[i].y, faceColor[i].z, faceColor[i].w);
-	    //glClearDepth(1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		glm::vec3 up = glm::vec3(0.0, -1.0, 0.0);
@@ -846,8 +760,6 @@ void RenderSystem::generateEnvironmentMap(glm::vec3 & playerLoc) {
 
 	}
 	glDisable(GL_DEPTH_TEST);
-
-	glClearColor(0.0, 0.0, 0.0, 0.0);
 }
 
 void RenderSystem::setUpFrameBuffers()
