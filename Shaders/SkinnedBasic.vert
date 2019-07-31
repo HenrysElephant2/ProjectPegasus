@@ -29,7 +29,7 @@ void main() {
 	mat4 transform = BoneTransforms[BoneIDs.x] * Weights.x + BoneTransforms[BoneIDs.y] * Weights.y + BoneTransforms[BoneIDs.z] * Weights.z + BoneTransforms[BoneIDs.w] * Weights.w;
 	vec4 VertexFinal = transform * Vertex;
 	vec4 NormalFinal = transform * vec4(Normal,0.0);
-	vec3 worldspaceNormal = normalize(NormalFinal.xyz * NormalMatrix);
+	vec3 worldspaceNormal = normalize( NormalMatrix * NormalFinal.xyz);
 
 	vec4 worldVertexPosition = Model * VertexFinal;
 	fragPos = worldVertexPosition / worldVertexPosition.w;
